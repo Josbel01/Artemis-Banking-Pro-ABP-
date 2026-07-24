@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/Source/" />
+  <Folder Name="/Source/Core/">
+    <Project Path="ABP.Core.Application/ABP.Core.Application.csproj" />
+    <Project Path="ABP.Core.Domain/ABP.Core.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Source/Infrastructure/">
+    <Project Path="ABP.Infrastructure.Identity/ABP.Infrastructure.Identity.csproj" />
+    <Project Path="ABP.Infrastructure.Persistence/ABP.Infrastructure.Persistence.csproj" />
+    <Project Path="ABP.Infrastructure.Shared/ABP.Infrastructure.Shared.csproj" />
+  </Folder>
+  <Folder Name="/Source/Presentation/" />
+  <Folder Name="/Source/Presentation/Azure Functions/">
+    <Project Path="FunctionApp1/FunctionApp1.csproj" />
+  </Folder>
+  <Folder Name="/Source/Presentation/WebApi/">
+    <Project Path="Artemis Banking Pro WebApi/ArtemisBankingApi.csproj" />
+  </Folder>
+  <Folder Name="/Source/Presentation/WebApp/">
+    <Project Path="Artemis Banking Pro/ArtemisBankingPro.csproj" />
+  </Folder>
+  <Folder Name="/Source/Tests/">
+    <Project Path="ABP.Integration.Test/ABP.Integration.Tests.csproj" />
+    <Project Path="ABP.Unit.Tests/ABP.Unit.Tests.csproj" />
+  </Folder>
+</Solution>
