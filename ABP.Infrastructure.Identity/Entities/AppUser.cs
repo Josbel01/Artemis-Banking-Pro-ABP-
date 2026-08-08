@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,11 @@ using System.Threading.Tasks;
 
 namespace ABP.Infrastructure.Identity.Entities
 {
-    internal class AppUser
+    public class AppUser : IdentityUser
     {
+        public required string Name { get; set; }
+        public required string LastName { get; set; }
+        public string? ProfileImage { get; set; }
+        public bool IsActive { get; set; } = false;
     }
 }

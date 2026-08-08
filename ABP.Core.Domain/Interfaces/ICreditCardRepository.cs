@@ -8,5 +8,6 @@ namespace ABP.Core.Domain.Interfaces
     {
         Task<CreditCard?> GetByCardNumberAsync(string cardNumber);
         Task<List<CreditCard>> GetAllByClientIdAsync(string clientId);
+        Task<bool> ExistsCardNumberAsync(string cardNumber);
     }
 }

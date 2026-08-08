@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ABP.Infrastructure.Identity.Seeds
+namespace ABP.Core.Application.Behaviors
 {
     internal class Class1
     {

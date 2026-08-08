@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace ABP.Core.Domain.Common.Enums
 {
-    public enum Roles
+    public enum UserRoles
     {
-        Administrator,
+        Admin,
         Cashier,
-        Client,
-        Commerce
+        Client
     }
 }

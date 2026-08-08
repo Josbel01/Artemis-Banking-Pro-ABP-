@@ -8,5 +8,7 @@ namespace ABP.Core.Domain.Interfaces
     {
         Task<SavingAccount?> GetByAccountNumberAsync(string accountNumber);
         Task<List<SavingAccount>> GetAllByClientIdAsync(string clientId);
+        Task<SavingAccount?> GetPrincipalAccountByClientIdAsync(string clientId);
+        Task<bool> ExistsAccountNumberAsync(string accountNumber);
     }
 }

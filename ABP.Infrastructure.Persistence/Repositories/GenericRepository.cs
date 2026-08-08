@@ -1,17 +1,17 @@
-﻿using System;
+using ABP.Core.Domain.Interfaces;
+using ABP.Infrastructure.Persistence.Contexts;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ABP.Infrastructure.Persistence.Repositories
 {
-    public class GenericRepository<Entity> : IGenericRepository<Entity>
-           where Entity : class
+    public class GenericRepository<Entity> : IGenericRepository<Entity> where Entity : class
     {
-        private readonly RealEstateAppContext _context;
+        protected readonly ArtemisBankingAppContext _context;
 
-        public GenericRepository(RealEstateAppContext context)
+        public GenericRepository(ArtemisBankingAppContext context)
         {
             _context = context;
         }
@@ -33,7 +33,6 @@ namespace ABP.Infrastructure.Persistence.Repositories
         public virtual async Task DeleteAsync(int id)
         {
             var entity = await _context.Set<Entity>().FindAsync(id);
-
             if (entity != null)
             {
                 _context.Set<Entity>().Remove(entity);
@@ -49,12 +48,10 @@ namespace ABP.Infrastructure.Persistence.Repositories
         public virtual async Task<List<Entity>> GetAllListWithInclude(List<string> properties)
         {
             var query = _context.Set<Entity>().AsQueryable();
-
             foreach (var property in properties)
             {
                 query = query.Include(property);
             }
-
             return await query.ToListAsync();
         }
 
@@ -66,12 +63,10 @@ namespace ABP.Infrastructure.Persistence.Repositories
         public virtual IQueryable<Entity> GetAllQueryWithInclude(List<string> properties)
         {
             var query = _context.Set<Entity>().AsQueryable();
-
             foreach (var property in properties)
             {
                 query = query.Include(property);
             }
-
             return query;
         }
 
@@ -83,18 +78,13 @@ namespace ABP.Infrastructure.Persistence.Repositories
         public virtual async Task<Entity?> UpdateAsync(int id, Entity entity)
         {
             var entry = await _context.Set<Entity>().FindAsync(id);
-
             if (entry != null)
             {
                 _context.Entry(entry).CurrentValues.SetValues(entity);
                 await _context.SaveChangesAsync();
                 return entry;
-
             }
-            else
-            {
-                return null;
-            }
+            return null;
         }
     }
 }
