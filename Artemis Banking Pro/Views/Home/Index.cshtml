@@ -1,8 +1,197 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Iniciar sesión";
+    ViewBag.HideNav = true;
+    ViewBag.BodyClass = "abp-login-page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="login-page">
+
+    <!-- ══════════════════════════════════
+         LEFT — Navy + City skyline
+    ════════════════════════════════════ -->
+    <div class="login-left">
+
+        <!-- Background image + overlay -->
+        <div class="login-left-bg"></div>
+
+        <!-- Logo -->
+        <div class="login-left-top">
+            <div class="login-logo">
+                <div class="login-logo-icon">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+                <div class="login-logo-text">
+                    <div class="login-logo-title">ARTEMIS</div>
+                    <div class="login-logo-sub">Banking Pro</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Headline & description -->
+        <div class="login-left-middle">
+            <h1 class="login-headline">
+                Bienvenido a<br>
+                <span class="gold">Artemis Banking Pro</span>
+            </h1>
+            <p class="login-desc">
+                Tu banco, siempre contigo. Administra tus productos financieros,
+                realiza operaciones y consulta tu información de forma segura y sencilla.
+            </p>
+        </div>
+
+        <!-- Feature badges -->
+        <div class="login-left-bottom">
+            <div class="login-features">
+                <div class="login-feature">
+                    <div class="login-feature-header">
+                        <i class="fa-solid fa-shield-halved" style="color: transparent; -webkit-text-stroke: 1.5px #3568b2;"></i>
+                        Seguro
+                    </div>
+                    <p>Protegemos tu<br>información.</p>
+                </div>
+                <div class="login-feature">
+                    <div class="login-feature-header">
+                        <i class="fa-regular fa-clock" style="color: transparent; -webkit-text-stroke: 1px #3568b2;"></i>
+                        Disponible 24/7
+                    </div>
+                    <p>Realiza operaciones<br>cuando lo necesites.</p>
+                </div>
+                <div class="login-feature">
+                    <div class="login-feature-header">
+                        <i class="fa-solid fa-lock" style="color: transparent; -webkit-text-stroke: 1.5px #3568b2;"></i>
+                        Confiable
+                    </div>
+                    <p>Transacciones<br>rápidas y seguras.</p>
+                </div>
+            </div>
+
+            <div class="login-left-footer-text">
+                &copy; @DateTime.Now.Year Artemis Banking Pro. Todos los derechos reservados.
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════
+         RIGHT — White card with form
+    ════════════════════════════════════ -->
+    <div class="login-right">
+        <div class="login-card">
+
+            <!-- Avatar icon -->
+            <div class="login-avatar">
+                <i class="fa-solid fa-user"></i>
+            </div>
+
+            <h2 class="login-card-title">Iniciar sesión</h2>
+            <p class="login-card-sub">Ingresa tus credenciales para continuar</p>
+
+            @* Error alert — descomentar al conectar backend
+            <div class="login-error-alert">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>Los datos de acceso son inválidos.</span>
+            </div>
+            *@
+
+            <form id="loginForm" method="post" asp-controller="Account" asp-action="Index" novalidate>
+                @Html.AntiForgeryToken()
+
+                <!-- Nombre de usuario -->
+                <div class="lf-group">
+                    <label class="lf-label" for="Username">Nombre de usuario</label>
+                    <div class="lf-field">
+                        <i class="fa-regular fa-user lf-icon"></i>
+                        <input
+                            id="Username"
+                            name="Username"
+                            type="text"
+                            class="lf-input"
+                            placeholder="Ingresa tu usuario"
+                            autocomplete="username"
+                            autofocus
+                            required />
+                    </div>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="lf-group">
+                    <label class="lf-label" for="Password">Contraseña</label>
+                    <div class="lf-field">
+                        <i class="fa-solid fa-lock lf-icon"></i>
+                        <input
+                            id="Password"
+                            name="Password"
+                            type="password"
+                            class="lf-input"
+                            placeholder="Ingresa tu contraseña"
+                            autocomplete="current-password"
+                            required />
+                        <button type="button" class="lf-eye" id="togglePwd" title="Mostrar contraseña">
+                            <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recordarme + ¿Olvidaste? -->
+                <div class="lf-meta-row">
+                    <label class="lf-check-label" for="RememberMe">
+                        <input type="checkbox" id="RememberMe" name="RememberMe" class="lf-checkbox" />
+                        Recordarme
+                    </label>
+                    <a href="/Account/ForgotPassword" class="lf-forgot">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <!-- Botón principal -->
+                <button type="submit" id="btnLogin" class="btn-login-primary">
+                    <i class="fa-solid fa-lock" style="font-size: 0.9em;"></i> Iniciar sesión
+                </button>
+
+            </form>
+
+            <!-- Divider -->
+            <div class="login-divider">o</div>
+
+            <!-- Restablecer contraseña -->
+            <a href="/Account/ForgotPassword" class="btn-login-secondary">
+                <i class="fa-regular fa-envelope"></i>
+                Restablecer contraseña
+            </a>
+
+            <!-- Info box -->
+            <div class="login-info-box">
+                <i class="fa-solid fa-circle-info"></i>
+                <div class="login-info-box-text">
+                    <strong>¿Tu cuenta aún no está activa?</strong>
+                    <p>Revisa tu correo electrónico para completar la activación de tu cuenta.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </div>
+
+@section Scripts {
+<script>
+    // Toggle password visibility
+    const toggleBtn = document.getElementById('togglePwd');
+    const pwdInput  = document.getElementById('Password');
+    const eyeIcon   = document.getElementById('eyeIcon');
+
+    toggleBtn.addEventListener('click', () => {
+        const isHidden = pwdInput.type === 'password';
+        pwdInput.type  = isHidden ? 'text' : 'password';
+        eyeIcon.className = isHidden ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+    });
+
+    // Loading state on submit
+    const form    = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('btnLogin');
+
+    form.addEventListener('submit', () => {
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Verificando...';
+        loginBtn.style.opacity = '0.8';
+    });
+</script>
+}

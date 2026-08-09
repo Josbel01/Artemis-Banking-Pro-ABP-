@@ -6,11 +6,7 @@ using System.Threading.Tasks;
 
 namespace ABP.Core.Application.ViewModels
 {
-    public class BasicViewModel<TId>
+    internal class BasicViewModel
     {
-        public TId? Id { get; set; }
-        public DateTime Created { get; set; } = DateTime.UtcNow;
-        public DateTime? Updated { get; set; }
-        public bool IsActive { get; set; } = true;
     }
 }

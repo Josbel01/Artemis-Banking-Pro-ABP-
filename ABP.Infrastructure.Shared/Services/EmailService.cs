@@ -1,11 +1,13 @@
 using ABP.Core.Application.Dtos.Email;
 using ABP.Core.Application.Interfaces;
 using ABP.Core.Domain.Settings;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using SmtpClient = MailKit.Net.Smtp.SmtpClient;
+using System;
+using System.Threading.Tasks;
 
 namespace ABP.Infrastructure.Shared.Services
 {
@@ -13,11 +15,13 @@ namespace ABP.Infrastructure.Shared.Services
     {
         private readonly EmailSettings _emailSettings;
         private readonly ILogger<EmailService> _logger;
+
         public EmailService(IOptions<EmailSettings> emailSettings, ILogger<EmailService> logger)
         {
             _emailSettings = emailSettings.Value;
             _logger = logger;
         }
+
         public async Task SendAsync(EmailRequestDto EmailRequestDto)
         {
             try
@@ -27,7 +31,7 @@ namespace ABP.Infrastructure.Shared.Services
                     Subject = EmailRequestDto.Subject
                 };
 
-                email.From.Add(new MailboxAddress(_emailSettings.DisplayName ?? "", _emailSettings.EmailFrom));
+                email.From.Add(new MailboxAddress(_emailSettings.DisplayName ?? "", _emailSettings.EmailFrom ?? ""));
 
                 if (!string.IsNullOrWhiteSpace(EmailRequestDto.To))
                 {
@@ -52,17 +56,15 @@ namespace ABP.Infrastructure.Shared.Services
                 email.Body = builder.ToMessageBody();
 
                 using var smtp = new SmtpClient();
-                await smtp.ConnectAsync(_emailSettings.SmtpHost, _emailSettings.SmtpPort, SecureSocketOptions.StartTls);
-                await smtp.AuthenticateAsync(_emailSettings.SmtpUser, _emailSettings.SmtpPass);
+                await smtp.ConnectAsync(_emailSettings.SmtpHost ?? "", _emailSettings.SmtpPort, SecureSocketOptions.StartTls);
+                await smtp.AuthenticateAsync(_emailSettings.SmtpUser ?? "", _emailSettings.SmtpPass ?? "");
                 await smtp.SendAsync(email);
                 await smtp.DisconnectAsync(true);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al enviar el correo electronico");
+                _logger.LogError(ex, "Error al enviar el correo electrónico");
             }
         }
-
-
     }
 }

@@ -7,4 +7,17 @@
     <RootNamespace>Artemis_Banking_Pro</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ABP.Core.Application\ABP.Core.Application.csproj" />
+    <ProjectReference Include="..\ABP.Core.Domain\ABP.Core.Domain.csproj" />
+    <ProjectReference Include="..\ABP.Infrastructure.Identity\ABP.Infrastructure.Identity.csproj" />
+    <ProjectReference Include="..\ABP.Infrastructure.Persistence\ABP.Infrastructure.Persistence.csproj" />
+    <ProjectReference Include="..\ABP.Infrastructure.Shared\ABP.Infrastructure.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>
+
