@@ -1,4 +1,4 @@
-﻿using ABP.Core.Application.Interfaces;
+using ABP.Core.Application.Interfaces;
 using ABP.Core.Domain.Interfaces;
 using AutoMapper;
 using System;
@@ -26,13 +26,9 @@ namespace ABP.Core.Application.Services
         {
             try
             {
-                TEntity T = _mapper.Map<TEntity>(dto);
-                TEntity? returnEntity = await _repository.AddAsync(T);
-                if (returnEntity == null)
-                {
-                    return null;
-                }
-                return _mapper.Map<TDto>(returnEntity);
+                TEntity entity = _mapper.Map<TEntity>(dto);
+                TEntity? returnEntity = await _repository.AddAsync(entity);
+                return returnEntity == null ? null : _mapper.Map<TDto>(returnEntity);
             }
             catch (Exception)
             {
@@ -58,13 +54,11 @@ namespace ABP.Core.Application.Services
             try
             {
                 var listEntities = await _repository.GetAllListAsync();
-                var listEntityDtos = _mapper.Map<List<TDto>>(listEntities);
-
-                return listEntityDtos;
+                return _mapper.Map<List<TDto>>(listEntities);
             }
             catch (Exception)
             {
-                return [];
+                return new List<TDto>();
             }
         }
 
@@ -77,7 +71,7 @@ namespace ABP.Core.Application.Services
             }
             catch (Exception)
             {
-                return [];
+                return new List<TDto>();
             }
         }
 
@@ -86,13 +80,7 @@ namespace ABP.Core.Application.Services
             try
             {
                 var entity = await _repository.GetByIdAsync(id);
-                if (entity == null)
-                {
-                    return null;
-                }
-
-                TDto dto = _mapper.Map<TDto>(entity);
-                return dto;
+                return entity == null ? null : _mapper.Map<TDto>(entity);
             }
             catch (Exception)
             {
@@ -106,12 +94,7 @@ namespace ABP.Core.Application.Services
             {
                 TEntity entity = _mapper.Map<TEntity>(dto);
                 TEntity? returnEntity = await _repository.UpdateAsync(id, entity);
-                if (returnEntity == null)
-                {
-                    return null;
-                }
-
-                return _mapper.Map<TDto>(returnEntity);
+                return returnEntity == null ? null : _mapper.Map<TDto>(returnEntity);
             }
             catch (Exception)
             {

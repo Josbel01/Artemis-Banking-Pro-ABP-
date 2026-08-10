@@ -1,0 +1,90 @@
+@model ABP.Core.Application.ViewModels.Beneficiaries.SaveBeneficiaryViewModel
+@{
+    ViewData["Title"] = "Agregar Beneficiario";
+}
+
+
+<div class="container-xxl px-4 mt-5">
+    <div class="row">
+        <!-- Sidebar Menu -->
+        <div class="col-lg-3 mb-4 mb-lg-0">
+            <div class="card bg-white border-0 h-100" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important;">
+                <div class="card-body p-3">
+                    <h6 class="text-muted fw-bold text-uppercase mb-3 px-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Gestión de Contactos</h6>
+                    <div class="nav flex-column nav-pills">
+                        <a href="/Beneficiary" class="nav-link fw-semibold d-flex align-items-center mb-1" style="color: #64748b; border-radius: 10px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.03)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#64748b';">
+                            <i class="fa-solid fa-address-book me-3 text-center" style="width: 20px;"></i> Mis Beneficiarios
+                        </a>
+                        <a href="/Beneficiary/Create" class="nav-link active fw-semibold d-flex align-items-center mb-1" style="background: rgba(53,104,178,0.1); color: #2d5da1; border-radius: 10px;">
+                            <i class="fa-solid fa-user-plus me-3 text-center" style="width: 20px;"></i> Nuevo Beneficiario
+                        </a>
+                        <hr class="my-3 text-muted opacity-25" />
+                        <a href="/Transaction/Transfer" class="nav-link fw-semibold d-flex align-items-center" style="color: #64748b; border-radius: 10px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.03)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#64748b';">
+                            <i class="fa-solid fa-money-bill-transfer me-3 text-center" style="width: 20px;"></i> Hacer Transferencia
+                        </a>
+                        <a href="/" class="nav-link fw-semibold d-flex align-items-center mt-1" style="color: #64748b; border-radius: 10px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.03)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#64748b';">
+                            <i class="fa-solid fa-arrow-left me-3 text-center" style="width: 20px;"></i> Volver al Inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    <a asp-action="Index" class="text-muted mb-4 d-inline-block text-decoration-none" style="transition: color 0.2s;">
+                        <i class="fa-solid fa-arrow-left me-2"></i>Volver a mis beneficiarios
+                    </a>
+
+                    <div class="card border-0 overflow-hidden" style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e5e7eb !important;">
+                        <div class="card-header border-0 bg-transparent p-4 pb-0">
+                            <h3 class="text-dark fw-bold mb-0" style="font-family: 'Outfit', sans-serif;">
+                                <i class="fa-solid fa-user-plus me-2" style="color: #2d5da1;"></i>Nuevo Beneficiario
+                            </h3>
+                            <p class="text-muted" style="font-size: 0.9rem;">Ingresa los datos exactos del contacto a agregar.</p>
+                        </div>
+                        <div class="card-body p-4 pt-3">
+                            <form asp-action="Create" method="post">
+                                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                                
+                                <div class="mb-4">
+                                    <label asp-for="BeneficiaryAccountNumber" class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Número de Cuenta Destino</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 text-muted" style="border: 1px solid #e5e7eb;">
+                                            <i class="fa-solid fa-hashtag"></i>
+                                        </span>
+                                        <input asp-for="BeneficiaryAccountNumber" class="form-control bg-light border-start-0 ps-0 text-dark" placeholder="Ej: 0000123456" style="border: 1px solid #e5e7eb; box-shadow: none;" />
+                                    </div>
+                                    <span asp-validation-for="BeneficiaryAccountNumber" class="text-danger small mt-1 d-block"></span>
+                                </div>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label asp-for="BeneficiaryName" class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Nombre(s)</label>
+                                        <input asp-for="BeneficiaryName" class="form-control bg-light text-dark" placeholder="Juan" style="border: 1px solid #e5e7eb; box-shadow: none;" />
+                                        <span asp-validation-for="BeneficiaryName" class="text-danger small mt-1 d-block"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="BeneficiaryLastName" class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Apellido(s)</label>
+                                        <input asp-for="BeneficiaryLastName" class="form-control bg-light text-dark" placeholder="Pérez" style="border: 1px solid #e5e7eb; box-shadow: none;" />
+                                        <span asp-validation-for="BeneficiaryLastName" class="text-danger small mt-1 d-block"></span>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold" style="background: #2d5da1; border: none; border-radius: 10px; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(45,93,161,0.3); transition: all 0.3s ease;">
+                                    Guardar Beneficiario
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

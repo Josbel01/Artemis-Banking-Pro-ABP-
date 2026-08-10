@@ -1,0 +1,105 @@
+@model IEnumerable<ABP.Core.Application.Dtos.Beneficiaries.BeneficiaryDto>
+@{
+    ViewData["Title"] = "Mis Beneficiarios";
+}
+
+
+<div class="container-xxl px-4 mt-5">
+    <div class="row">
+        <!-- Sidebar Menu -->
+        <div class="col-lg-3 mb-4 mb-lg-0">
+            <div class="card bg-white border-0 h-100" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important;">
+                <div class="card-body p-3">
+                    <h6 class="text-muted fw-bold text-uppercase mb-3 px-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Gestión de Contactos</h6>
+                    <div class="nav flex-column nav-pills">
+                        <a href="/Beneficiary" class="nav-link active fw-semibold d-flex align-items-center mb-1" style="background: rgba(53,104,178,0.1); color: #2d5da1; border-radius: 10px;">
+                            <i class="fa-solid fa-address-book me-3 text-center" style="width: 20px;"></i> Mis Beneficiarios
+                        </a>
+                        <a href="/Beneficiary/Create" class="nav-link fw-semibold d-flex align-items-center mb-1" style="color: #64748b; border-radius: 10px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.03)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#64748b';">
+                            <i class="fa-solid fa-user-plus me-3 text-center" style="width: 20px;"></i> Nuevo Beneficiario
+                        </a>
+                        <hr class="my-3 text-muted opacity-25" />
+                        <a href="/Transaction/Transfer" class="nav-link fw-semibold d-flex align-items-center" style="color: #64748b; border-radius: 10px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.03)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#64748b';">
+                            <i class="fa-solid fa-money-bill-transfer me-3 text-center" style="width: 20px;"></i> Hacer Transferencia
+                        </a>
+                        <a href="/" class="nav-link fw-semibold d-flex align-items-center mt-1" style="color: #64748b; border-radius: 10px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.03)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#64748b';">
+                            <i class="fa-solid fa-arrow-left me-3 text-center" style="width: 20px;"></i> Volver al Inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
+                <div>
+                    <h1 class="h3 fw-bold mb-1" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">
+                        <i class="fa-solid fa-address-book me-2" style="color: #1a56db;"></i>Mis Beneficiarios
+                    </h1>
+                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Gestiona tu libreta de contactos para transferencias rápidas.</p>
+                </div>
+                <a asp-action="Create" class="btn btn-primary d-none d-sm-inline-block" style="background: linear-gradient(135deg, #1a56db, #3b82f6); border: none; font-weight: 600; padding: 0.6rem 1.2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(26,86,219,0.3); transition: all 0.3s ease;">
+                    <i class="fa-solid fa-plus me-2"></i>Agregar
+                </a>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                @if (!Model.Any())
+                {
+                    <div class="col-12 text-center py-5">
+                        <div class="p-5 bg-white" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+                            <i class="fa-regular fa-address-book mb-3" style="font-size: 3rem; color: #cbd5e1;"></i>
+                            <h5 class="text-dark fw-bold">Aún no tienes beneficiarios</h5>
+                            <p class="text-muted mb-4">Agrega cuentas de terceros para realizar pagos y transferencias ágilmente.</p>
+                            <a asp-action="Create" class="btn btn-outline-primary" style="border-radius: 6px; padding: 0.5rem 1rem;">Agregar ahora</a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    foreach (var b in Model)
+                    {
+                        <div class="col">
+                            <div class="card h-100 bg-white position-relative overflow-hidden" style="border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s;">
+                                <!-- Decal -->
+                                <div class="position-absolute" style="top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(45,93,161,0.05) 0%, rgba(255,255,255,0) 70%); border-radius: 50%;"></div>
+                                
+                                <div class="card-body p-4 position-relative z-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(45,93,161,0.1); color: #2d5da1;">
+                                            <i class="fa-solid fa-user"></i>
+                                        </div>
+                                        <form asp-action="Delete" asp-route-id="@b.Id" method="post" onsubmit="return confirm('¿Estás seguro de eliminar este beneficiario?');">
+                                            <button type="submit" class="btn btn-sm btn-link text-danger p-0 m-0" style="text-decoration: none; font-size: 1.1rem; transition: opacity 0.2s;" title="Eliminar">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                                    <h5 class="card-title text-dark fw-bold mb-1" style="font-family: 'Outfit', sans-serif;">@b.BeneficiaryName @b.BeneficiaryLastName</h5>
+                                    <p class="card-text text-muted mb-0" style="font-family: monospace; font-size: 0.95rem;">
+                                        <i class="fa-solid fa-money-check me-2" style="color: #2d5da1;"></i>@b.BeneficiaryAccountNumber
+                                    </p>
+                                </div>
+                                <div class="card-footer bg-transparent border-0 p-4 pt-0 text-end position-relative z-1">
+                                    <a href="/Transaction/Transfer?dest=@b.BeneficiaryAccountNumber" class="fw-semibold" style="color: #2d5da1; text-decoration: none; font-size: 0.85rem; letter-spacing: 0.5px;">
+                                        TRANSFERIR <i class="fa-solid fa-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.2) !important;
+        border-color: rgba(26,86,219,0.3) !important;
+    }
+</style>

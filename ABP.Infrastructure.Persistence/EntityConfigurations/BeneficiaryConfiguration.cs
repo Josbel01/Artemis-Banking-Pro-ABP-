@@ -19,7 +19,6 @@ namespace ABP.Infrastructure.Persistence.EntityConfigurations
             builder.Property(b => b.BeneficiaryAccountNumber).IsRequired().HasMaxLength(9);
             builder.Property(b => b.BeneficiaryName).IsRequired();
             builder.Property(b => b.BeneficiaryLastName).IsRequired();
-
             builder.HasIndex(b => new { b.ClientId, b.BeneficiaryAccountNumber }).IsUnique();
             #endregion
         }
