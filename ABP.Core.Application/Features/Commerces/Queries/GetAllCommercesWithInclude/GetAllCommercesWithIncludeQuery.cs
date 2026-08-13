@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Commerces.Queries.GetAllCommercesWithInclude { public class GetAllCommercesWithIncludeQuery { } }

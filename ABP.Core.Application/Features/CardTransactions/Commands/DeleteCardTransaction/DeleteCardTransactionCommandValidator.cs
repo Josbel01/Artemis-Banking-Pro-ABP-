@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.CardTransactions.Commands.DeleteCardTransaction { public class DeleteCardTransactionCommandValidator { } }

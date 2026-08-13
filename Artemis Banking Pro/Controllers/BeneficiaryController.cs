@@ -1,13 +1,13 @@
 using ABP.Core.Application.Interfaces;
 using ABP.Core.Application.ViewModels.Beneficiaries;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using AutoMapper;
-using ABP.Core.Application.Dtos.Beneficiaries;
 
 namespace ArtemisBankingPro.Controllers
 {
+    [Authorize(Roles = "Client")]
     public class BeneficiaryController : Controller
     {
         private readonly IBeneficiaryService _beneficiaryService;
@@ -19,17 +19,17 @@ namespace ArtemisBankingPro.Controllers
             _mapper = mapper;
         }
 
-        // Simula o obtiene el ID del usuario actual (Temporal hasta tener Identity)
-        private string GetCurrentClientId()
+        private string? GetCurrentClientId()
         {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "client-mock-123";
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
         public async Task<IActionResult> Index()
         {
             var clientId = GetCurrentClientId();
-            var beneficiaries = await _beneficiaryService.GetAllByClientIdAsync(clientId);
-            return View(beneficiaries);
+            var dtos = await _beneficiaryService.GetAllByClientIdAsync(clientId ?? string.Empty);
+            var viewModels = _mapper.Map<IEnumerable<BeneficiaryViewModel>>(dtos);
+            return View(viewModels);
         }
 
         public IActionResult Create()
@@ -46,10 +46,9 @@ namespace ArtemisBankingPro.Controllers
             }
 
             var clientId = GetCurrentClientId();
-            vm.ClientId = clientId;
+            vm.ClientId = clientId ?? string.Empty;
 
-            // TODO: Aqui idealmente se verificaria si la cuenta existe usando ISavingAccountService, pero por ahora lo guardamos
-            var dto = _mapper.Map<BeneficiaryDto>(vm);
+            var dto = _mapper.Map<ABP.Core.Application.Dtos.Beneficiaries.BeneficiaryDto>(vm);
             await _beneficiaryService.AddAsync(dto);
 
             TempData["SuccessMessage"] = "Beneficiario agregado exitosamente.";

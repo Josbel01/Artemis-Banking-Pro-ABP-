@@ -1,0 +1,130 @@
+@model ABP.Core.Application.ViewModels.Cashier.ConfirmationViewModel
+@{
+    ViewData["Title"] = "Operación Confirmada";
+
+    var iconMap = new Dictionary<string, string>
+    {
+        { "Depósito",                     "fa-arrow-down-to-bracket" },
+        { "Retiro",                        "fa-arrow-up-from-bracket" },
+        { "Pago a Tarjeta de Crédito",    "fa-credit-card" },
+        { "Pago a Préstamo",              "fa-hand-holding-dollar" },
+        { "Transferencia entre Cuentas",   "fa-arrows-left-right" }
+    };
+    var icon = iconMap.GetValueOrDefault(Model?.OperationType ?? "", "fa-circle-check");
+
+    var colorMap = new Dictionary<string, string>
+    {
+        { "Depósito",                     "#16a34a" },
+        { "Retiro",                        "#dc2626" },
+        { "Pago a Tarjeta de Crédito",    "#1a56db" },
+        { "Pago a Préstamo",              "#7c3aed" },
+        { "Transferencia entre Cuentas",   "#0891b2" }
+    };
+    var colorHex = colorMap.GetValueOrDefault(Model?.OperationType ?? "", "#475569");
+}
+
+<div class="container-xxl px-4 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+
+            @if (Model == null)
+            {
+                <div class="text-center py-5 bg-white" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+                    <i class="fa-solid fa-circle-xmark mb-3" style="font-size: 3rem; color: #dc2626;"></i>
+                    <h5 class="text-dark fw-bold">No se encontró el resultado</h5>
+                    <p class="text-muted mb-4">No se pudo cargar la confirmación de la operación.</p>
+                    <a asp-controller="Cashier" asp-action="Home" class="btn btn-primary px-4 py-2" style="border-radius: 8px; font-weight: 600;">
+                        Volver al Panel
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div id="receipt-card" class="card border-0 overflow-hidden position-relative" style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px dashed #cbd5e1 !important;">
+                    
+                    <!-- Decorative zig-zag borders for receipt look -->
+                    <div style="position: absolute; top: -10px; left: 0; right: 0; height: 20px; background-image: radial-gradient(#f8fafc 50%, transparent 50%); background-size: 20px 20px; background-position: -10px -10px;"></div>
+                    <div style="position: absolute; bottom: -10px; left: 0; right: 0; height: 20px; background-image: radial-gradient(#f8fafc 50%, transparent 50%); background-size: 20px 20px; background-position: -10px 10px;"></div>
+
+                    <div class="card-body p-5 pt-5 pb-4">
+                        <div class="text-center mb-4">
+                            <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-3" style="width: 70px; height: 70px; background: @(colorHex)1A; color: @colorHex; font-size: 2rem;">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <h3 class="fw-bold text-dark mb-1" style="font-family: 'Outfit', sans-serif;">¡Operación Exitosa!</h3>
+                            <p class="text-muted">@Model.OperationType procesado correctamente.</p>
+                        </div>
+
+                        <div class="text-center mb-4 pb-4 border-bottom border-dashed" style="border-bottom-style: dashed !important; border-bottom-color: #cbd5e1 !important;">
+                            <span class="text-muted d-block text-uppercase fw-semibold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">Monto Operado</span>
+                            <h1 class="fw-bold mb-0" style="color: @colorHex; font-family: 'Outfit', sans-serif;">RD$@Model.Amount.ToString("N2")</h1>
+                        </div>
+
+                        <div class="px-2">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted" style="font-size: 0.9rem;">Transacción ID</span>
+                                <span class="fw-semibold text-dark" style="font-family: monospace;">@Model.TransactionId</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted" style="font-size: 0.9rem;">Fecha y Hora</span>
+                                <span class="fw-semibold text-dark">@Model.OperationDate.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</span>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(Model.AccountNumber))
+                            {
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="text-muted" style="font-size: 0.9rem;">Cuenta Origen</span>
+                                    <span class="fw-semibold text-dark" style="font-family: monospace;">@Model.AccountNumber</span>
+                                </div>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(Model.DestinationAccountNumber))
+                            {
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="text-muted" style="font-size: 0.9rem;">Cuenta Destino</span>
+                                    <span class="fw-semibold text-dark" style="font-family: monospace;">@Model.DestinationAccountNumber</span>
+                                </div>
+                            }
+
+                            @if (Model.NewBalance > 0)
+                            {
+                                <div class="d-flex justify-content-between mt-4 pt-3 border-top border-dashed" style="border-top-style: dashed !important; border-top-color: #cbd5e1 !important;">
+                                    <span class="text-muted fw-bold" style="font-size: 0.9rem;">Nuevo Balance</span>
+                                    <span class="fw-bold text-dark fs-5">RD$@Model.NewBalance.ToString("N2")</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4 gap-3">
+                    <button class="btn btn-outline-dark flex-grow-1 py-2 fw-semibold" style="border-radius: 8px;" onclick="window.print()">
+                        <i class="fa-solid fa-print me-2"></i>Imprimir Recibo
+                    </button>
+                    <a asp-controller="Cashier" asp-action="Home" class="btn btn-primary flex-grow-1 py-2 fw-semibold" style="background: @colorHex; border: none; border-radius: 8px;">
+                        <i class="fa-solid fa-house me-2"></i>Volver al Panel
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+        #receipt-card, #receipt-card * {
+            visibility: visible;
+        }
+        #receipt-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none !important;
+            box-shadow: none !important;
+        }
+    }
+</style>

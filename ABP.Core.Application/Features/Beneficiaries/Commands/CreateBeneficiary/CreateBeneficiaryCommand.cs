@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Beneficiaries.Commands.CreateBeneficiary { public class CreateBeneficiaryCommand { } }

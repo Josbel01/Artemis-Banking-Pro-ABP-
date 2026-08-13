@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Commerces.Commands.DeleteCommerce { public class DeleteCommerceCommandValidator { } }

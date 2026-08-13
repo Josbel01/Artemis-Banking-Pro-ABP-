@@ -1,0 +1,106 @@
+@model IEnumerable<ABP.Core.Application.ViewModels.Loans.LoanInstallmentViewModel>
+@{
+    ViewData["Title"] = "Cuotas del Préstamo";
+}
+
+<div class="container-xxl px-4 mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">
+                <i class="fa-regular fa-calendar-check me-2" style="color: #1a56db;"></i>Plan de Pagos
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Consulta tus cuotas y el calendario de pagos.</p>
+        </div>
+        <a href="/Loan/Index" class="btn btn-outline-secondary d-none d-sm-inline-block" style="border-radius: 8px; font-weight: 600; padding: 0.6rem 1.2rem;">
+            <i class="fa-solid fa-arrow-left me-2"></i>Volver a Préstamos
+        </a>
+    </div>
+
+    <div class="card bg-white border-0 shadow-sm" style="border-radius: 16px; border: 1px solid #e5e7eb !important;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #f8fafc;">
+                        <tr>
+                            <th class="text-uppercase text-muted fw-bold ps-4" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Cuota</th>
+                            <th class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Fecha Límite</th>
+                            <th class="text-uppercase text-muted fw-bold text-end" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Capital</th>
+                            <th class="text-uppercase text-muted fw-bold text-end" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Interés</th>
+                            <th class="text-uppercase text-muted fw-bold text-end" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Total Cuota</th>
+                            <th class="text-uppercase text-muted fw-bold text-end" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Pendiente</th>
+                            <th class="text-uppercase text-muted fw-bold text-center pe-4" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-list-ul fs-1 mb-3 text-light"></i>
+                                    <p class="mb-0">No hay cuotas registradas para este préstamo.</p>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var installment in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4 py-3 fw-bold text-dark">#@installment.InstallmentNumber</td>
+                                    <td class="py-3">
+                                        <div class="d-flex align-items-center">
+                                            @if (installment.IsLate && installment.PaymentStatus != ABP.Core.Domain.Common.Enums.PaymentStatus.Paid)
+                                            {
+                                                <i class="fa-solid fa-triangle-exclamation text-danger me-2" title="Cuota atrasada"></i>
+                                                <span class="text-danger fw-semibold">@installment.DueDate.ToString("dd MMM yyyy")</span>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-regular fa-calendar me-2 text-muted"></i>
+                                                <span class="text-muted">@installment.DueDate.ToString("dd MMM yyyy")</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td class="text-end py-3 text-muted">@installment.CapitalAmount.ToString("C")</td>
+                                    <td class="text-end py-3 text-muted">@installment.InterestAmount.ToString("C")</td>
+                                    <td class="text-end py-3 fw-bold text-dark">@installment.InstallmentAmount.ToString("C")</td>
+                                    <td class="text-end py-3">
+                                        @if (installment.PendingAmount > 0)
+                                        {
+                                            <span class="text-danger fw-semibold">@installment.PendingAmount.ToString("C")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success fw-semibold">@installment.PendingAmount.ToString("C")</span>
+                                        }
+                                    </td>
+                                    <td class="text-center pe-4 py-3">
+                                        @if (installment.PaymentStatus == ABP.Core.Domain.Common.Enums.PaymentStatus.Paid)
+                                        {
+                                            <span class="badge" style="background-color: #dcfce7; color: #166534; padding: 0.4rem 0.8rem; font-weight: 600;">Pagado</span>
+                                        }
+                                        else if (installment.PaymentStatus == ABP.Core.Domain.Common.Enums.PaymentStatus.Pending)
+                                        {
+                                            if (installment.IsLate)
+                                            {
+                                                <span class="badge" style="background-color: #fee2e2; color: #991b1b; padding: 0.4rem 0.8rem; font-weight: 600;">Atrasado</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge" style="background-color: #fef9c3; color: #854d0e; padding: 0.4rem 0.8rem; font-weight: 600;">Pendiente</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@installment.PaymentStatus</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

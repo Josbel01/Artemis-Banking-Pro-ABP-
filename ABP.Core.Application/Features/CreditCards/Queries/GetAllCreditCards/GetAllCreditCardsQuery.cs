@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.CreditCards.Queries.GetAllCreditCards { public class GetAllCreditCardsQuery { } }

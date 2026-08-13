@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Loans.Queries.GetAllLoansWithInclude { public class GetAllLoansWithIncludeQuery { } }

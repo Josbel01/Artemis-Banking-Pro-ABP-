@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Commerces.Commands.CreateCommerce { public class CreateCommerceCommand { } }

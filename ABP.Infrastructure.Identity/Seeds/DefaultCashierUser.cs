@@ -1,4 +1,4 @@
-﻿using ABP.Core.Domain.Common.Enums;
+using ABP.Core.Domain.Common.Enums;
 using ABP.Infrastructure.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +13,7 @@ namespace ABP.Infrastructure.Identity.Seeds
             {
                 Name = "Victor",
                 LastName = "Nunez",
+                Identification = "11111111111",
                 Email = "Victor@email.com",
                 EmailConfirmed = true,
                 PhoneNumberConfirmed = true,
@@ -23,7 +24,7 @@ namespace ABP.Infrastructure.Identity.Seeds
             if (await userManager.Users.AllAsync(u => u.Id != user.Id))
             {
                 var entityUser = await userManager.FindByEmailAsync(user.Email);
-                if (entityUser != null)
+                if (entityUser == null)
                 {
                     await userManager.CreateAsync(user, "Cashier_123*");
                     await userManager.AddToRoleAsync(user, UserRoles.Cashier.ToString());

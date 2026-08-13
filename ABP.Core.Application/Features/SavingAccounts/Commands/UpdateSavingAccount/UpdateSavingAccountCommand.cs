@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.SavingAccounts.Commands.UpdateSavingAccount { public class UpdateSavingAccountCommand { } }

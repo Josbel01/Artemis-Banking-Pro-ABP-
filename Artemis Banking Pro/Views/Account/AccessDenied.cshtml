@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Acceso Denegado";
+    ViewBag.HideNav = true; // We don't want the regular navbar here, just like in Login
+}
+
+<div class="d-flex align-items-center justify-content-center min-vh-100" style="background-color: #f8fafc;">
+    <div class="text-center p-5 bg-white shadow-sm" style="border-radius: 16px; max-width: 500px; border: 1px solid #e5e7eb;">
+        <div class="mb-4 d-inline-block rounded-circle" style="background-color: #fee2e2; padding: 20px;">
+            <i class="fa-solid fa-ban fa-3x" style="color: #dc2626;"></i>
+        </div>
+        
+        <h2 class="fw-bold mb-3" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">Acceso Denegado</h2>
+        
+        <p class="text-muted mb-4" style="font-size: 1.05rem;">
+            No tienes los permisos necesarios para acceder a esta aplicación. Si eres un <strong>Comercio</strong> o un cliente usando herramientas externas, por favor utiliza la <strong>Web API</strong> o la aplicación correspondiente para realizar tus operaciones.
+        </p>
+
+        <a href="/Account/Logout" class="btn w-100 py-3 fw-bold" style="background: linear-gradient(135deg, #0b1f3a, #1a56db); color: white; border-radius: 8px; transition: transform 0.2s;">
+            <i class="fa-solid fa-arrow-left me-2"></i>Volver al Inicio de Sesión
+        </a>
+    </div>
+</div>

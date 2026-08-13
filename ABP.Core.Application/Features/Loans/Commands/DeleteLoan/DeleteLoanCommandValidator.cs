@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Loans.Commands.DeleteLoan { public class DeleteLoanCommandValidator { } }

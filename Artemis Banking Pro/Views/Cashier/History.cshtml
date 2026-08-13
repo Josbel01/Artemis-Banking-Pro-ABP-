@@ -1,0 +1,136 @@
+@model ABP.Core.Application.ViewModels.Cashier.CashierHistoryViewModel
+@using ABP.Core.Domain.Common.Enums
+@{
+    ViewData["Title"] = "Historial del Día";
+}
+
+<div class="container-xxl px-4 mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">
+                <i class="fa-solid fa-clock-rotate-left me-2" style="color: #7c3aed;"></i>Historial de Hoy
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                <i class="fa-regular fa-calendar-days me-1"></i> @DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-ES"))
+                &mdash; @Model.Transactions.Count operación(es)
+            </p>
+        </div>
+        <a asp-controller="Cashier" asp-action="Home" class="btn btn-outline-dark" style="font-weight: 600; border-radius: 8px;">
+            <i class="fa-solid fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+
+    @if (!Model.Transactions.Any())
+    {
+        <div class="text-center py-5 bg-white" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+            <i class="fa-solid fa-inbox mb-3" style="font-size: 3rem; color: #cbd5e1;"></i>
+            <h5 class="text-dark fw-bold">Sin operaciones hoy</h5>
+            <p class="text-muted mb-4">No has realizado ninguna transacción el día de hoy.</p>
+            <a asp-controller="Cashier" asp-action="Home" class="btn btn-primary px-4 py-2" style="border-radius: 8px; font-weight: 600;">
+                <i class="fa-solid fa-bolt me-2"></i>Realizar una Operación
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <!-- Summary bar -->
+            <div class="col-12">
+                <div class="card border-0" style="background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important;">
+                    <div class="card-body d-flex flex-wrap justify-content-between text-center py-3">
+                        <div class="px-3 border-end">
+                            <h4 class="fw-bold text-dark mb-0">@Model.TotalDeposits</h4>
+                            <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Depósitos</span>
+                        </div>
+                        <div class="px-3 border-end">
+                            <h4 class="fw-bold text-dark mb-0">@Model.TotalWithdrawals</h4>
+                            <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Retiros</span>
+                        </div>
+                        <div class="px-3 border-end">
+                            <h4 class="fw-bold text-dark mb-0">@Model.TotalTransfers</h4>
+                            <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Transfers</span>
+                        </div>
+                        <div class="px-3 border-end">
+                            <h4 class="fw-bold text-dark mb-0">@Model.TotalLoanPayments</h4>
+                            <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Préstamos</span>
+                        </div>
+                        <div class="px-3">
+                            <h4 class="fw-bold text-primary mb-0">RD$@Model.TotalAmountOperated.ToString("N0")</h4>
+                            <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Total Operado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-transparent border-0">
+            <div class="table-responsive bg-white" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+                <table class="table table-hover table-borderless align-middle mb-0 text-dark">
+                    <thead style="background: #f8fafc; border-bottom: 2px solid #e5e7eb;">
+                        <tr>
+                            <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Operación</th>
+                            <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Cuentas</th>
+                            <th class="py-3 px-4 text-muted fw-semibold text-center" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Estado</th>
+                            <th class="py-3 px-4 text-muted fw-semibold text-end" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var tx in Model.Transactions)
+                        {
+                            var (typeLabel, typeIcon, colorHex) = tx.Type switch
+                            {
+                                TransactionType.Deposit    => ("Depósito",         "fa-arrow-down-to-bracket", "#16a34a"),
+                                TransactionType.Withdrawal => ("Retiro",            "fa-arrow-up-from-bracket",  "#dc2626"),
+                                TransactionType.Transfer   => ("Transferencia",     "fa-arrows-left-right",       "#0891b2"),
+                                TransactionType.LoanPayment => ("Pago Préstamo",   "fa-hand-holding-dollar",     "#7c3aed"),
+                                TransactionType.CreditCardPayment => ("Pago TC",   "fa-credit-card",             "#1a56db"),
+                                _                          => ("Transacción",       "fa-money-bill-transfer",     "#475569")
+                            };
+
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td class="py-3 px-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px; background: @(colorHex)1A; color: @colorHex;">
+                                            <i class="fa-solid @typeIcon"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">@typeLabel</div>
+                                            <div class="text-muted" style="font-size: 0.8rem;">@tx.TransactionDate.ToLocalTime().ToString("hh:mm tt")</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div style="font-family: monospace; font-size: 0.95rem;" class="text-dark">
+                                        @if (!string.IsNullOrEmpty(tx.Origin))
+                                        {
+                                            <div><span class="text-muted" style="font-size: 0.75rem;">DE:</span> @tx.Origin</div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(tx.Beneficiary) && tx.Beneficiary != tx.Origin)
+                                        {
+                                            <div><span class="text-muted" style="font-size: 0.75rem;">A:</span> @tx.Beneficiary</div>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    @if (tx.Status == TransactionStatus.Approved)
+                                    {
+                                        <span class="badge" style="background: #dcfce7; color: #166534; padding: 0.4rem 0.8rem; border-radius: 6px;"><i class="fa-solid fa-circle-check me-1"></i>Aprobada</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge" style="background: #fee2e2; color: #991b1b; padding: 0.4rem 0.8rem; border-radius: 6px;"><i class="fa-solid fa-circle-xmark me-1"></i>Rechazada</span>
+                                    }
+                                </td>
+                                <td class="py-3 px-4 text-end">
+                                    <div class="fw-bold fs-5" style="color: @colorHex; font-family: 'Outfit', sans-serif;">
+                                        RD$@tx.Amount.ToString("N2")
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

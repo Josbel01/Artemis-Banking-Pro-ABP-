@@ -1,0 +1,16 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace ABP.Core.Application.ViewModels.Cashier
+{
+    public class LoanPaymentViewModel
+    {
+        [Required(ErrorMessage = "El número de préstamo es requerido.")]
+        [Display(Name = "Número de Préstamo")]
+        public string LoanNumber { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El monto es requerido.")]
+        [Range(1, double.MaxValue, ErrorMessage = "El monto debe ser mayor a RD$0.")]
+        [Display(Name = "Monto a Pagar (RD$)")]
+        public decimal Amount { get; set; }
+    }
+}

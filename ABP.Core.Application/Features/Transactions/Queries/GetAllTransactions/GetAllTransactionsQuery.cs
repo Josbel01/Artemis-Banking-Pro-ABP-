@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Transactions.Queries.GetAllTransactions { public class GetAllTransactionsQuery { } }

@@ -1,0 +1,82 @@
+@{
+    ViewData["Title"] = "Mi Dashboard";
+}
+
+<div class="container-xxl py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--navy-text);">Bienvenido a Artemis</h2>
+            <p class="text-muted mb-0">Resumen de tus productos financieros</p>
+        </div>
+        <div>
+            <span class="badge" style="background-color: var(--gold-accent); color: var(--navy-text); padding: 0.5rem 1rem; border-radius: 50px; font-weight: 700;">
+                <i class="fa-solid fa-user me-2"></i>Cliente
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Balance Card -->
+        <div class="col-md-6">
+            <div class="card border-0 h-100 p-4 position-relative overflow-hidden" style="border-radius: 16px; background: linear-gradient(135deg, var(--navy-text) 0%, #1e457e 100%); color: white; box-shadow: 0 10px 20px rgba(11,31,58,0.2);">
+                <i class="fa-solid fa-building-columns position-absolute" style="font-size: 8rem; color: rgba(255,255,255,0.05); right: -10px; bottom: -20px;"></i>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="text-white-50 fw-semibold text-uppercase" style="letter-spacing: 1px; font-size: 0.8rem;">Balance Total</span>
+                    <i class="fa-solid fa-wallet fs-4 text-white-50"></i>
+                </div>
+                
+                <h1 class="display-5 fw-bold mb-1 text-white">RD$ 0.00</h1>
+                <p class="text-white-50 mb-0">Cuentas activas: 0</p>
+                
+                <div class="mt-4 pt-3 border-top border-light border-opacity-10 d-flex gap-2">
+                    <a asp-controller="Transaction" asp-action="Transfer" class="btn btn-light btn-sm rounded-pill px-3 fw-bold" style="color: var(--navy-text);">Transferir</a>
+                    <a asp-controller="Transaction" asp-action="Index" class="btn btn-outline-light btn-sm rounded-pill px-3">Historial</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-md-6">
+            <div class="card border-0 h-100 p-4" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <h5 class="fw-bold mb-3" style="color: var(--navy-text);">Acciones Rápidas</h5>
+                
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a asp-controller="Transaction" asp-action="CashAdvance" class="text-decoration-none d-block p-3 text-center rounded-3" style="background-color: rgba(53,104,178,0.05); border: 1px dashed rgba(53,104,178,0.2); transition: all 0.2s;" onmouseover="this.style.background='rgba(53,104,178,0.12)'; this.style.borderStyle='solid';" onmouseout="this.style.background='rgba(53,104,178,0.05)'; this.style.borderStyle='dashed';">
+                            <i class="fa-solid fa-money-bill-transfer fs-3 mb-2" style="color: #3568b2;"></i>
+                            <div class="fw-semibold small" style="color: var(--navy-text);">Avance Efectivo</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="Transaction" asp-action="Transfer" class="text-decoration-none d-block p-3 text-center rounded-3" style="background-color: rgba(26,86,219,0.05); border: 1px dashed rgba(26,86,219,0.2); transition: all 0.2s;" onmouseover="this.style.background='rgba(26,86,219,0.12)'; this.style.borderStyle='solid';" onmouseout="this.style.background='rgba(26,86,219,0.05)'; this.style.borderStyle='dashed';">
+                            <i class="fa-solid fa-arrows-left-right fs-3 mb-2" style="color: #1a56db;"></i>
+                            <div class="fw-semibold small" style="color: var(--navy-text);">Transferir</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="Transaction" asp-action="Index" class="text-decoration-none d-block p-3 text-center rounded-3" style="background-color: rgba(22,163,74,0.05); border: 1px dashed rgba(22,163,74,0.2); transition: all 0.2s;" onmouseover="this.style.background='rgba(22,163,74,0.12)'; this.style.borderStyle='solid';" onmouseout="this.style.background='rgba(22,163,74,0.05)'; this.style.borderStyle='dashed';">
+                            <i class="fa-solid fa-clock-rotate-left fs-3 mb-2" style="color: #16a34a;"></i>
+                            <div class="fw-semibold small" style="color: var(--navy-text);">Mis Movimientos</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="Beneficiary" asp-action="Index" class="text-decoration-none d-block p-3 text-center rounded-3" style="background-color: rgba(124,58,237,0.05); border: 1px dashed rgba(124,58,237,0.2); transition: all 0.2s;" onmouseover="this.style.background='rgba(124,58,237,0.12)'; this.style.borderStyle='solid';" onmouseout="this.style.background='rgba(124,58,237,0.05)'; this.style.borderStyle='dashed';">
+                            <i class="fa-solid fa-users fs-3 mb-2" style="color: #7c3aed;"></i>
+                            <div class="fw-semibold small" style="color: var(--navy-text);">Beneficiarios</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info banner -->
+    <div class="mt-4 p-4 d-flex align-items-center gap-3" style="background: linear-gradient(135deg,#eef2ff,#f5f3ff); border-radius: 14px; border: 1px solid #e0e7ff;">
+        <i class="fa-solid fa-circle-info fs-3" style="color: #4f46e5;"></i>
+        <div>
+            <div class="fw-bold" style="color:#1e1b4b;">Panel de Cuentas en Desarrollo</div>
+            <div class="text-muted small">Pronto podrás visualizar el saldo real de tus cuentas de ahorro, tarjetas y préstamos directamente aquí.</div>
+        </div>
+    </div>
+</div>

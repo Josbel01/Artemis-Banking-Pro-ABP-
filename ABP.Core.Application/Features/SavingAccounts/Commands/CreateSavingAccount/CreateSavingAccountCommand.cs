@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.SavingAccounts.Commands.CreateSavingAccount { public class CreateSavingAccountCommand { } }

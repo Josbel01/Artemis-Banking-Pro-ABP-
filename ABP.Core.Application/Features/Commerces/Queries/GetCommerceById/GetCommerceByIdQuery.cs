@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Commerces.Queries.GetCommerceById { public class GetCommerceByIdQuery { } }

@@ -8,8 +8,9 @@ namespace ABP.Core.Domain.Common.Enums
 {
     public enum UserRoles
     {
-        Admin,
-        Cashier,
-        Client
+        Admin = 1,
+        Cashier = 2,
+        Client = 3,
+        Commerce = 4
     }
 }

@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.LoanInstallments.Queries.GetLoanInstallmentById { public class GetLoanInstallmentByIdQuery { } }

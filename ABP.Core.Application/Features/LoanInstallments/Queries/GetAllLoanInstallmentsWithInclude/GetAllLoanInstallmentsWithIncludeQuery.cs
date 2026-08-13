@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.LoanInstallments.Queries.GetAllLoanInstallmentsWithInclude { public class GetAllLoanInstallmentsWithIncludeQuery { } }

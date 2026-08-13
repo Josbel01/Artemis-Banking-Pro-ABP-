@@ -45,32 +45,86 @@
 
                     <div class="collapse navbar-collapse" id="abpNav">
                         <ul class="navbar-nav me-auto">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="/">
-                                    <i class="fa-solid fa-chart-pie"></i> Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fa-solid fa-users"></i> Usuarios
-                                </a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button"
-                                   data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fa-solid fa-vault"></i> Productos
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#"><i class="fa-solid fa-piggy-bank me-2" style="color:#3568b2;"></i>Cuentas de Ahorro</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fa-solid fa-credit-card me-2" style="color:#1a56db;"></i>Tarjetas de Crédito</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fa-solid fa-hand-holding-dollar me-2" style="color:#16a34a;"></i>Préstamos</a></li>
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/Transaction">
-                                    <i class="fa-solid fa-money-bill-transfer"></i> Transacciones
-                                </a>
-                            </li>
+                            @if (User.IsInRole("Cashier"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Cashier/Home") ? "active" : "")" asp-controller="Cashier" asp-action="Home">
+                                        <i class="fa-solid fa-cash-register"></i> Panel Cajero
+                                    </a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button"
+                                       data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa-solid fa-bolt"></i> Operaciones
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Cashier" asp-action="Deposit"><i class="fa-solid fa-arrow-down-to-bracket me-2" style="color:#16a34a;"></i>Depósito</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Cashier" asp-action="Withdrawal"><i class="fa-solid fa-arrow-up-from-bracket me-2" style="color:#dc2626;"></i>Retiro</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item" asp-controller="Cashier" asp-action="CreditCardPayment"><i class="fa-solid fa-credit-card me-2" style="color:#1a56db;"></i>Pago a Tarjeta de Crédito</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Cashier" asp-action="LoanPayment"><i class="fa-solid fa-hand-holding-dollar me-2" style="color:#7c3aed;"></i>Pago a Préstamo</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item" asp-controller="Cashier" asp-action="Transfer"><i class="fa-solid fa-arrows-left-right me-2" style="color:#0891b2;"></i>Transferencia entre Cuentas</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Cashier/History") ? "active" : "")" asp-controller="Cashier" asp-action="History">
+                                        <i class="fa-solid fa-clock-rotate-left"></i> Historial
+                                    </a>
+                                </li>
+                            }
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Admin") ? "active" : "")" asp-controller="Admin" asp-action="Index">
+                                        <i class="fa-solid fa-chart-pie"></i> Dashboard
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/User") ? "active" : "")" asp-controller="User" asp-action="Index">
+                                        <i class="fa-solid fa-users"></i> Usuarios
+                                    </a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button"
+                                       data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa-solid fa-vault"></i> Productos
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="SavingAccount" asp-action="Index"><i class="fa-solid fa-piggy-bank me-2" style="color:#3568b2;"></i>Cuentas de Ahorro</a></li>
+                                        <li><a class="dropdown-item" asp-controller="CreditCard" asp-action="Index"><i class="fa-solid fa-credit-card me-2" style="color:#1a56db;"></i>Tarjetas de Crédito</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Loan" asp-action="Index"><i class="fa-solid fa-hand-holding-dollar me-2" style="color:#16a34a;"></i>Préstamos</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Transaction") ? "active" : "")" asp-controller="Transaction" asp-action="Index">
+                                        <i class="fa-solid fa-money-bill-transfer"></i> Transacciones
+                                    </a>
+                                </li>
+                            }
+                            @if (User.IsInRole("Client"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Client") ? "active" : "")" asp-controller="Client" asp-action="Index">
+                                        <i class="fa-solid fa-chart-pie"></i> Mi Panel
+                                    </a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button"
+                                       data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa-solid fa-money-bill-wave"></i> Pagos
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Transaction" asp-action="CashAdvance"><i class="fa-solid fa-money-check-dollar me-2" style="color:#16a34a;"></i>Avance de Efectivo</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Transaction" asp-action="Transfer"><i class="fa-solid fa-arrows-left-right me-2" style="color:#1a56db;"></i>Transferencia</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @(Context.Request.Path.StartsWithSegments("/Beneficiary") ? "active" : "")" asp-controller="Beneficiary" asp-action="Index">
+                                        <i class="fa-solid fa-users"></i> Beneficiarios
+                                    </a>
+                                </li>
+                            }
                         </ul>
 
                         <div class="d-flex align-items-center gap-3">
@@ -82,7 +136,9 @@
                                     <div style="font-size:0.8rem;font-weight:700;color:var(--navy-text);line-height:1.2;">
                                         @(User.Identity?.Name ?? "Usuario")
                                     </div>
-                                    <div style="font-size:0.65rem;font-weight:600;color:#3568b2;line-height:1;">Administrador</div>
+                                    <div style="font-size:0.65rem;font-weight:600;color:#3568b2;line-height:1;">
+                                        @(User.IsInRole("Admin") ? "Administrador" : User.IsInRole("Cashier") ? "Cajero" : User.IsInRole("Client") ? "Cliente" : "")
+                                    </div>
                                 </div>
                             </div>
                             <a href="/Account/Logout"

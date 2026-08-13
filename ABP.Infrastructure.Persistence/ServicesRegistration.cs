@@ -9,7 +9,7 @@ namespace ABP.Infrastructure.Persistence
 {
     public static class ServicesRegistration
     {
-        public static void AddPersistenceInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        public static void AddPersistenceLayerIoc(this IServiceCollection services, IConfiguration configuration)
         {
             #region Contexts
             if (configuration.GetValue<bool>("UseInMemoryDatabase"))
@@ -24,7 +24,10 @@ namespace ABP.Infrastructure.Persistence
                 {
                     options.EnableSensitiveDataLogging();
                     options.UseSqlServer(connectionString,
-                        m => m.MigrationsAssembly(typeof(ArtemisBankingAppContext).Assembly.FullName));
+                        m => {
+                            m.MigrationsAssembly(typeof(ArtemisBankingAppContext).Assembly.FullName);
+                            m.EnableRetryOnFailure();
+                        });
                 },
                 contextLifetime: ServiceLifetime.Scoped,
                 optionsLifetime: ServiceLifetime.Scoped);

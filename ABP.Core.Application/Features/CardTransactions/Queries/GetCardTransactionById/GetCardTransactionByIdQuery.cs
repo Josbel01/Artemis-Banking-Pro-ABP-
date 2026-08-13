@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.CardTransactions.Queries.GetCardTransactionById { public class GetCardTransactionByIdQuery { } }

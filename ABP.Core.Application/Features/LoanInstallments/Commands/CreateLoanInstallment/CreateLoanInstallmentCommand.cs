@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.LoanInstallments.Commands.CreateLoanInstallment { public class CreateLoanInstallmentCommand { } }

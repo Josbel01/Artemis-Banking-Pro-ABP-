@@ -1,22 +1,28 @@
-@model IEnumerable<ABP.Core.Application.Dtos.Transactions.TransactionDto>
+@model IEnumerable<ABP.Core.Application.ViewModels.Transactions.TransactionViewModel>
 @{
-    ViewData["Title"] = "Historial de Transacciones";
+    ViewData["Title"] = ViewBag.IsAdminView == true ? "Todas las Transacciones" : "Historial de Transacciones";
+    bool isAdminView = ViewBag.IsAdminView == true;
 }
-
 
 <div class="container-xxl px-4 mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
         <div>
             <h1 class="h3 fw-bold mb-1" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">
-                <i class="fa-solid fa-list-check me-2" style="color: #1a56db;"></i>Movimientos de Cuenta
+                <i class="fa-solid fa-list-check me-2" style="color: #1a56db;"></i>
+                @(isAdminView ? "Monitoreo de Transacciones" : "Movimientos de Cuenta")
             </h1>
-            <p class="text-muted mb-0" style="font-size: 0.9rem;">Historial detallado de todas tus operaciones.</p>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                @(isAdminView ? "Todas las transacciones registradas en el sistema." : "Historial detallado de todas tus operaciones.")
+            </p>
         </div>
         <div class="d-flex gap-2">
-            <a asp-action="Transfer" class="btn btn-outline-primary" style="font-weight: 600; border-radius: 8px;">
-                <i class="fa-solid fa-money-bill-transfer me-2"></i>Transferir
-            </a>
-            <a href="/" class="btn btn-outline-dark" style="font-weight: 600; border-radius: 8px;">
+            @if (!isAdminView)
+            {
+                <a asp-action="Transfer" class="btn btn-outline-primary" style="font-weight: 600; border-radius: 8px;">
+                    <i class="fa-solid fa-money-bill-transfer me-2"></i>Transferir
+                </a>
+            }
+            <a href="javascript:history.back()" class="btn btn-outline-dark" style="font-weight: 600; border-radius: 8px;">
                 <i class="fa-solid fa-arrow-left me-2"></i>Volver
             </a>
         </div>

@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Commerces.Commands.UpdateCommerce { public class UpdateCommerceCommand { } }

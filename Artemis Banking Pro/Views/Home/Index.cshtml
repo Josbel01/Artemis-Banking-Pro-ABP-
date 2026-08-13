@@ -1,3 +1,4 @@
+@model ABP.Core.Application.ViewModels.User.LoginViewModel
 @{
     ViewData["Title"] = "Iniciar sesión";
     ViewBag.HideNav = true;
@@ -86,12 +87,13 @@
             <h2 class="login-card-title">Iniciar sesión</h2>
             <p class="login-card-sub">Ingresa tus credenciales para continuar</p>
 
-            @* Error alert — descomentar al conectar backend
-            <div class="login-error-alert">
-                <i class="fa-solid fa-circle-exclamation"></i>
-                <span>Los datos de acceso son inválidos.</span>
-            </div>
-            *@
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="login-error-alert" style="display:flex; align-items:center; background-color:#fee2e2; border-left:4px solid #ef4444; color:#991b1b; padding:10px; margin-bottom:20px; border-radius:4px;">
+                    <i class="fa-solid fa-circle-exclamation" style="margin-right:10px;"></i>
+                    <div asp-validation-summary="All" style="margin:0; padding:0; list-style-type:none;" class="text-danger"></div>
+                </div>
+            }
 
             <form id="loginForm" method="post" asp-controller="Account" asp-action="Index" novalidate>
                 @Html.AntiForgeryToken()

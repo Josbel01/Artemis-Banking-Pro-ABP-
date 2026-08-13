@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.CardTransactions.Commands.CreateCardTransaction { public class CreateCardTransactionCommand { } }

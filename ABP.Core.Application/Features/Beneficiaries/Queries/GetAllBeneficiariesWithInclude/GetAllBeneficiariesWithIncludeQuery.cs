@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Beneficiaries.Queries.GetAllBeneficiariesWithInclude { public class GetAllBeneficiariesWithIncludeQuery { } }

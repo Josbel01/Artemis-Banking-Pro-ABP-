@@ -1,38 +1,52 @@
 using ABP.Core.Application.Dtos.Transactions;
 using ABP.Core.Application.Interfaces;
 using ABP.Core.Application.ViewModels.Transactions;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace ArtemisBankingPro.Controllers
 {
+    [Authorize]
     public class TransactionController : Controller
     {
         private readonly ITransactionService _transactionService;
+        private readonly IMapper _mapper;
 
-        public TransactionController(ITransactionService transactionService)
+        public TransactionController(ITransactionService transactionService, IMapper mapper)
         {
             _transactionService = transactionService;
+            _mapper = mapper;
         }
 
-        // Obtener ID del usuario actual (Temporal hasta tener Identity)
-        private string GetCurrentClientId()
+        private string? GetCurrentClientId()
         {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "client-mock-123";
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
-        public async Task<IActionResult> Index(int accountId)
+        public async Task<IActionResult> Index(int? accountId)
         {
-            if (accountId == 0)
+            // Admin can view all transactions without filtering by account
+            if (User.IsInRole("Admin") && (accountId == null || accountId == 0))
             {
-                accountId = 1; // Default to 1 for UI testing since we don't have the Account Service yet
-                TempData["InfoMessage"] = "Mostrando transacciones de la cuenta de prueba (ID 1).";
+                var allDtos = await _transactionService.GetAllAsync();
+                var allViewModels = _mapper.Map<IEnumerable<TransactionViewModel>>(allDtos);
+                ViewBag.AccountId = 0;
+                ViewBag.IsAdminView = true;
+                return View(allViewModels);
             }
 
-            var transactions = await _transactionService.GetTransactionsByAccountIdAsync(accountId);
+            if (accountId == null || accountId == 0)
+            {
+                return RedirectToAction("Index", "Client");
+            }
+
+            var dtos = await _transactionService.GetTransactionsByAccountIdAsync(accountId.Value);
+            var viewModels = _mapper.Map<IEnumerable<TransactionViewModel>>(dtos);
             ViewBag.AccountId = accountId;
-            return View(transactions);
+            ViewBag.IsAdminView = false;
+            return View(viewModels);
         }
 
         public IActionResult Transfer()
@@ -48,12 +62,8 @@ namespace ArtemisBankingPro.Controllers
                 return View(vm);
             }
 
-            var success = await _transactionService.TransferAsync(new SaveTransferDto
-            {
-                OriginAccountNumber = vm.OriginAccountNumber,
-                DestinationAccountNumber = vm.DestinationAccountNumber,
-                Amount = vm.Amount
-            });
+            var dto = _mapper.Map<SaveTransferDto>(vm);
+            var success = await _transactionService.TransferAsync(dto);
 
             if (!success)
             {
@@ -62,7 +72,7 @@ namespace ArtemisBankingPro.Controllers
             }
 
             TempData["SuccessMessage"] = $"Transferencia de RD${vm.Amount} realizada exitosamente a la cuenta {vm.DestinationAccountNumber}.";
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Client");
         }
 
         public IActionResult CashAdvance()
@@ -78,12 +88,8 @@ namespace ArtemisBankingPro.Controllers
                 return View(vm);
             }
 
-            var success = await _transactionService.CashAdvanceAsync(new SaveCashAdvanceDto
-            {
-                OriginCreditCardNumber = vm.OriginCreditCardNumber,
-                DestinationAccountNumber = vm.DestinationAccountNumber,
-                Amount = vm.Amount
-            });
+            var dto = _mapper.Map<SaveCashAdvanceDto>(vm);
+            var success = await _transactionService.CashAdvanceAsync(dto);
 
             if (!success)
             {
@@ -92,7 +98,7 @@ namespace ArtemisBankingPro.Controllers
             }
 
             TempData["SuccessMessage"] = $"Avance de efectivo por RD${vm.Amount} aprobado y depositado en su cuenta.";
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Client");
         }
     }
 }

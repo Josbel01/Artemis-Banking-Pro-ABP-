@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Loans.Queries.GetLoanById { public class GetLoanByIdQueryValidator { } }

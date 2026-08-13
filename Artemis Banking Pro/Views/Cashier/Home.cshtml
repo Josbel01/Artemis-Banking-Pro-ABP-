@@ -1,0 +1,186 @@
+@model ABP.Core.Application.ViewModels.Cashier.CashierHomeViewModel
+@{
+    ViewData["Title"] = "Panel del Cajero";
+}
+
+<div class="container-xxl px-4 mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">
+                <i class="fa-solid fa-cash-register me-2" style="color: #1a56db;"></i>Panel del Cajero
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                <i class="fa-regular fa-calendar-days me-1"></i> @DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-ES"))
+            </p>
+        </div>
+        <a asp-controller="Cashier" asp-action="History" class="btn btn-outline-primary" style="font-weight: 600; border-radius: 8px;">
+            <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial del Día
+        </a>
+    </div>
+
+    <div class="row mb-5">
+        <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-chart-bar me-2 text-muted"></i>Indicadores de Hoy</h5>
+        
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card border-0 h-100" style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important;">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-arrow-down-to-bracket mb-2" style="font-size: 1.5rem; color: #16a34a;"></i>
+                    <h3 class="fw-bold mb-0 text-dark indicator-value">@Model.TotalDeposits</h3>
+                    <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Depósitos</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card border-0 h-100" style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important;">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-arrow-up-from-bracket mb-2" style="font-size: 1.5rem; color: #dc2626;"></i>
+                    <h3 class="fw-bold mb-0 text-dark indicator-value">@Model.TotalWithdrawals</h3>
+                    <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Retiros</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card border-0 h-100" style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important;">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-credit-card mb-2" style="font-size: 1.5rem; color: #1a56db;"></i>
+                    <h3 class="fw-bold mb-0 text-dark indicator-value">@Model.TotalCreditCardPayments</h3>
+                    <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Pagos TC</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card border-0 h-100" style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important;">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-hand-holding-dollar mb-2" style="font-size: 1.5rem; color: #7c3aed;"></i>
+                    <h3 class="fw-bold mb-0 text-dark indicator-value">@Model.TotalLoanPayments</h3>
+                    <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Préstamos</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card border-0 h-100" style="background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important;">
+                <div class="card-body text-center p-3">
+                    <i class="fa-solid fa-arrows-left-right mb-2" style="font-size: 1.5rem; color: #0891b2;"></i>
+                    <h3 class="fw-bold mb-0 text-dark indicator-value">@Model.TotalTransfers</h3>
+                    <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Transfers</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card border-0 h-100" style="background: linear-gradient(135deg, #1a56db, #3b82f6); border-radius: 16px; box-shadow: 0 4px 15px rgba(26,86,219,0.2);">
+                <div class="card-body text-center p-3 text-white">
+                    <i class="fa-solid fa-money-bill-wave mb-2 text-white-50" style="font-size: 1.5rem;"></i>
+                    <h4 class="fw-bold mb-0 indicator-value-currency">RD$@Model.TotalAmountOperated.ToString("N0")</h4>
+                    <span class="text-white-50" style="font-size: 0.8rem; text-transform: uppercase;">Total Operado</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-bolt me-2 text-muted"></i>Operaciones Rápidas</h5>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <a asp-controller="Cashier" asp-action="Deposit" class="card h-100 border-0 text-decoration-none bg-white action-card" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important; transition: all 0.3s;">
+                <div class="card-body d-flex align-items-center p-4">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 50px; height: 50px; background: rgba(22,163,74,0.1); color: #16a34a; font-size: 1.2rem;">
+                        <i class="fa-solid fa-arrow-down-to-bracket"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark">Depósito</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Acreditar fondos a una cuenta</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <a asp-controller="Cashier" asp-action="Withdrawal" class="card h-100 border-0 text-decoration-none bg-white action-card" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important; transition: all 0.3s;">
+                <div class="card-body d-flex align-items-center p-4">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 50px; height: 50px; background: rgba(220,38,38,0.1); color: #dc2626; font-size: 1.2rem;">
+                        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark">Retiro</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Debitar fondos de una cuenta</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <a asp-controller="Cashier" asp-action="CreditCardPayment" class="card h-100 border-0 text-decoration-none bg-white action-card" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important; transition: all 0.3s;">
+                <div class="card-body d-flex align-items-center p-4">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 50px; height: 50px; background: rgba(26,86,219,0.1); color: #1a56db; font-size: 1.2rem;">
+                        <i class="fa-solid fa-credit-card"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark">Pago Tarjeta de Crédito</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Reducir deuda de TC</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <a asp-controller="Cashier" asp-action="LoanPayment" class="card h-100 border-0 text-decoration-none bg-white action-card" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important; transition: all 0.3s;">
+                <div class="card-body d-flex align-items-center p-4">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 50px; height: 50px; background: rgba(124,58,237,0.1); color: #7c3aed; font-size: 1.2rem;">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark">Pago a Préstamo</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Abonar a préstamo activo</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <a asp-controller="Cashier" asp-action="Transfer" class="card h-100 border-0 text-decoration-none bg-white action-card" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important; transition: all 0.3s;">
+                <div class="card-body d-flex align-items-center p-4">
+                    <div class="rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 50px; height: 50px; background: rgba(8,145,178,0.1); color: #0891b2; font-size: 1.2rem;">
+                        <i class="fa-solid fa-arrows-left-right"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark">Transferencia</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Mover fondos entre terceros</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.1) !important;
+        border-color: rgba(26,86,219,0.3) !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.indicator-value').forEach(el => {
+            const target = parseInt(el.textContent) || 0;
+            if (target === 0) return;
+            let current = 0;
+            const step = target / 20;
+            const interval = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    el.textContent = target;
+                    clearInterval(interval);
+                } else {
+                    el.textContent = Math.floor(current);
+                }
+            }, 30);
+        });
+    </script>
+}

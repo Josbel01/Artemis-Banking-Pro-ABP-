@@ -1,0 +1,90 @@
+@model IEnumerable<ABP.Core.Application.ViewModels.CardTransactions.CardTransactionViewModel>
+@{
+    ViewData["Title"] = "Transacciones de Tarjeta";
+    int creditCardId = ViewBag.CreditCardId != null ? (int)ViewBag.CreditCardId : 0;
+}
+
+<div class="container-xxl px-4 mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
+        <div>
+            <h1 class="h3 fw-bold mb-1" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">
+                <i class="fa-solid fa-money-check-dollar me-2" style="color: #1a56db;"></i>Movimientos de Tarjeta
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Revisa el historial de compras y pagos de tu tarjeta de crédito.</p>
+        </div>
+        <a href="/CreditCard/Index" class="btn btn-outline-secondary d-none d-sm-inline-block" style="border-radius: 8px; font-weight: 600; padding: 0.6rem 1.2rem;">
+            <i class="fa-solid fa-arrow-left me-2"></i>Volver a Tarjetas
+        </a>
+    </div>
+
+    <div class="card bg-white border-0 shadow-sm" style="border-radius: 16px; border: 1px solid #e5e7eb !important;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #f8fafc;">
+                        <tr>
+                            <th class="text-uppercase text-muted fw-bold ps-4" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Comercio / Detalle</th>
+                            <th class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Fecha</th>
+                            <th class="text-uppercase text-muted fw-bold text-end" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Monto</th>
+                            <th class="text-uppercase text-muted fw-bold text-center pe-4" style="font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; padding: 1rem;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; background: #f1f5f9;">
+                                        <i class="fa-solid fa-receipt fs-2" style="color: #94a3b8;"></i>
+                                    </div>
+                                    <h5 class="text-dark fw-bold">Sin transacciones</h5>
+                                    <p class="mb-0">No se encontraron movimientos para esta tarjeta.</p>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var tx in Model.OrderByDescending(t => t.TransactionDate))
+                            {
+                                <tr>
+                                    <td class="ps-4 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; background: rgba(26,86,219,0.08); color: #1a56db;">
+                                                <i class="fa-solid fa-store"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark" style="font-size: 1.05rem;">@tx.CommerceName</div>
+                                                <small class="text-muted">Transacción #@tx.Id</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="fw-semibold text-dark">@tx.TransactionDate.ToString("dd MMM yyyy")</div>
+                                        <small class="text-muted">@tx.TransactionDate.ToString("hh:mm tt")</small>
+                                    </td>
+                                    <td class="text-end py-3">
+                                        <span class="fw-bold fs-5 text-dark">@tx.Amount.ToString("C")</span>
+                                    </td>
+                                    <td class="text-center pe-4 py-3">
+                                        @if (tx.Status == ABP.Core.Domain.Common.Enums.TransactionStatus.Approved)
+                                        {
+                                            <span class="badge" style="background-color: #dcfce7; color: #166534; padding: 0.4rem 0.8rem; font-weight: 600; border-radius: 8px;">Aprobado</span>
+                                        }
+                                        else if (tx.Status == ABP.Core.Domain.Common.Enums.TransactionStatus.Rejected)
+                                        {
+                                            <span class="badge" style="background-color: #fee2e2; color: #991b1b; padding: 0.4rem 0.8rem; font-weight: 600; border-radius: 8px;">Rechazado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge" style="background-color: #fee2e2; color: #991b1b; padding: 0.4rem 0.8rem; font-weight: 600; border-radius: 8px;">@tx.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

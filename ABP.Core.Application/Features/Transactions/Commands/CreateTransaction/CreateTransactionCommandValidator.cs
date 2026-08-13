@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.Transactions.Commands.CreateTransaction { public class CreateTransactionCommandValidator { } }

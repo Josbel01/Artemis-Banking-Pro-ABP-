@@ -1,0 +1,1 @@
+namespace ABP.Core.Application.Features.SavingAccounts.Queries.GetSavingAccountById { public class GetSavingAccountByIdQuery { } }
