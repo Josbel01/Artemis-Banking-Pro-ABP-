@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ABP.Core.Application.Dtos.User
 {
-    public class ConfirmRequestDto
+    public class ConfirmAccountRequestDto
     {
         [Required(ErrorMessage = "El ID de usuario es requerido")]
         public required string UserId { get; set; }

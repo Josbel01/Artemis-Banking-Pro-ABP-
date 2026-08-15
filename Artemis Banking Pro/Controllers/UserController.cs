@@ -29,7 +29,13 @@ namespace ArtemisBankingPro.Controllers
         public async Task<IActionResult> Index()
         {
             var users = await _accountService.GetAllUser(null);
-            var viewModels = _mapper.Map<IEnumerable<UserViewModel>>(users);
+            var allowedRoles = new List<string> { 
+                ABP.Core.Domain.Common.Enums.UserRoles.Admin.ToString(), 
+                ABP.Core.Domain.Common.Enums.UserRoles.Cashier.ToString(), 
+                ABP.Core.Domain.Common.Enums.UserRoles.Client.ToString() 
+            };
+            var filteredUsers = users.Where(u => u.Roles != null && u.Roles.Any(r => allowedRoles.Contains(r))).ToList();
+            var viewModels = _mapper.Map<IEnumerable<UserViewModel>>(filteredUsers);
             return View(viewModels);
         }
 

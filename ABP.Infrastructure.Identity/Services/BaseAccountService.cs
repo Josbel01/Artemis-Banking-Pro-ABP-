@@ -66,6 +66,13 @@ namespace ABP.Infrastructure.Identity.Services
                 return responseDto;
             }
 
+            if (user.IsActive)
+            {
+                responseDto.HasError = true;
+                responseDto.Message = "La cuenta ya está activada.";
+                return responseDto;
+            }
+
             token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
             var result = await _userManager.ConfirmEmailAsync(user, token);
 
@@ -474,11 +481,11 @@ namespace ABP.Infrastructure.Identity.Services
                 user.IsActive = true;
             }
 
-            var result = await _userManager.CreateAsync(user, saveDto.Role);
+            var result = await _userManager.CreateAsync(user, saveDto.Password!);
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, saveDto.Password);
+                await _userManager.AddToRoleAsync(user, saveDto.Role!);
 
                 if (user.EmailConfirmed)
                 {

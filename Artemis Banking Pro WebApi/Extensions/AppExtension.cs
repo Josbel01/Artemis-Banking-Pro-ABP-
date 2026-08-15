@@ -1,26 +1,22 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
+using Asp.Versioning;
 
-namespace ArtemisBankingApi.Extensions
+namespace Artemis_Banking_Pro_WebApi.Extensions
 {
     public static class AppExtension
     {
         public static void UseSwaggerExtension(this IApplicationBuilder app, IEndpointRouteBuilder routeBuilder)
         {
             app.UseSwagger();
-            app.UseSwaggerUI(options =>
+            app.UseSwaggerUI(opt =>
             {
-                var versionDescriptions = routeBuilder.DescribeApiVersions();
-
-                if (versionDescriptions != null && versionDescriptions.Any())
+                var versionDescription = routeBuilder.DescribeApiVersions();
+                if(versionDescription != null && versionDescription.Any())
                 {
-                    foreach (var apiVersion in versionDescriptions)
+                    foreach(var version in versionDescription)
                     {
-                        var url = $"/swagger/{apiVersion.GroupName}/swagger.json";
-                        var name = $"Artemis Banking API {apiVersion.GroupName.ToUpperInvariant()}";
-                        options.SwaggerEndpoint(url, name);
+                        var url = $"/swagger/{version.GroupName}/swagger.json";
+                        var name = $"Artemis Banking API - {version.GroupName.ToUpperInvariant()}";
+                        opt.SwaggerEndpoint(url, name);
                     }
                 }
             });

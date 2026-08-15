@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace ArtemisBankingApi.Extensions
+namespace Artemis_Banking_Pro_WebApi.Extensions
 {
     public static class ServiceExtension
     {
@@ -21,12 +21,12 @@ namespace ArtemisBankingApi.Extensions
 
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Version = "v1.0",
-                    Title = "Artemis Banking Pro API",
-                    Description = "API for Artemis Banking Pro",
+                    Version = "v1",
+                    Title = "Artemis Banking API",
+                    Description = "API for Artemis Banking Application",
                     Contact = new OpenApiContact
                     {
-                        Name = "Mariely Roa",
+                        Name = "ArtemisBankingApp Developers",
                         Email = "corage1920@gmail.com"
                     }
                 });
@@ -63,22 +63,22 @@ namespace ArtemisBankingApi.Extensions
             });
         }
 
-        public static void AddAppiVersioningExtension(this IServiceCollection services)
+        public static void AddApiVersioningExtension(this IServiceCollection services)
         {
-            services.AddApiVersioning(options =>
+            services.AddApiVersioning(opt =>
             {
-                 options.DefaultApiVersion = new ApiVersion(1, 0);
-                 options.AssumeDefaultVersionWhenUnspecified = true;
-                 options.ReportApiVersions = true;
+                opt.DefaultApiVersion = new ApiVersion(1, 0);
+                opt.AssumeDefaultVersionWhenUnspecified = true;
+                opt.ReportApiVersions = true;
 
-                 options.ApiVersionReader = ApiVersionReader.Combine(
-                     new UrlSegmentApiVersionReader(),
-                     new HeaderApiVersionReader("X-Api-Version")
-                );
-            }).AddApiExplorer(options =>
+                opt.ApiVersionReader = ApiVersionReader.Combine(
+                    new UrlSegmentApiVersionReader(),
+                    new HeaderApiVersionReader("X-Api-Version")
+                    );
+            }).AddApiExplorer(opt =>
             {
-                options.GroupNameFormat = "'v'V";
-                options.SubstituteApiVersionInUrl = true;
+                opt.GroupNameFormat = "'version'V";
+                opt.SubstituteApiVersionInUrl = true;
             });
         }
     }
