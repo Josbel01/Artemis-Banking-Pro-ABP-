@@ -1,0 +1,73 @@
+@model ABP.Core.Application.ViewModels.CreditCards.SaveCreditCardViewModel
+@{
+    ViewData["Title"] = "Asignar Tarjeta de Crédito";
+    var clients = ViewBag.Clients as List<ABP.Core.Application.Dtos.User.UserDto>;
+}
+
+<div class="container-xxl px-4 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            
+            <div class="d-flex align-items-center mb-4">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; background: rgba(26,86,219,0.1); color: #1a56db;">
+                    <i class="fa-regular fa-credit-card fs-5"></i>
+                </div>
+                <div>
+                    <h2 class="h4 fw-bold mb-0" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">Asignar Tarjeta de Crédito</h2>
+                    <p class="text-muted mb-0" style="font-size: 0.85rem;">Seleccione el cliente y defina el límite aprobado para la nueva tarjeta.</p>
+                </div>
+            </div>
+
+            <div class="card border-0" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e5e7eb !important;">
+                <div class="card-body p-4 p-md-5">
+                    
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger" style="border-radius: 10px;">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i><strong>Ocurrieron errores:</strong>
+                            <div class="mt-2">
+                                @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                            </div>
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post">
+                        
+                        <div class="mb-4">
+                            <label asp-for="ClientId" class="form-label fw-bold text-dark">Seleccione el Cliente <span class="text-danger">*</span></label>
+                            <select asp-for="ClientId" class="form-select form-select-lg" style="border-radius: 10px; background-color: #f8fafc;" required>
+                                <option value="">-- Seleccionar --</option>
+                                @if (clients != null)
+                                {
+                                    foreach (var client in clients)
+                                    {
+                                        <option value="@client.Id">@client.FirstName @client.LastName (@client.DNI)</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="ClientId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="CreditLimit" class="form-label fw-bold text-dark">Límite de Crédito Aprobado <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 fw-bold" style="border-radius: 10px 0 0 10px;">RD$</span>
+                                <input asp-for="CreditLimit" type="number" step="0.01" min="100" class="form-control form-control-lg border-start-0" style="border-radius: 0 10px 10px 0; background-color: #f8fafc;" required />
+                            </div>
+                            <span asp-validation-for="CreditLimit" class="text-danger small"></span>
+                            <div class="form-text mt-2"><i class="fa-solid fa-info-circle me-1"></i>El número de tarjeta, CVC y fecha de expiración se generarán automáticamente.</div>
+                        </div>
+
+                        <div class="d-flex gap-3 mt-5">
+                            <a asp-action="Index" class="btn btn-light py-2 px-4 fw-semibold" style="border-radius: 8px;">Cancelar</a>
+                            <button type="submit" class="btn btn-primary py-2 px-4 fw-bold flex-grow-1" style="border-radius: 8px; background: linear-gradient(135deg, #1a56db, #3b82f6); border: none;">
+                                Emitir Tarjeta
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

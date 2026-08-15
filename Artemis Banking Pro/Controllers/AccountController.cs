@@ -43,7 +43,8 @@ namespace Artemis_Banking_Pro.Controllers
             var loginDto = new LoginDto
             {
                 UserName = model.Username,
-                Password = model.Password
+                Password = model.Password,
+                RememberMe = model.RememberMe
             };
 
             var response = await _accountService.AuthenticateAsync(loginDto);

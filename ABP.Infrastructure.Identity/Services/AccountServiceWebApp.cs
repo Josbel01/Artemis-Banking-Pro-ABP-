@@ -66,7 +66,7 @@ namespace ABP.Infrastructure.Identity.Services
                 return responseDto;
             }
 
-            var result = await _signInManager.PasswordSignInAsync(user.UserName!, loginDto.Password, false, true);
+            var result = await _signInManager.PasswordSignInAsync(user.UserName!, loginDto.Password, loginDto.RememberMe, true);
 
             if (!result.Succeeded)
             {

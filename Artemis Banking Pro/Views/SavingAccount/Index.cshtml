@@ -1,102 +1,127 @@
 @model IEnumerable<ABP.Core.Application.ViewModels.SavingAccounts.SavingAccountViewModel>
 @{
-    ViewData["Title"] = "Mis Cuentas de Ahorro";
+    ViewData["Title"] = "Gestión de Cuentas de Ahorro";
 }
 
 <div class="container-xxl px-4 mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light border-opacity-10">
         <div>
             <h1 class="h3 fw-bold mb-1" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">
-                <i class="fa-solid fa-piggy-bank me-2" style="color: #1a56db;"></i>Mis Cuentas
+                <i class="fa-solid fa-piggy-bank me-2" style="color: #1a56db;"></i>Gestión de Cuentas de Ahorro
             </h1>
-            <p class="text-muted mb-0" style="font-size: 0.9rem;">Visualiza los balances de tus cuentas de ahorro y corriente.</p>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Administra las cuentas principales y secundarias de los clientes.</p>
         </div>
+        <a asp-action="Create" class="btn btn-primary" style="background: linear-gradient(135deg, #1a56db, #3b82f6); border: none; font-weight: 600; padding: 0.6rem 1.2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(26,86,219,0.3); transition: all 0.3s ease;">
+            <i class="fa-solid fa-plus me-2"></i>Asignar cuenta secundaria
+        </a>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
-        @if (!Model.Any())
-        {
-            <div class="col-12 text-center py-5">
-                <div class="p-5 bg-white" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
-                    <i class="fa-solid fa-piggy-bank mb-3" style="font-size: 3rem; color: #cbd5e1;"></i>
-                    <h5 class="text-dark fw-bold">No tienes cuentas registradas</h5>
-                    <p class="text-muted mb-0">Solicita una cuenta de ahorros para comenzar.</p>
+    <!-- Filters -->
+    <div class="card bg-white border-0 mb-4 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e5e7eb !important;">
+        <form method="get" asp-action="Index" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label text-muted fw-semibold small">Buscar por Cédula del Cliente</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-id-card text-muted"></i></span>
+                    <input type="text" name="identification" class="form-control border-start-0" placeholder="Ej. 00112345678" value="@ViewBag.Identification">
                 </div>
             </div>
-        }
-        else
-        {
-            foreach (var account in Model)
-            {
-                <div class="col">
-                    <!-- Modern account card with gradient overlay -->
-                    <div class="card h-100 position-relative overflow-hidden" style="border: none; border-radius: 20px; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-                        <!-- Abstract Background Decoration -->
-                        <div class="position-absolute" style="top: 0; right: 0; width: 100%; height: 120px; background: linear-gradient(135deg, rgba(26,86,219,0.05) 0%, rgba(26,86,219,0) 100%); z-index: 0;"></div>
-                        <div class="position-absolute" style="top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(26,86,219,0.1) 0%, rgba(26,86,219,0) 70%); border-radius: 50%; z-index: 0;"></div>
-                        
-                        <div class="card-body p-4 position-relative z-1 d-flex flex-column h-100">
-                            
-                            <!-- Header: Icon & Status -->
-                            <div class="d-flex justify-content-between align-items-start mb-4">
-                                <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 54px; height: 54px; background: linear-gradient(135deg, #1a56db, #3b82f6); color: white; box-shadow: 0 4px 15px rgba(26,86,219,0.3);">
+            <div class="col-md-4">
+                <label class="form-label text-muted fw-semibold small">Filtrar por Tipo</label>
+                <select name="accountType" class="form-select">
+                    <option value="Todas" selected="@(ViewBag.AccountType == "Todas" ? "selected" : null)">Todas</option>
+                    <option value="Main" selected="@(ViewBag.AccountType == "Main" ? "selected" : null)">Principales</option>
+                    <option value="Secondary" selected="@(ViewBag.AccountType == "Secondary" ? "selected" : null)">Secundarias</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-dark w-100 fw-semibold" style="border-radius: 8px;">
+                    <i class="fa-solid fa-filter me-2"></i>Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Table -->
+    <div class="card bg-white border-0" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb !important;">
+        <div class="table-responsive">
+            <table class="table table-hover table-borderless align-middle mb-0">
+                <thead style="background: #f8fafc; border-bottom: 2px solid #e5e7eb;">
+                    <tr>
+                        <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Número de Cuenta</th>
+                        <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Cliente</th>
+                        <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Balance Disponible</th>
+                        <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Tipo</th>
+                        <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Estado</th>
+                        <th class="py-3 px-4 text-muted fw-semibold text-end" style="font-size: 0.8rem; text-transform: uppercase;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="text-muted">No se encontraron cuentas que coincidan con los criterios de búsqueda.</div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var account in Model)
+                        {
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td class="py-3 px-4 fw-semibold text-dark" style="font-family: monospace;">@account.AccountNumber</td>
+                                <td class="py-3 px-4 text-dark">@account.ClientName</td>
+                                <td class="py-3 px-4 fw-bold text-dark">@account.Balance.ToString("C")</td>
+                                <td class="py-3 px-4">
                                     @if (account.AccountType == ABP.Core.Domain.Common.Enums.SavingAccountType.Main)
                                     {
-                                        <i class="fa-solid fa-building-columns fs-5"></i>
+                                        <span class="badge" style="background-color: #e0e7ff; color: #4338ca;">Principal</span>
                                     }
                                     else
                                     {
-                                        <i class="fa-solid fa-piggy-bank fs-5"></i>
+                                        <span class="badge" style="background-color: #f3f4f6; color: #4b5563;">Secundaria</span>
                                     }
-                                </div>
-                                
-                                @if (account.Status == ABP.Core.Domain.Common.Enums.SavingAccountStatus.Active)
-                                {
-                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 fw-semibold" style="letter-spacing: 0.5px;">Activa</span>
-                                }
-                                else
-                                {
-                                    <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 fw-semibold" style="letter-spacing: 0.5px;">@account.Status</span>
-                                }
-                            </div>
-                            
-                            <!-- Account Details -->
-                            <div class="mt-auto">
-                                <div class="mb-3">
-                                    <h6 class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Cuenta @account.AccountType</h6>
-                                    <p class="mb-0 text-dark" style="font-family: monospace; font-size: 1.1rem; letter-spacing: 1px;">
-                                        <i class="fa-solid fa-hashtag text-muted me-2 opacity-50"></i>@account.AccountNumber
-                                    </p>
-                                </div>
-                                
-                                <div class="pt-3 border-top border-light border-opacity-50">
-                                    <p class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">Balance Disponible</p>
-                                    <h2 class="fw-bold mb-0" style="color: #0f172a; font-family: 'Outfit', sans-serif;">@account.Balance.ToString("C")</h2>
-                                </div>
-                            </div>
-                            
-                        </div>
-                        
-                        <!-- Hover Action (Optional: Transfer Button) -->
-                        <div class="card-footer bg-transparent border-0 p-4 pt-0 position-relative z-1">
-                            <a href="/Transaction/Index" class="btn w-100 text-primary fw-bold hover-btn" style="background: rgba(26,86,219,0.05); border-radius: 12px; padding: 0.7rem; transition: all 0.2s;">
-                                Hacer Transferencia <i class="fa-solid fa-arrow-right-arrow-left ms-2"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
+                                </td>
+                                <td class="py-3 px-4">
+                                    @if (account.Status == ABP.Core.Domain.Common.Enums.SavingAccountStatus.Active)
+                                    {
+                                        <span class="badge rounded-pill" style="background-color: #dcfce7; color: #166534; font-weight: 600;">Activa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill" style="background-color: #fee2e2; color: #991b1b; font-weight: 600;">Cancelada</span>
+                                    }
+                                </td>
+                                <td class="py-3 px-4 text-end">
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a href="/Transaction/Index?accountId=@account.Id" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;" title="Ver Transacciones">
+                                            <i class="fa-solid fa-list-ul"></i>
+                                        </a>
+                                        @if (account.Status == ABP.Core.Domain.Common.Enums.SavingAccountStatus.Active && account.AccountType == ABP.Core.Domain.Common.Enums.SavingAccountType.Secondary)
+                                        {
+                                            <form asp-action="Cancel" method="post" style="display:inline;" onsubmit="return confirm('¿Está seguro que desea cancelar la cuenta secundaria @account.AccountNumber?');">
+                                                <input type="hidden" name="id" value="@account.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;" title="Cancelar Cuenta">
+                                                    <i class="fa-solid fa-ban"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
-
-<style>
-    .col > .card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
-    }
-    .hover-btn:hover {
-        background: #1a56db !important;
-        color: white !important;
-    }
-</style>

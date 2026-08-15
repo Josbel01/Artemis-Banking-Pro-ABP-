@@ -10,11 +10,19 @@ namespace ArtemisBankingPro.Controllers
     public class UserController : Controller
     {
         private readonly IAccountServiceWebApp _accountService;
+        private readonly ISavingAccountService _savingAccountService;
+        private readonly ITransactionService _transactionService;
         private readonly IMapper _mapper;
 
-        public UserController(IAccountServiceWebApp accountService, IMapper mapper)
+        public UserController(
+            IAccountServiceWebApp accountService, 
+            ISavingAccountService savingAccountService,
+            ITransactionService transactionService,
+            IMapper mapper)
         {
             _accountService = accountService;
+            _savingAccountService = savingAccountService;
+            _transactionService = transactionService;
             _mapper = mapper;
         }
 
@@ -87,8 +95,37 @@ namespace ArtemisBankingPro.Controllers
                 return View(viewModel);
             }
 
-            // Note: If initial amount needs to be added, we need a service for it, 
-            // but for now creating the identity user is done here.
+            if (saveUserDto.Role == "Client")
+            {
+                var rnd = new Random();
+                string accountNumber = rnd.Next(100000000, 999999999).ToString();
+                
+                var newAccount = new ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto
+                {
+                    Id = 0,
+                    ClientId = response.Id,
+                    AccountNumber = accountNumber,
+                    Balance = viewModel.InitialAmount,
+                    AccountType = ABP.Core.Domain.Common.Enums.SavingAccountType.Main,
+                    Status = ABP.Core.Domain.Common.Enums.SavingAccountStatus.Active
+                };
+                
+                var createdAccount = await _savingAccountService.AddAsync(newAccount);
+
+                if (viewModel.InitialAmount > 0)
+                {
+                    await _transactionService.AddAsync(new ABP.Core.Application.Dtos.Transactions.TransactionDto
+                    {
+                        SavingAccountId = createdAccount.Id,
+                        Amount = viewModel.InitialAmount,
+                        Type = ABP.Core.Domain.Common.Enums.TransactionType.Credit,
+                        TransactionDate = DateTime.Now,
+                        Origin = "Apertura de Cuenta",
+                        Beneficiary = accountNumber,
+                        Status = ABP.Core.Domain.Common.Enums.TransactionStatus.Approved
+                    });
+                }
+            }
 
             return RedirectToAction(nameof(Index));
         }
