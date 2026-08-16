@@ -1,1 +1,0 @@
-namespace ABP.Core.Application.Features.CardTransactions.Commands.UpdateCardTransaction { public class UpdateCardTransactionCommand { } }

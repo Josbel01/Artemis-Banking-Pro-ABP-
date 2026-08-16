@@ -1,1 +1,0 @@
-namespace ABP.Core.Application.Features.Transactions.Commands.DeleteTransaction { public class DeleteTransactionCommand { } }

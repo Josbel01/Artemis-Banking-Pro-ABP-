@@ -1,1 +1,0 @@
-namespace ABP.Core.Application.Features.LoanInstallments.Commands.UpdateLoanInstallment { public class UpdateLoanInstallmentCommand { } }

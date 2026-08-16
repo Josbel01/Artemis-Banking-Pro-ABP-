@@ -1,1 +1,0 @@
-namespace ABP.Core.Application.Features.CreditCards.Commands.UpdateCreditCard { public class UpdateCreditCardCommand { } }

@@ -1,1 +1,0 @@
-namespace ABP.Core.Application.Features.CreditCards.Commands.DeleteCreditCard { public class DeleteCreditCardCommandValidator { } }

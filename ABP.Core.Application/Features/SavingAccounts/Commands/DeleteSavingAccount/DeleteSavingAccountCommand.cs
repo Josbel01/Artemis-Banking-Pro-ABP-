@@ -1,1 +1,0 @@
-namespace ABP.Core.Application.Features.SavingAccounts.Commands.DeleteSavingAccount { public class DeleteSavingAccountCommand { } }
