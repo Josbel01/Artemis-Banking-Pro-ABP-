@@ -5,23 +5,23 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ABP.Core.Application.Features.SavingAccounts.Commands.CancelSavingAccount
+namespace ABP.Core.Application.Features.SavingAccounts.Commands.DeleteSavingAccount
 {
-    public class CancelSavingAccountCommand : IRequest<Unit>
+    public class DeleteSavingAccountCommand : IRequest<Unit>
     {
         public int Id { get; set; }
     }
 
-    public class CancelSavingAccountCommandHandler : IRequestHandler<CancelSavingAccountCommand, Unit>
+    public class DeleteSavingAccountCommandHandler : IRequestHandler<DeleteSavingAccountCommand, Unit>
     {
         private readonly ISavingAccountRepository _repository;
 
-        public CancelSavingAccountCommandHandler(ISavingAccountRepository repository)
+        public DeleteSavingAccountCommandHandler(ISavingAccountRepository repository)
         {
             _repository = repository;
         }
 
-        public async Task<Unit> Handle(CancelSavingAccountCommand command, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(DeleteSavingAccountCommand command, CancellationToken cancellationToken)
         {
             var entity = await _repository.GetByIdAsync(command.Id);
             if (entity == null) throw new Exception("SavingAccount not found");

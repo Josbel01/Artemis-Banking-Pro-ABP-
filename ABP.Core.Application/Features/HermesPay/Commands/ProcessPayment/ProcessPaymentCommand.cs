@@ -5,22 +5,37 @@ using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Interfaces;
 using MediatR;
 using System;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
 {
-    public class ProcessPaymentCommand : IRequest<int>
+    public class ProcessPaymentCommand : IRequest
     {
         public int CommerceId { get; set; }
+        public string? CommerceUserId { get; set; }
+        
+        [SwaggerParameter(Description = "The 16-digit credit card number")]
         public string CardNumber { get; set; } = string.Empty;
-        public string ExpirationDate { get; set; } = string.Empty;
+        
+        [SwaggerParameter(Description = "The 2-digit expiration month (MM)")]
+        public string MonthExpirationCard { get; set; } = string.Empty;
+        
+        [SwaggerParameter(Description = "The 4-digit expiration year (YYYY)")]
+        public string YearExpirationCard { get; set; } = string.Empty;
+        
+        [SwaggerParameter(Description = "The 3-digit security code")]
         public string Cvc { get; set; } = string.Empty;
-        public decimal Amount { get; set; }
+        
+        [SwaggerParameter(Description = "The amount to be processed")]
+        public decimal TransactionAmount { get; set; }
     }
 
-    public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentCommand, int>
+    public class ProcessPaymentCommandHandler : IRequestHandler<ProcessPaymentCommand>
     {
         private readonly ICreditCardRepository _creditCardRepository;
         private readonly ICommerceRepository _commerceRepository;
@@ -45,52 +60,81 @@ namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
             _emailService = emailService;
         }
 
-        public async Task<int> Handle(ProcessPaymentCommand command, CancellationToken cancellationToken)
+        public async Task Handle(ProcessPaymentCommand command, CancellationToken cancellationToken)
         {
-            var commerce = await _commerceRepository.GetByIdAsync(command.CommerceId);
-            if (commerce == null || !commerce.IsActive)
+            if (string.IsNullOrWhiteSpace(command.CardNumber) || command.CardNumber.Length != 16)
+                throw new ApiException("El número de tarjeta debe tener exactamente 16 dígitos.");
+
+            if (command.TransactionAmount <= 0)
+                throw new ApiException("El monto de la transacción debe ser mayor que cero.");
+
+            if (string.IsNullOrWhiteSpace(command.Cvc) || command.Cvc.Length != 3)
+                throw new ApiException("El CVC debe tener exactamente 3 dígitos.");
+
+            Commerce commerce = null;
+            if (!string.IsNullOrEmpty(command.CommerceUserId))
+            {
+                commerce = await _commerceRepository.GetByUserIdAsync(command.CommerceUserId);
+            }
+            else
+            {
+                commerce = await _commerceRepository.GetByIdAsync(command.CommerceId);
+            }
+
+            if (commerce == null)
+                throw new ApiException("El comercio no existe."); 
+            
+            if (!commerce.IsActive)
                 throw new ApiException("El comercio no existe o está inactivo.");
 
-            var creditCard = await _creditCardRepository.GetByCardNumberAsync(command.CardNumber);
-            if (creditCard == null || creditCard.Status != CreditCardStatus.Active)
-                throw new ApiException("La tarjeta no existe o está inactiva.");
+            if (string.IsNullOrEmpty(commerce.UserId))
+                throw new ApiException("El comercio no tiene un usuario asociado.");
 
-            if (creditCard.ExpirationDate != command.ExpirationDate || creditCard.Cvc != command.Cvc)
-                throw new ApiException("Los datos de la tarjeta (fecha de expiración o CVC) son incorrectos.");
+            var principalAccount = await _savingAccountRepository.GetPrincipalAccountByClientIdAsync(commerce.UserId);
+            if (principalAccount == null || principalAccount.Status != SavingAccountStatus.Active)
+                throw new ApiException("El comercio no tiene una cuenta principal activa para recibir los fondos.");
+
+            var creditCard = await _creditCardRepository.GetByCardNumberAsync(command.CardNumber);
+            if (creditCard == null)
+                throw new ApiException("La tarjeta no existe.");
+                
+            if (creditCard.Status != CreditCardStatus.Active)
+                throw new ApiException("La tarjeta está inactiva o cancelada.");
+
+            var expectedExpiration = $"{command.MonthExpirationCard}/{command.YearExpirationCard.Substring(command.YearExpirationCard.Length - 2)}";
+            if (creditCard.ExpirationDate != expectedExpiration)
+                throw new ApiException("Los datos de la tarjeta (fecha de expiración) son incorrectos.");
+
+            string inputHash = ComputeSha256Hash(command.Cvc);
+            if (creditCard.Cvc != inputHash)
+                throw new ApiException("Los datos de la tarjeta (CVC) son incorrectos.");
 
             decimal availableCredit = creditCard.CreditLimit - creditCard.CurrentDebt;
 
-            if (command.Amount > availableCredit)
+            if (command.TransactionAmount > availableCredit)
             {
                 var rejectedTrans = new CardTransaction
                 {
                     CreditCardId = creditCard.Id,
                     CommerceId = commerce.Id,
                     TransactionDate = DateTime.UtcNow,
-                    Amount = command.Amount,
+                    Amount = command.TransactionAmount,
                     CommerceName = commerce.Name,
                     Status = ABP.Core.Domain.Common.Enums.TransactionStatus.Rejected
                 };
                 await _cardTransactionRepository.AddAsync(rejectedTrans);
                 
-                throw new ApiException("Fondos insuficientes o límite de crédito excedido.");
+                throw new ApiException("El monto de la transacción excede el crédito disponible de la tarjeta.");
             }
 
-            if (string.IsNullOrEmpty(commerce.UserId))
-                throw new ApiException("El comercio no tiene un usuario asignado para recibir los fondos.");
-
-            var principalAccount = await _savingAccountRepository.GetPrincipalAccountByClientIdAsync(commerce.UserId);
-            if (principalAccount == null)
-                throw new ApiException("El comercio no tiene una cuenta principal para recibir los fondos.");
-
-            int newTransactionId;
+            string lastFour = command.CardNumber.Substring(command.CardNumber.Length - 4);
 
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                creditCard.CurrentDebt += command.Amount;
+                creditCard.CurrentDebt += command.TransactionAmount;
                 await _creditCardRepository.UpdateAsync(creditCard.Id, creditCard);
 
-                principalAccount.Balance += command.Amount;
+                principalAccount.Balance += command.TransactionAmount;
                 await _savingAccountRepository.UpdateAsync(principalAccount.Id, principalAccount);
 
                 var approvedTrans = new CardTransaction
@@ -98,21 +142,20 @@ namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
                     CreditCardId = creditCard.Id,
                     CommerceId = commerce.Id,
                     TransactionDate = DateTime.UtcNow,
-                    Amount = command.Amount,
+                    Amount = command.TransactionAmount,
                     CommerceName = commerce.Name,
                     Status = ABP.Core.Domain.Common.Enums.TransactionStatus.Approved
                 };
-                var savedCardTrans = await _cardTransactionRepository.AddAsync(approvedTrans);
-                newTransactionId = savedCardTrans.Id;
+                await _cardTransactionRepository.AddAsync(approvedTrans);
 
                 var savingTrans = new ABP.Core.Domain.Entities.Transaction
                 {
                     SavingAccountId = principalAccount.Id,
                     TransactionDate = DateTime.UtcNow,
-                    Amount = command.Amount,
+                    Amount = command.TransactionAmount,
                     Type = TransactionType.Credit,
-                    Beneficiary = commerce.Name,
-                    Origin = "Hermes Pay",
+                    Beneficiary = principalAccount.AccountNumber,
+                    Origin = lastFour,
                     Status = ABP.Core.Domain.Common.Enums.TransactionStatus.Approved
                 };
                 await _transactionRepository.AddAsync(savingTrans);
@@ -122,16 +165,29 @@ namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
 
             try
             {
-                await _emailService.SendAsync(new ABP.Core.Application.Dtos.Email.EmailRequestDto
+                var emailDto = new ABP.Core.Application.Dtos.Email.EmailRequestDto
                 {
                     To = commerce.Email,
-                    Subject = "Nuevo Pago Recibido - Hermes Pay",
-                    HtmlBody = "Se ha procesado exitosamente un pago por el monto de $" + command.Amount + " usando Hermes Pay."
-                });
+                    Subject = $"Pago recibido a través de tarjeta {lastFour}",
+                    HtmlBody = $"Se ha procesado exitosamente un pago por el monto de {command.TransactionAmount} usando Hermes Pay. Fecha: {DateTime.Now}"
+                };
+                await _emailService.SendAsync(emailDto);
             }
             catch { }
+        }
 
-            return newTransactionId;
+        public static string ComputeSha256Hash(string rawData)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
         }
     }
 }

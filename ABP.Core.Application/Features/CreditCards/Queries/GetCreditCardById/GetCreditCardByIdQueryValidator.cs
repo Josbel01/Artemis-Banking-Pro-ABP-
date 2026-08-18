@@ -6,8 +6,7 @@ namespace ABP.Core.Application.Features.CreditCards.Queries.GetCreditCardById
     {
         public GetCreditCardByIdQueryValidator()
         {
-            RuleFor(a => a.Id)
-                .GreaterThan(0).WithMessage("CreditCard ID must be greater than 0.")
+            RuleFor(x => x.Id).NotEmpty().WithMessage("CreditCard ID must be greater than 0.")
                 .NotNull().WithMessage("CreditCard ID is required.");
         }
     }

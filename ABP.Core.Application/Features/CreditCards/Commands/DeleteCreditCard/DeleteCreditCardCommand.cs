@@ -5,23 +5,23 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ABP.Core.Application.Features.CreditCards.Commands.CancelCreditCard
+namespace ABP.Core.Application.Features.CreditCards.Commands.DeleteCreditCard
 {
-    public class CancelCreditCardCommand : IRequest<Unit>
+    public class DeleteCreditCardCommand : IRequest<Unit>
     {
         public int Id { get; set; }
     }
 
-    public class CancelCreditCardCommandHandler : IRequestHandler<CancelCreditCardCommand, Unit>
+    public class DeleteCreditCardCommandHandler : IRequestHandler<DeleteCreditCardCommand, Unit>
     {
         private readonly ICreditCardRepository _repository;
 
-        public CancelCreditCardCommandHandler(ICreditCardRepository repository)
+        public DeleteCreditCardCommandHandler(ICreditCardRepository repository)
         {
             _repository = repository;
         }
 
-        public async Task<Unit> Handle(CancelCreditCardCommand command, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(DeleteCreditCardCommand command, CancellationToken cancellationToken)
         {
             var entity = await _repository.GetByIdAsync(command.Id);
             if (entity == null) throw new Exception("CreditCard not found");

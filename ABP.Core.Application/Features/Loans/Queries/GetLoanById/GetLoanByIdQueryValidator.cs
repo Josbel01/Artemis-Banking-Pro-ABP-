@@ -6,9 +6,7 @@ namespace ABP.Core.Application.Features.Loans.Queries.GetLoanById
     {
         public GetLoanByIdQueryValidator()
         {
-            RuleFor(a => a.Id)
-                .GreaterThan(0).WithMessage("Loan ID must be greater than 0.")
-                .NotNull().WithMessage("Loan ID is required.");
+            RuleFor(x => x.Id).NotEmpty().NotNull();
         }
     }
 }

@@ -4,7 +4,10 @@ using ABP.Core.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -56,7 +59,7 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCard
                 CreditLimit = command.CreditLimit,
                 CurrentDebt = 0m,
                 ExpirationDate = command.ExpirationDate,
-                Cvc = command.Cvc,
+                Cvc = ComputeSha256Hash(command.Cvc),
                 AssignedByUserId = command.AssignedByUserId,
                 Status = ABP.Core.Domain.Common.Enums.CreditCardStatus.Active
             };
@@ -71,6 +74,20 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCard
             }
 
             return result.Id;
+        }
+
+        private static string ComputeSha256Hash(string rawData)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
         }
     }
 }

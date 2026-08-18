@@ -6,8 +6,8 @@ namespace ABP.Core.Application.Features.Loans.Commands.UpdateLoanRate
     {
         public UpdateLoanRateCommandValidator()
         {
-            RuleFor(a => a.Id).GreaterThan(0);
-            RuleFor(a => a.NewAnnualInterestRate).GreaterThan(0);
+            RuleFor(x => x.Id).NotEmpty().NotNull();
+            RuleFor(x => x.AnnualInterestRate).GreaterThan(0);
         }
     }
 }

@@ -6,8 +6,8 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.UpdateCreditCardLim
     {
         public UpdateCreditCardLimitCommandValidator()
         {
-            RuleFor(a => a.Id).GreaterThan(0);
-            RuleFor(a => a.NewCreditLimit).GreaterThan(0);
+            RuleFor(x => x.Id).NotEmpty().NotNull();
+            RuleFor(a => a.CreditLimit).GreaterThan(0);
         }
     }
 }

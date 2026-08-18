@@ -4,50 +4,344 @@ using ABP.Core.Domain.Common.Enums;
 using ABP.Infrastructure.Identity.Entities;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using ABP.Core.Domain.Interfaces;
+using Swashbuckle.AspNetCore.Annotations;
+using Swashbuckle.AspNetCore.Annotations;
+using System.Net.Mime;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Artemis_Banking_Pro_WebApi.Controllers.v1
 {
-    [Authorize(Roles = "Admin,Commerce")]
     [ApiVersion("1.0")]
+    [Authorize(Roles = "Admin")]
+    [SwaggerTag("Endpoints for managing users")]
     public class UserController : BaseApiController
     {
         private readonly IAccountServiceWebApi _accountService;
         private readonly UserManager<AppUser> _userManager;
+        private readonly ISavingAccountService _savingAccountService;
+        private readonly ITransactionService _transactionService;
+        private readonly ICommerceRepository _commerceRepository;
 
-        public UserController(IAccountServiceWebApi accountService, UserManager<AppUser> userManager)
+        public UserController(
+            IAccountServiceWebApi accountService, 
+            UserManager<AppUser> userManager,
+            ISavingAccountService savingAccountService,
+            ITransactionService transactionService,
+            ICommerceRepository commerceRepository)
         {
             _accountService = accountService;
             _userManager = userManager;
+            _savingAccountService = savingAccountService;
+            _transactionService = transactionService;
+            _commerceRepository = commerceRepository;
         }
 
-        [Authorize(Roles = nameof(UserRoles.Admin))]
-        [HttpGet]
+        [HttpGet("users")]
+        [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> Get()
+        [SwaggerOperation(Summary = "Get users")]
+        public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? role = null)
         {
-            try
+            if (page <= 0 || pageSize <= 0 || pageSize > 20)
             {
-                var users = await _accountService.GetAllUser();
-                
-                var allowedRoles = new List<string> { 
-                    UserRoles.Admin.ToString(), 
-                    UserRoles.Cashier.ToString(), 
-                    UserRoles.Client.ToString() 
+                return BadRequest(new { Message = "Parámetros inválidos" });
+            }
+
+            var users = await _accountService.GetAllUser(null);
+            var validUsers = users.Where(u => u.Roles != null && !u.Roles.Contains(UserRoles.Commerce.ToString())).ToList();
+
+            if (!string.IsNullOrEmpty(role))
+            {
+                validUsers = validUsers.Where(u => u.Roles != null && u.Roles.Contains("Client")).ToList();
+            }
+
+            validUsers = validUsers.OrderByDescending(u => u.Id).ToList();
+
+            var paged = validUsers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            return Ok(new
+            {
+                page,
+                pageSize,
+                totalRecords = validUsers.Count,
+                totalPages = validUsers.Count == 0 ? 1 : (int)Math.Ceiling(validUsers.Count / (double)pageSize),
+                data = paged.Select(u => new
+                {
+                    id = u.Id,
+                    userName = u.UserName,
+                    identification = u.DNI,
+                    firstName = u.FirstName,
+                    lastName = u.LastName,
+                    email = u.Email,
+                    role = u.Roles?.FirstOrDefault(),
+                    isActive = u.IsActive
+                })
+            });
+        }
+
+        [HttpGet("users/commerce")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [SwaggerOperation(Summary = "Get commerce users")]
+        public async Task<IActionResult> GetCommerceUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            if (page <= 0 || pageSize <= 0 || pageSize > 20)
+            {
+                return BadRequest(new { Message = "Parámetros inválidos" });
+            }
+
+            var users = await _accountService.GetAllUser(null);
+            var commerceUsers = users.Where(u => u.Roles != null && u.Roles.Contains("Client"))
+                                     .OrderByDescending(u => u.Id)
+                                     .ToList();
+
+            var paged = commerceUsers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            return Ok(new
+            {
+                page,
+                pageSize,
+                totalRecords = commerceUsers.Count,
+                totalPages = commerceUsers.Count == 0 ? 1 : (int)Math.Ceiling(commerceUsers.Count / (double)pageSize),
+                data = paged.Select(u => new
+                {
+                    id = u.Id,
+                    userName = u.UserName,
+                    identification = u.DNI,
+                    firstName = u.FirstName,
+                    lastName = u.LastName,
+                    email = u.Email,
+                    role = "Comercio",
+                    isActive = u.IsActive
+                })
+            });
+        }
+
+        [HttpPost("users")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [SwaggerOperation(Summary = "Create user")]
+        public async Task<IActionResult> CreateUser([FromBody] SaveUserDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (dto.Role == UserRoles.Commerce.ToString())
+            {
+                return BadRequest(new { Message = "No se puede crear un usuario con rol Comercio desde este endpoint." });
+            }
+
+            var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
+            if (existingEmail != null) return Conflict(new { Message = "El email ya está registrado." });
+
+            var existingUserName = await _userManager.FindByNameAsync(dto.UserName);
+            if (existingUserName != null) return Conflict(new { Message = "El nombre de usuario ya está registrado." });
+
+            dto.IsActive = false;
+            var response = await _accountService.RegisterUser(dto, Request.Headers["origin"], true);
+
+            if (response.HasError) return BadRequest((response.Errors?.FirstOrDefault() ?? ""));
+
+            if (dto.Role == UserRoles.Client.ToString())
+            {
+                var rnd = new Random();
+                string accountNumber = rnd.Next(100000000, 999999999).ToString();
+
+                var newAccount = new ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto
+                {
+                    Id = 0,
+                    ClientId = response.Id,
+                    AccountNumber = accountNumber,
+                    Balance = 0m,
+                    AccountType = SavingAccountType.Main,
+                    Status = SavingAccountStatus.Active
                 };
 
-                var validUsers = users.Where(u => u.Roles != null && u.Roles.Any(r => allowedRoles.Contains(r))).ToList();
+                var createdAccount = await _savingAccountService.AddAsync(newAccount);
 
-                return Ok(validUsers);
+                if (0 > 0)
+                {
+                    await _transactionService.AddAsync(new ABP.Core.Application.Dtos.Transactions.TransactionDto
+                    {
+                        SavingAccountId = createdAccount.Id,
+                        Amount = 0,
+                        Type = TransactionType.Credit,
+                        TransactionDate = DateTime.Now,
+                        Origin = "Apertura",
+                        Beneficiary = createdAccount.AccountNumber,
+                        
+                    });
+                }
             }
-            catch(Exception ex)
+
+            return StatusCode(201, new { Message = "Usuario creado correctamente.", id = response.Id });
+        }
+
+        [HttpPost("users/commerce/{commerceId}")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [SwaggerOperation(Summary = "Create commerce user")]
+        public async Task<IActionResult> CreateCommerceUser(int commerceId, [FromBody] SaveUserDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var commerce = await _commerceRepository.GetByIdAsync(commerceId);
+            if (commerce == null) return NotFound(new { Message = "El comercio indicado no existe." });
+
+            if (!string.IsNullOrEmpty(commerce.UserId))
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return Conflict(new { Message = "El comercio ya tiene un usuario asociado." });
             }
+
+            var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
+            if (existingEmail != null) return Conflict(new { Message = "El email ya está registrado." });
+
+            dto.Role = UserRoles.Commerce.ToString();
+            dto.IsActive = false; 
+
+            var response = await _accountService.RegisterUser(dto, null, true);
+
+            if (response.HasError) return BadRequest((response.Errors?.FirstOrDefault() ?? ""));
+
+            commerce.UserId = response.Id;
+            await _commerceRepository.UpdateAsync(commerceId, commerce);
+
+            var rnd = new Random();
+            string accountNumber = rnd.Next(100000000, 999999999).ToString();
+
+            var newAccount = new ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto
+            {
+                Id = 0,
+                ClientId = response.Id,
+                AccountNumber = accountNumber,
+                Balance = 0m,
+                AccountType = SavingAccountType.Main,
+                Status = SavingAccountStatus.Active
+            };
+
+            var createdAccount = await _savingAccountService.AddAsync(newAccount);
+
+            if (0 > 0)
+            {
+                await _transactionService.AddAsync(new ABP.Core.Application.Dtos.Transactions.TransactionDto
+                {
+                    SavingAccountId = createdAccount.Id,
+                    Amount = 0,
+                    Type = TransactionType.Credit,
+                    TransactionDate = DateTime.Now,
+                    Origin = "Apertura",
+                    Beneficiary = createdAccount.AccountNumber,
+                    
+                });
+            }
+
+            return StatusCode(201, new { Message = "Usuario comercio creado correctamente.", id = response.Id });
+        }
+
+        [HttpPut("users/{id}")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [SwaggerOperation(Summary = "Update user")]
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] SaveUserDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound(new { Message = "El usuario indicado no existe." });
+
+            dto.Id = id;
+            dto.Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? string.Empty;
+
+            var result = await _accountService.EditUser(dto, null, false, true);
+
+            if (result.HasError) return BadRequest(result.Errors);
+
+            return NoContent();
+        }
+
+        [HttpPatch("users/{id}/status")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [SwaggerOperation(Summary = "Change user status")]
+        public async Task<IActionResult> ChangeUserStatus(string id, [FromBody] ChangeUserStatusDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound(new { Message = "El usuario indicado no existe." });
+
+            user.IsActive = dto.Status;
+            await _userManager.UpdateAsync(user);
+
+            return NoContent();
+        }
+
+        [HttpGet("users/{id}")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [SwaggerOperation(Summary = "Get user details")]
+        public async Task<IActionResult> GetUserById(string id)
+        {
+            var user = await _accountService.GetUserById(id);
+            if (user == null) return NotFound(new { Message = "El usuario indicado no existe." });
+
+            return Ok(new
+            {
+                id = user.Id,
+                userName = user.UserName,
+                identification = user.DNI,
+                firstName = user.FirstName,
+                lastName = user.LastName,
+                email = user.Email,
+                role = user.Roles?.FirstOrDefault(),
+                isActive = user.IsActive,
+                createdAt = DateTime.UtcNow 
+            });
         }
     }
+
+    public class ChangeUserStatusDto
+    {
+        public bool Status { get; set; }
+    }
 }
+
+
+
+
+
+
+
