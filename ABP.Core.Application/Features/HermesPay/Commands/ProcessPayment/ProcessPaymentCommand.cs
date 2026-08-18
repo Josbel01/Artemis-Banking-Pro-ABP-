@@ -62,14 +62,18 @@ namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
 
         public async Task Handle(ProcessPaymentCommand command, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(command.CardNumber) || command.CardNumber.Length != 16)
+            if (string.IsNullOrWhiteSpace(command.CardNumber) || command.CardNumber.Length != 16 || !command.CardNumber.All(char.IsDigit))
                 throw new ApiException("El número de tarjeta debe tener exactamente 16 dígitos.");
 
             if (command.TransactionAmount <= 0)
                 throw new ApiException("El monto de la transacción debe ser mayor que cero.");
 
-            if (string.IsNullOrWhiteSpace(command.Cvc) || command.Cvc.Length != 3)
+            if (string.IsNullOrWhiteSpace(command.Cvc) || command.Cvc.Length != 3 || !command.Cvc.All(char.IsDigit))
                 throw new ApiException("El CVC debe tener exactamente 3 dígitos.");
+
+            if (!int.TryParse(command.MonthExpirationCard, out var month) || month is < 1 or > 12 ||
+                !int.TryParse(command.YearExpirationCard, out var year) || year < DateTime.UtcNow.Year)
+                throw new ApiException("La fecha de expiración de la tarjeta es inválida.");
 
             Commerce commerce = null;
             if (!string.IsNullOrEmpty(command.CommerceUserId))
@@ -101,9 +105,12 @@ namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
             if (creditCard.Status != CreditCardStatus.Active)
                 throw new ApiException("La tarjeta está inactiva o cancelada.");
 
-            var expectedExpiration = $"{command.MonthExpirationCard}/{command.YearExpirationCard.Substring(command.YearExpirationCard.Length - 2)}";
+            var expectedExpiration = $"{month:D2}/{year % 100:D2}";
             if (creditCard.ExpirationDate != expectedExpiration)
                 throw new ApiException("Los datos de la tarjeta (fecha de expiración) son incorrectos.");
+
+            if (new DateTime(year, month, 1).AddMonths(1) <= DateTime.UtcNow)
+                throw new ApiException("La tarjeta está vencida.");
 
             string inputHash = ComputeSha256Hash(command.Cvc);
             if (creditCard.Cvc != inputHash)

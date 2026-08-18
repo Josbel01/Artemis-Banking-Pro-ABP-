@@ -132,9 +132,14 @@ namespace ABP.Infrastructure.Identity
                         c.NoResult();
                         if (!c.Response.HasStarted)
                         {
-                            c.Response.StatusCode = 500;
-                            c.Response.ContentType = "text/plain";
-                            return c.Response.WriteAsync(c.Exception.ToString());
+                            c.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            c.Response.ContentType = "application/problem+json";
+                            return c.Response.WriteAsJsonAsync(new
+                            {
+                                type = "https://httpstatuses.com/401",
+                                title = "Token inválido o expirado.",
+                                status = StatusCodes.Status401Unauthorized
+                            });
                         }
                         return Task.CompletedTask;
                     },

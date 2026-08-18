@@ -3,6 +3,7 @@ using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 using ABP.Core.Domain.Common.Enums;
+using ABP.Core.Application.Exceptions;
 
 namespace ABP.Core.Application.Features.CreditCards.Commands.DeleteCreditCardAPI
 {
@@ -21,6 +22,8 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.DeleteCreditCardAPI
 
             var card = await _creditCardService.GetByIdAsync(id);
             if (card == null) return false;
+            if (card.CurrentDebt > 0)
+                throw new ApiException("No se puede cancelar una tarjeta con deuda pendiente.");
 
             card.Status = CreditCardStatus.Cancelled;
             await _creditCardService.UpdateAsync(card, id);

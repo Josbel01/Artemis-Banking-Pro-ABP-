@@ -9,12 +9,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ABP.Core.Domain.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
-using Swashbuckle.AspNetCore.Annotations;
 using System.Net.Mime;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace Artemis_Banking_Pro_WebApi.Controllers.v1
 {
@@ -60,9 +60,9 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
             var users = await _accountService.GetAllUser(null);
             var validUsers = users.Where(u => u.Roles != null && !u.Roles.Contains(UserRoles.Commerce.ToString())).ToList();
 
-            if (!string.IsNullOrEmpty(role))
+            if (!string.IsNullOrWhiteSpace(role))
             {
-                validUsers = validUsers.Where(u => u.Roles != null && u.Roles.Contains("Client")).ToList();
+                validUsers = validUsers.Where(u => u.Roles != null && u.Roles.Contains(role, StringComparer.OrdinalIgnoreCase)).ToList();
             }
 
             validUsers = validUsers.OrderByDescending(u => u.Id).ToList();
@@ -104,7 +104,7 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
             }
 
             var users = await _accountService.GetAllUser(null);
-            var commerceUsers = users.Where(u => u.Roles != null && u.Roles.Contains("Client"))
+            var commerceUsers = users.Where(u => u.Roles != null && u.Roles.Contains(UserRoles.Commerce.ToString()))
                                      .OrderByDescending(u => u.Id)
                                      .ToList();
 
@@ -153,6 +153,9 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
             var existingUserName = await _userManager.FindByNameAsync(dto.UserName);
             if (existingUserName != null) return Conflict(new { Message = "El nombre de usuario ya está registrado." });
 
+            var users = await _accountService.GetAllUser(null);
+            if (users.Any(user => user.DNI == dto.DNI)) return Conflict(new { Message = "La cédula ya está registrada." });
+
             dto.IsActive = false;
             var response = await _accountService.RegisterUser(dto, Request.Headers["origin"], true);
 
@@ -160,8 +163,7 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
 
             if (dto.Role == UserRoles.Client.ToString())
             {
-                var rnd = new Random();
-                string accountNumber = rnd.Next(100000000, 999999999).ToString();
+                string accountNumber = await GenerateUniqueAccountNumberAsync();
 
                 var newAccount = new ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto
                 {
@@ -175,19 +177,6 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
 
                 var createdAccount = await _savingAccountService.AddAsync(newAccount);
 
-                if (0 > 0)
-                {
-                    await _transactionService.AddAsync(new ABP.Core.Application.Dtos.Transactions.TransactionDto
-                    {
-                        SavingAccountId = createdAccount.Id,
-                        Amount = 0,
-                        Type = TransactionType.Credit,
-                        TransactionDate = DateTime.Now,
-                        Origin = "Apertura",
-                        Beneficiary = createdAccount.AccountNumber,
-                        
-                    });
-                }
             }
 
             return StatusCode(201, new { Message = "Usuario creado correctamente.", id = response.Id });
@@ -217,6 +206,9 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
             var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
             if (existingEmail != null) return Conflict(new { Message = "El email ya está registrado." });
 
+            var existingUserName = await _userManager.FindByNameAsync(dto.UserName);
+            if (existingUserName != null) return Conflict(new { Message = "El nombre de usuario ya está registrado." });
+
             dto.Role = UserRoles.Commerce.ToString();
             dto.IsActive = false; 
 
@@ -227,8 +219,7 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
             commerce.UserId = response.Id;
             await _commerceRepository.UpdateAsync(commerceId, commerce);
 
-            var rnd = new Random();
-            string accountNumber = rnd.Next(100000000, 999999999).ToString();
+            string accountNumber = await GenerateUniqueAccountNumberAsync();
 
             var newAccount = new ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto
             {
@@ -242,19 +233,6 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
 
             var createdAccount = await _savingAccountService.AddAsync(newAccount);
 
-            if (0 > 0)
-            {
-                await _transactionService.AddAsync(new ABP.Core.Application.Dtos.Transactions.TransactionDto
-                {
-                    SavingAccountId = createdAccount.Id,
-                    Amount = 0,
-                    Type = TransactionType.Credit,
-                    TransactionDate = DateTime.Now,
-                    Origin = "Apertura",
-                    Beneficiary = createdAccount.AccountNumber,
-                    
-                });
-            }
 
             return StatusCode(201, new { Message = "Usuario comercio creado correctamente.", id = response.Id });
         }
@@ -330,6 +308,19 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                 isActive = user.IsActive,
                 createdAt = DateTime.UtcNow 
             });
+        }
+
+        private async Task<string> GenerateUniqueAccountNumberAsync()
+        {
+            var existingNumbers = (await _savingAccountService.GetAllAsync())
+                .Select(account => account.AccountNumber)
+                .ToHashSet();
+            for (var attempt = 0; attempt < 20; attempt++)
+            {
+                var number = RandomNumberGenerator.GetInt32(100_000_000, 1_000_000_000).ToString();
+                if (!existingNumbers.Contains(number)) return number;
+            }
+            throw new InvalidOperationException("No fue posible generar un número de cuenta único.");
         }
     }
 

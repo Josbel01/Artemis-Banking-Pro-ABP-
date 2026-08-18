@@ -11,7 +11,7 @@
   </Folder>
   <Folder Name="/Source/Presentation/" />
   <Folder Name="/Source/Presentation/Azure Functions/">
-    <Project Path="FunctionApp1/FunctionApp1.csproj" />
+    <Project Path="AutomaticOverduePaymentControlFunction/AutomaticOverduePaymentControl.csproj" Id="186ad283-9bf9-4e1c-ab85-66f2b97ccb15" />
   </Folder>
   <Folder Name="/Source/Presentation/WebApi/">
     <Project Path="Artemis Banking Pro WebApi/ArtemisBankingApi.csproj" />

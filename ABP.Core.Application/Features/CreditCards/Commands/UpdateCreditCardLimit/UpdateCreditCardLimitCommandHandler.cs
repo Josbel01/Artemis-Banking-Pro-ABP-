@@ -2,6 +2,7 @@ using ABP.Core.Application.Interfaces;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
+using ABP.Core.Application.Exceptions;
 
 namespace ABP.Core.Application.Features.CreditCards.Commands.UpdateCreditCardLimit
 {
@@ -21,7 +22,9 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.UpdateCreditCardLim
             var card = await _creditCardService.GetByIdAsync(id);
             if (card == null) return false;
 
-            // Simplified: we would normally validate against current debt
+            if (request.CreditLimit < card.CurrentDebt)
+                throw new ApiException("El nuevo límite no puede ser menor que la deuda actual.");
+
             card.CreditLimit = request.CreditLimit;
             await _creditCardService.UpdateAsync(card, id);
 

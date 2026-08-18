@@ -5,6 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System;
 using ABP.Core.Domain.Common.Enums;
+using ABP.Core.Application.Exceptions;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCardAPI
 {
@@ -19,6 +22,13 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCardAPI
 
         public async Task<object> Handle(CreateCreditCardAPICommand request, CancellationToken cancellationToken)
         {
+            if (request.CreditLimit <= 0)
+                throw new ApiException("El límite de crédito debe ser mayor que cero.");
+
+            var existingCards = await _creditCardService.GetAllAsync();
+            var cardNumber = GenerateUniqueCardNumber(existingCards.Select(card => card.CardNumber));
+            var cvc = RandomNumberGenerator.GetInt32(100, 1000).ToString();
+
             var card = new CreditCardDto
             {
                 Id = 0,
@@ -26,9 +36,9 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCardAPI
                 CreditLimit = request.CreditLimit,
                 CurrentDebt = 0,
                 Status = CreditCardStatus.Active,
-                CardNumber = new Random().NextInt64(1000000000000000, 9999999999999999).ToString(),
-                Cvc = new Random().Next(100, 999).ToString(),
-                ExpirationDate = DateTime.Now.AddYears(3).ToString("MM/yy")
+                CardNumber = cardNumber,
+                Cvc = ComputeSha256Hash(cvc),
+                ExpirationDate = DateTime.UtcNow.AddYears(3).ToString("MM/yy")
             };
 
             var created = await _creditCardService.AddAsync(card);
@@ -48,6 +58,21 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCardAPI
                 createdAt = DateTime.Now
             };
         }
+
+        private static string GenerateUniqueCardNumber(IEnumerable<string> existingNumbers)
+        {
+            var existing = existingNumbers.ToHashSet();
+            for (var attempt = 0; attempt < 20; attempt++)
+            {
+                var number = string.Concat(Enumerable.Range(0, 16)
+                    .Select(_ => RandomNumberGenerator.GetInt32(0, 10).ToString()));
+                if (!existing.Contains(number)) return number;
+            }
+            throw new ApiException("No fue posible generar un número de tarjeta único.");
+        }
+
+        private static string ComputeSha256Hash(string value) =>
+            Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
     }
 }
 

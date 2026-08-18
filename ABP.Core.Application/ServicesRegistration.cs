@@ -1,6 +1,8 @@
 using ABP.Core.Application.Interfaces;
 using ABP.Core.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
+using FluentValidation;
+using MediatR;
 using System.Reflection;
 
 namespace ABP.Core.Application
@@ -14,6 +16,9 @@ namespace ABP.Core.Application
             {
                 config.AddMaps(Assembly.GetExecutingAssembly());
             });
+            services.AddMediatR(options => options.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(Behaviors.ValidationBehavior<,>));
             #endregion
 
             #region Services IOC

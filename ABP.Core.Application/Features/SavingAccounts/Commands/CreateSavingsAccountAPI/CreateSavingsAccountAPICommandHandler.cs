@@ -5,6 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System;
 using ABP.Core.Domain.Common.Enums;
+using ABP.Core.Application.Exceptions;
+using System.Linq;
+using System.Security.Cryptography;
 
 namespace ABP.Core.Application.Features.SavingAccounts.Commands.CreateSavingsAccountAPI
 {
@@ -21,6 +24,16 @@ namespace ABP.Core.Application.Features.SavingAccounts.Commands.CreateSavingsAcc
 
         public async Task<object> Handle(CreateSavingsAccountAPICommand request, CancellationToken cancellationToken)
         {
+            if (request.InitialBalance < 0)
+                throw new ApiException("El balance inicial no puede ser negativo.");
+
+            var clientAccounts = await _savingAccountService.GetAllByClientIdAsync(request.ClientId);
+            if (!clientAccounts.Any(account => account.AccountType == SavingAccountType.Main && account.Status == SavingAccountStatus.Active))
+                throw new ApiException("El cliente debe tener una cuenta principal activa.");
+
+            var allAccounts = await _savingAccountService.GetAllAsync();
+            var existingNumbers = allAccounts.Select(account => account.AccountNumber).ToHashSet();
+            var accountNumber = GenerateUniqueAccountNumber(existingNumbers);
             var account = new SavingAccountDto
             {
                 Id = 0,
@@ -28,7 +41,7 @@ namespace ABP.Core.Application.Features.SavingAccounts.Commands.CreateSavingsAcc
                 Balance = request.InitialBalance,
                 AccountType = SavingAccountType.Secondary,
                 Status = SavingAccountStatus.Active,
-                AccountNumber = new Random().Next(100000000, 999999999).ToString(),
+                AccountNumber = accountNumber,
             };
 
             var created = await _savingAccountService.AddAsync(account);
@@ -58,6 +71,16 @@ namespace ABP.Core.Application.Features.SavingAccounts.Commands.CreateSavingsAcc
                 status = "Activa",
                 createdAt = DateTime.Now
             };
+        }
+
+        private static string GenerateUniqueAccountNumber(ISet<string> existingNumbers)
+        {
+            for (var attempt = 0; attempt < 20; attempt++)
+            {
+                var number = RandomNumberGenerator.GetInt32(100_000_000, 1_000_000_000).ToString();
+                if (!existingNumbers.Contains(number)) return number;
+            }
+            throw new ApiException("No fue posible generar un número de cuenta único.");
         }
     }
 }

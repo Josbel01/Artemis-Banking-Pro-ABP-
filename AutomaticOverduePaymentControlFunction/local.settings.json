@@ -1,0 +1,19 @@
+{
+    "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "TimeTrigger": "0 */1 * * * *",
+
+    "UseInMemoryDatabase": false,
+    "ConnectionStrings:DefaultConnection": "Server=.\\SQLEXPRESS;Database=ArtemisBankingAppDb;Trusted_Connection=True;TrustServerCertificate=true",
+    "ConnectionStrings:IdentityConnection": "Server=.\\SQLEXPRESS;Database=ArtemisBankingAppDb;Trusted_Connection=True;TrustServerCertificate=true",
+
+    "EmailSettings:EmailFrom": "corage1920@gmail.com",
+    "EmailSettings:SmptHost": "smtp.gmail.com",
+    "EmailSettings:SmptPort": 587,
+    "EmailSettings:SmptUser": "corage1920@gmail.com",
+    "EmailSettings:SmptPass": "kqtlnvnnepevecqw",
+    "EmailSettings:DisplayName": "ArtemisBanking Email"
+  }
+}
