@@ -9,9 +9,10 @@ using ABP.Core.Application;
 using ABP.Infrastructure.Identity;
 using ABP.Infrastructure.Persistence;
 using ABP.Infrastructure.Shared;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using ABP.Infrastructure.Identity.Services;
+using ABP.Core.Application.Interfaces;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -30,16 +31,19 @@ builder.Services.AddLogging(lb => {
 
 builder.ConfigureFunctionsWebApplication();
 
-builder.ConfigureFunctionsWebApplication();
-
 builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
+
+
 
 builder.Services.AddApplicationLayerIoc();
 builder.Services.AddPersistenceLayerIoc(builder.Configuration);
 builder.Services.AddIdentityLayerIocForWebApp(builder.Configuration);
 builder.Services.AddSharedLayerIoc(builder.Configuration);
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+// Register IAccountServiceWebApi manually to satisfy MediatR handlers DI validation
+builder.Services.AddScoped<IAccountServiceWebApi, AccountServiceWebApi>();
 
 await builder.Build().RunAsync();
