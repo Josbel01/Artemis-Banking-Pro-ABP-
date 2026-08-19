@@ -1,5 +1,5 @@
 using ABP.Core.Domain.Interfaces;
-using ABP.Core.Application.ViewModels.Beneficiaries;
+using ABP.Core.Application.Dtos.Beneficiaries;
 using AutoMapper;
 using MediatR;
 using Swashbuckle.AspNetCore.Annotations;
@@ -13,7 +13,7 @@ namespace ABP.Core.Application.Features.Beneficiaries.Queries.GetAllBeneficiarie
     /// <summary>
     /// Parameters required to get all beneficiaries
     /// </summary>
-    public class GetAllBeneficiariesQuery : IRequest<IEnumerable<BeneficiaryViewModel>>
+    public class GetAllBeneficiariesQuery : IRequest<IEnumerable<BeneficiaryDto>>
     {
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -21,7 +21,7 @@ namespace ABP.Core.Application.Features.Beneficiaries.Queries.GetAllBeneficiarie
         public string? ClientId { get; set; }
     }
 
-    public class GetAllBeneficiariesQueryHandler : IRequestHandler<GetAllBeneficiariesQuery, IEnumerable<BeneficiaryViewModel>>
+    public class GetAllBeneficiariesQueryHandler : IRequestHandler<GetAllBeneficiariesQuery, IEnumerable<BeneficiaryDto>>
     {
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -34,14 +34,14 @@ private readonly IBeneficiaryRepository _beneficiaryRepository;
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<BeneficiaryViewModel>> Handle(GetAllBeneficiariesQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<BeneficiaryDto>> Handle(GetAllBeneficiariesQuery request, CancellationToken cancellationToken)
         {
             var beneficiaries = string.IsNullOrEmpty(request.ClientId) 
                 ? await _beneficiaryRepository.GetAllListAsync()
                 : await _beneficiaryRepository.GetAllByClientIdAsync(request.ClientId);
-            var beneficiariesVm = _mapper.Map<IEnumerable<BeneficiaryViewModel>>(beneficiaries);
+            var beneficiariesDto = _mapper.Map<IEnumerable<BeneficiaryDto>>(beneficiaries);
 
-            return beneficiariesVm;
+            return beneficiariesDto;
         }
     }
 }

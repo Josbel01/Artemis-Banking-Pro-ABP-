@@ -1,4 +1,4 @@
-using ABP.Core.Application.ViewModels.Transactions;
+using ABP.Core.Application.Dtos.Transactions;
 using ABP.Core.Domain.Interfaces;
 using AutoMapper;
 using MediatR;
@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace ABP.Core.Application.Features.Transactions.Queries.GetTransactionById
 {
-    public class GetTransactionByIdQuery : IRequest<TransactionViewModel>
+    public class GetTransactionByIdQuery : IRequest<TransactionDto>
     {
         public int Id { get; set; }
     }
 
-    public class GetTransactionByIdQueryHandler : IRequestHandler<GetTransactionByIdQuery, TransactionViewModel>
+    public class GetTransactionByIdQueryHandler : IRequestHandler<GetTransactionByIdQuery, TransactionDto>
     {
         private readonly IGenericRepository<ABP.Core.Domain.Entities.Transaction> _repository;
         private readonly IMapper _mapper;
@@ -24,12 +24,12 @@ namespace ABP.Core.Application.Features.Transactions.Queries.GetTransactionById
             _mapper = mapper;
         }
 
-        public async Task<TransactionViewModel> Handle(GetTransactionByIdQuery query, CancellationToken cancellationToken)
+        public async Task<TransactionDto> Handle(GetTransactionByIdQuery query, CancellationToken cancellationToken)
         {
             var entity = await _repository.GetByIdAsync(query.Id);
             if (entity == null) throw new Exception("Transaction not found with this id");
 
-            return _mapper.Map<TransactionViewModel>(entity);
+            return _mapper.Map<TransactionDto>(entity);
         }
     }
 }

@@ -1,5 +1,5 @@
 using System.Linq;
-using ABP.Core.Application.ViewModels.CardTransactions;
+using ABP.Core.Application.Dtos.CardTransactions;
 using ABP.Core.Domain.Interfaces;
 using AutoMapper;
 using MediatR;
@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace ABP.Core.Application.Features.CardTransactions.Queries.GetAllCardTransactions
 {
-    public class GetAllCardTransactionsQuery : IRequest<IEnumerable<CardTransactionViewModel>>
+    public class GetAllCardTransactionsQuery : IRequest<IEnumerable<CardTransactionDto>>
     {
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
 }
 
-    public class GetAllCardTransactionsQueryHandler : IRequestHandler<GetAllCardTransactionsQuery, IEnumerable<CardTransactionViewModel>>
+    public class GetAllCardTransactionsQueryHandler : IRequestHandler<GetAllCardTransactionsQuery, IEnumerable<CardTransactionDto>>
     {
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -28,11 +28,11 @@ private readonly IGenericRepository<ABP.Core.Domain.Entities.CardTransaction> _r
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<CardTransactionViewModel>> Handle(GetAllCardTransactionsQuery query, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CardTransactionDto>> Handle(GetAllCardTransactionsQuery query, CancellationToken cancellationToken)
         {
             var allEntities = await _repository.GetAllListAsync();
             var entities = allEntities.Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize);
-            return _mapper.Map<IEnumerable<CardTransactionViewModel>>(entities);
+            return _mapper.Map<IEnumerable<CardTransactionDto>>(entities);
         }
     }
 }
