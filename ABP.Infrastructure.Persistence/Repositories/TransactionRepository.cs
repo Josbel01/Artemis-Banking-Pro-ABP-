@@ -10,7 +10,7 @@ namespace ABP.Infrastructure.Persistence.Repositories
 {
     public class TransactionRepository : GenericRepository<Transaction>, ITransactionRepository
     {
-        public TransactionRepository(ArtemisBankingAppContext context) : base(context)
+        public TransactionRepository(ArtemisBankingAppContext context, Microsoft.Extensions.Logging.ILogger<GenericRepository<Transaction>> logger) : base(context, logger)
         {
         }
 

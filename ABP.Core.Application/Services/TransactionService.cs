@@ -4,6 +4,7 @@ using ABP.Core.Domain.Common.Enums;
 using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Interfaces;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,19 +19,22 @@ namespace ABP.Core.Application.Services
         private readonly ICreditCardRepository _creditCardRepository;
         private readonly ICardTransactionRepository _cardTransactionRepository;
         private readonly IMapper _mapper;
+        private readonly ILogger<TransactionService> _logger;
 
         public TransactionService(
             ITransactionRepository transactionRepository,
             ISavingAccountRepository savingAccountRepository,
             ICreditCardRepository creditCardRepository,
             ICardTransactionRepository cardTransactionRepository,
-            IMapper mapper) : base(transactionRepository, mapper)
+            IMapper mapper,
+            ILoggerFactory loggerFactory) : base(transactionRepository, mapper, loggerFactory.CreateLogger<GenericService<Transaction, TransactionDto>>())
         {
             _transactionRepository = transactionRepository;
             _savingAccountRepository = savingAccountRepository;
             _creditCardRepository = creditCardRepository;
             _cardTransactionRepository = cardTransactionRepository;
             _mapper = mapper;
+            _logger = loggerFactory.CreateLogger<TransactionService>();
         }
 
         private List<string> _includes => new() { "SavingAccount" };
@@ -61,17 +65,20 @@ namespace ABP.Core.Application.Services
 
         public async Task<bool> TransferAsync(SaveTransferDto dto)
         {
+            _logger.LogInformation("Initiating transfer of RD${Amount} from account {Origin} to account {Destination}", dto.Amount, dto.OriginAccountNumber, dto.DestinationAccountNumber);
             var allAccounts = await _savingAccountRepository.GetAllListAsync();
             var originAccount = allAccounts.FirstOrDefault(a => a.AccountNumber == dto.OriginAccountNumber);
             var destinationAccount = allAccounts.FirstOrDefault(a => a.AccountNumber == dto.DestinationAccountNumber);
 
             if (originAccount == null || destinationAccount == null)
             {
+                _logger.LogWarning("Transfer failed: Origin or destination account not found.");
                 return false;
             }
 
             if (originAccount.Balance < dto.Amount)
             {
+                _logger.LogWarning("Transfer failed: Insufficient funds in origin account {Origin}", dto.OriginAccountNumber);
                 return false;
             }
 
@@ -105,11 +112,13 @@ namespace ABP.Core.Application.Services
             };
             await _transactionRepository.AddAsync(creditTransaction);
 
+            _logger.LogInformation("Transfer completed successfully.");
             return true;
         }
 
         public async Task<bool> CashAdvanceAsync(SaveCashAdvanceDto dto)
         {
+            _logger.LogInformation("Initiating cash advance of RD${Amount} from credit card {Origin} to account {Destination}", dto.Amount, dto.OriginCreditCardNumber, dto.DestinationAccountNumber);
             var allCreditCards = await _creditCardRepository.GetAllListAsync();
             var creditCard = allCreditCards.FirstOrDefault(c => c.CardNumber == dto.OriginCreditCardNumber);
 
@@ -118,6 +127,7 @@ namespace ABP.Core.Application.Services
 
             if (creditCard == null || destinationAccount == null)
             {
+                _logger.LogWarning("Cash advance failed: Origin credit card or destination account not found.");
                 return false;
             }
 
@@ -126,6 +136,7 @@ namespace ABP.Core.Application.Services
 
             if (availableLimit < amountWithInterest)
             {
+                _logger.LogWarning("Cash advance failed: Insufficient credit limit in credit card {Origin}", dto.OriginCreditCardNumber);
                 return false; 
             }
 
@@ -157,6 +168,7 @@ namespace ABP.Core.Application.Services
             };
             await _transactionRepository.AddAsync(creditTransaction);
 
+            _logger.LogInformation("Cash advance completed successfully.");
             return true;
         }
     }

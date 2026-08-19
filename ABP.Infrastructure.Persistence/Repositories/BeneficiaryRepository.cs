@@ -10,7 +10,7 @@ namespace ABP.Infrastructure.Persistence.Repositories
 {
     public class BeneficiaryRepository : GenericRepository<Beneficiary>, IBeneficiaryRepository
     {
-        public BeneficiaryRepository(ArtemisBankingAppContext context) : base(context)
+        public BeneficiaryRepository(ArtemisBankingAppContext context, Microsoft.Extensions.Logging.ILogger<GenericRepository<Beneficiary>> logger) : base(context, logger)
         {
         }
 

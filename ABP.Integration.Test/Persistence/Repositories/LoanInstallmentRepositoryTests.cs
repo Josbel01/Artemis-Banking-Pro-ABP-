@@ -33,7 +33,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             );
             await context.SaveChangesAsync();
 
-            var repo = new LoanInstallmentRepository(context);
+            var repo = new LoanInstallmentRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<LoanInstallment>>>().Object);
 
             // Act
             var result = await repo.GetAllByLoanIdAsync(1);

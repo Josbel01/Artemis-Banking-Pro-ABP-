@@ -4,6 +4,7 @@ using ABP.Core.Domain.Common.Enums;
 using ABP.Core.Domain.Settings;
 using ABP.Infrastructure.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,16 +17,20 @@ namespace ABP.Infrastructure.Identity.Services
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly JwtSettings _jwtSettings;
+        private readonly ILogger<AccountServiceWebApi> _logger;
 
-        public AccountServiceWebApi(UserManager<AppUser> userManager, IEmailService emailService, IOptions<JwtSettings> jwtSettings) 
-            : base(userManager, emailService)
+        public AccountServiceWebApi(UserManager<AppUser> userManager, IEmailService emailService, IOptions<JwtSettings> jwtSettings, ILoggerFactory loggerFactory) 
+            : base(userManager, emailService, loggerFactory.CreateLogger<AccountServiceWebApi>())
         {
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
+            _logger = loggerFactory.CreateLogger<AccountServiceWebApi>();
         }
 
         public async Task<LoginResponseApiDto> Login(LoginDto loginDto)
         {
+            _logger.LogInformation("Authenticating user {UserName} for API access", loginDto.UserName);
+            
             LoginResponseApiDto responseDto = new()
             {
                 Name = "",
@@ -35,17 +40,22 @@ namespace ABP.Infrastructure.Identity.Services
                 Errors = []
             };
 
+            _logger.LogInformation("Attempting to find user by username or email: {UserName}", loginDto.UserName);
             var user = await _userManager.FindByEmailAsync(loginDto.UserName) ?? await _userManager.FindByNameAsync(loginDto.UserName);
 
             if (user == null)
             {
+                _logger.LogWarning("No account registered with username: {UserName}", loginDto.UserName);
                 responseDto.HasError = true;
                 responseDto.Errors.Add($"No existe ninguna cuenta con {loginDto.UserName}");
                 return responseDto;
             }
 
+            _logger.LogInformation("User found: {UserName} - EmailConfirmed: {EmailConfirmed}", user.UserName, user.EmailConfirmed);
+
             if (!user.EmailConfirmed)
             {
+                _logger.LogWarning("Account {UserName} is not active, email confirmation required", loginDto.UserName);
                 responseDto.HasError = true;
                 responseDto.Errors.Add($"La cuenta no está activada. Confirme su correo electrónico.");
                 return responseDto;
@@ -53,15 +63,18 @@ namespace ABP.Infrastructure.Identity.Services
 
             if (!user.IsActive)
             {
+                _logger.LogWarning("Account {UserName} is inactive", loginDto.UserName);
                 responseDto.HasError = true;
                 responseDto.Errors.Add($"La cuenta está inactiva.");
                 return responseDto;
             }
 
+            _logger.LogInformation("Attempting to verify password for user {UserName}", loginDto.UserName);
             var result = await _userManager.CheckPasswordAsync(user, loginDto.Password);
 
             if(!result)
             {
+                _logger.LogWarning("Invalid credentials for user: {UserName}", loginDto.UserName);
                 responseDto.HasError= true;
                 responseDto.Errors.Add($"Credenciales inválidas para el usuario {loginDto.UserName}");
                 return responseDto;
@@ -71,11 +84,13 @@ namespace ABP.Infrastructure.Identity.Services
 
             if (!roleList.Contains(UserRoles.Admin.ToString()) && !roleList.Contains(UserRoles.Commerce.ToString()))
             {
+                _logger.LogWarning("User {UserName} does not have required permissions for Web API. Roles: {Roles}", loginDto.UserName, string.Join(",", roleList));
                 responseDto.HasError = true;
                 responseDto.Errors.Add("No tiene permisos para acceder a la API web.");
                 return responseDto;
             }
 
+            _logger.LogInformation("User {UserName} authenticated successfully. Generating JWT Token.", loginDto.UserName);
             JwtSecurityToken jwtToken = await GenerateJwtToken(user);
 
             responseDto.Name = user.Name;

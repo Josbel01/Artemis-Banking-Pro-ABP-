@@ -8,7 +8,7 @@ namespace ABP.Infrastructure.Persistence.Repositories
 {
     public class CommerceRepository : GenericRepository<Commerce>, ICommerceRepository
     {
-        public CommerceRepository(ArtemisBankingAppContext context) : base(context)
+        public CommerceRepository(ArtemisBankingAppContext context, Microsoft.Extensions.Logging.ILogger<GenericRepository<Commerce>> logger) : base(context, logger)
         {
         }
 

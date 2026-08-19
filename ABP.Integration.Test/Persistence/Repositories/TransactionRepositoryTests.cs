@@ -33,7 +33,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             );
             await context.SaveChangesAsync();
 
-            var repo = new TransactionRepository(context);
+            var repo = new TransactionRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Transaction>>>().Object);
 
             // Act
             var result = await repo.GetAllBySavingAccountIdAsync(1);

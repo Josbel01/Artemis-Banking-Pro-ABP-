@@ -6,6 +6,7 @@ using ABP.Infrastructure.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Text;
 
 namespace ABP.Infrastructure.Identity.Services
@@ -14,11 +15,13 @@ namespace ABP.Infrastructure.Identity.Services
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly IEmailService _emailService;
+        private readonly ILogger _baseAccountServiceLogger;
 
-        public BaseAccountService(UserManager<AppUser> userManager, IEmailService emailService)
+        public BaseAccountService(UserManager<AppUser> userManager, IEmailService emailService, ILogger loggerService)
         {
             _userManager = userManager;
             _emailService = emailService;
+            _baseAccountServiceLogger = loggerService;
         }
 
         public virtual async Task<UserResponseDto> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
@@ -37,7 +40,7 @@ namespace ABP.Infrastructure.Identity.Services
                 responseDto.Errors.Add("No existe una cuenta registrada para este usuario.");
             }
 
-            var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+            var result = await _userManager.ChangePasswordAsync(user!, currentPassword, newPassword);
 
             if (!result.Succeeded)
             {
@@ -427,7 +430,7 @@ namespace ABP.Infrastructure.Identity.Services
 
             RegisterResponseDto responseDto = new()
             {
-                Id = saveDto.Id,
+                Id = saveDto.Id ?? "",
                 FirstName = "",
                 LastName = "",
                 UserName = "",
@@ -436,9 +439,11 @@ namespace ABP.Infrastructure.Identity.Services
                 Errors = []
             };
 
+            _baseAccountServiceLogger.LogInformation("Registering user {UserName} for web access", saveDto.UserName);
             var userWithSameUsername = await _userManager.FindByNameAsync(saveDto.UserName!);
             if (userWithSameUsername != null)
             {
+                _baseAccountServiceLogger.LogWarning("Username {UserName} is already taken", saveDto.UserName);
                 responseDto.HasError = true;
                 responseDto.Errors.Add($"El nombre de usuario ya existe");
 
@@ -448,6 +453,7 @@ namespace ABP.Infrastructure.Identity.Services
             var userWithSameEmail = await _userManager.FindByEmailAsync(saveDto.Email!);
             if (userWithSameEmail != null)
             {
+                _baseAccountServiceLogger.LogWarning("Email {Email} is already taken", saveDto.Email);
                 responseDto.HasError = true;
                 responseDto.Errors.Add($"Ya existe un usuario con este email.");
 
@@ -481,8 +487,10 @@ namespace ABP.Infrastructure.Identity.Services
                 user.IsActive = true;
             }
 
+            _baseAccountServiceLogger.LogInformation("Creating user {UserName} with email {Email}", saveDto.UserName, saveDto.Email);
             var result = await _userManager.CreateAsync(user, saveDto.Password!);
 
+            _baseAccountServiceLogger.LogInformation("User creation result for {UserName}: {Succeeded}", saveDto.UserName, result.Succeeded);
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, saveDto.Role!);

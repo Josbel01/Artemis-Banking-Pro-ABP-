@@ -20,13 +20,9 @@ namespace ABP.Core.Application.Features.Commerces.Queries.GetAllCommerces
         {
             var commerces = await _commerceRepository.GetAllListAsync();
 
-            if (request.Status.ToLower() == "activo")
+            if (request.Status.HasValue)
             {
-                commerces = commerces.Where(c => c.IsActive).ToList();
-            }
-            else if (request.Status.ToLower() == "inactivo")
-            {
-                commerces = commerces.Where(c => !c.IsActive).ToList();
+                commerces = commerces.Where(c => c.IsActive == request.Status.Value).ToList();
             }
 
             commerces = commerces.OrderByDescending(c => c.Id).ToList();

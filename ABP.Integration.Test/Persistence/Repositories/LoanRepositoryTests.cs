@@ -40,7 +40,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.Loans.Add(loan);
             await context.SaveChangesAsync();
 
-            var repo = new LoanRepository(context);
+            var repo = new LoanRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Loan>>>().Object);
 
             // Act
             var result = await repo.GetByLoanNumberAsync("123456789");
@@ -66,7 +66,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             );
             await context.SaveChangesAsync();
 
-            var repo = new LoanRepository(context);
+            var repo = new LoanRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Loan>>>().Object);
 
             // Act
             var result = await repo.GetAllByClientIdAsync("C1");
@@ -87,7 +87,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.Loans.Add(new Loan { Id = 1, LoanNumber = "222", ClientId = "C" });
             await context.SaveChangesAsync();
 
-            var repo = new LoanRepository(context);
+            var repo = new LoanRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Loan>>>().Object);
 
             // Act
             var exists1 = await repo.ExistsLoanNumberAsync("111");

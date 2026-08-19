@@ -13,12 +13,14 @@ namespace ABP.Integration.Tests.Persistence.Repositories
     public class GenericRepositoryTests
     {
         private readonly DbContextOptions<ArtemisBankingAppContext> _dbOptions;
+        private readonly Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Commerce>>> _mockLogger;
 
         public GenericRepositoryTests()
         {
             _dbOptions = new DbContextOptionsBuilder<ArtemisBankingAppContext>()
                 .UseInMemoryDatabase(databaseName: $"TestDb_GenericRepo_{Guid.NewGuid()}")
                 .Options;
+            _mockLogger = new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Commerce>>>();
         }
 
         [Fact]
@@ -26,7 +28,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
         {
             // Arrange
             using var context = new ArtemisBankingAppContext(_dbOptions);
-            var repo = new GenericRepository<Commerce>(context);
+            var repo = new GenericRepository<Commerce>(context, _mockLogger.Object);
             var entity = new Commerce { Id = 0, Name = "Test Commerce", Rnc = "123456789" };
 
             // Act
@@ -42,7 +44,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
         {
             // Arrange
             using var context = new ArtemisBankingAppContext(_dbOptions);
-            var repo = new GenericRepository<Commerce>(context);
+            var repo = new GenericRepository<Commerce>(context, _mockLogger.Object);
             var items = new List<Commerce>
             {
                 new Commerce { Id = 0, Name = "C1", Rnc = "111" },
@@ -65,7 +67,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             var entity = new Commerce { Id = 0, Name = "Test Commerce" };
             context.Commerces.Add(entity);
             await context.SaveChangesAsync();
-            var repo = new GenericRepository<Commerce>(context);
+            var repo = new GenericRepository<Commerce>(context, _mockLogger.Object);
 
             // Act
             var result = await repo.GetByIdAsync(entity.Id);
@@ -80,7 +82,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
         {
             // Arrange
             using var context = new ArtemisBankingAppContext(_dbOptions);
-            var repo = new GenericRepository<Commerce>(context);
+            var repo = new GenericRepository<Commerce>(context, _mockLogger.Object);
 
             // Act
             var result = await repo.GetByIdAsync(999);
@@ -98,7 +100,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.Commerces.Add(entity);
             await context.SaveChangesAsync();
 
-            var repo = new GenericRepository<Commerce>(context);
+            var repo = new GenericRepository<Commerce>(context, _mockLogger.Object);
             entity.Name = "Updated Name";
 
             // Act
@@ -114,7 +116,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
         {
             // Arrange
             using var context = new ArtemisBankingAppContext(_dbOptions);
-            var repo = new GenericRepository<Commerce>(context);
+            var repo = new GenericRepository<Commerce>(context, _mockLogger.Object);
             var entity = new Commerce { Id = 999, Name = "Nonexistent" };
 
             // Act
@@ -132,7 +134,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             var entity = new Commerce { Id = 0, Name = "To Delete" };
             context.Commerces.Add(entity);
             await context.SaveChangesAsync();
-            var repo = new GenericRepository<Commerce>(context);
+            var repo = new GenericRepository<Commerce>(context, _mockLogger.Object);
 
             // Act
             await repo.DeleteAsync(entity.Id);
@@ -147,7 +149,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
         {
             // Arrange
             using var context = new ArtemisBankingAppContext(_dbOptions);
-            var repo = new GenericRepository<Commerce>(context);
+            var repo = new GenericRepository<Commerce>(context, _mockLogger.Object);
 
             // Act
             Func<Task> act = async () => await repo.DeleteAsync(999);
@@ -166,7 +168,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
                 new Commerce { Id = 0, Name = "C2" }
             );
             await context.SaveChangesAsync();
-            var repo = new GenericRepository<Commerce>(context);
+            var repo = new GenericRepository<Commerce>(context, _mockLogger.Object);
 
             // Act
             var result = await repo.GetAllListAsync();
@@ -182,7 +184,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             using var context = new ArtemisBankingAppContext(_dbOptions);
             context.Commerces.Add(new Commerce { Id = 0, Name = "C1" });
             await context.SaveChangesAsync();
-            var repo = new GenericRepository<Commerce>(context);
+            var repo = new GenericRepository<Commerce>(context, _mockLogger.Object);
 
             // Act
             var query = repo.GetAllQuery();

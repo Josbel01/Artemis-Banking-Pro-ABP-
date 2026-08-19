@@ -1,4 +1,5 @@
 using ABP.Core.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 using ABP.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -10,16 +11,20 @@ namespace ABP.Infrastructure.Persistence.Repositories
     public class GenericRepository<Entity> : IGenericRepository<Entity> where Entity : class
     {
         protected readonly ArtemisBankingAppContext _context;
+        protected readonly Microsoft.Extensions.Logging.ILogger<GenericRepository<Entity>> _logger;
 
-        public GenericRepository(ArtemisBankingAppContext context)
+        public GenericRepository(ArtemisBankingAppContext context, Microsoft.Extensions.Logging.ILogger<GenericRepository<Entity>> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public virtual async Task<Entity?> AddAsync(Entity entity)
         {
+            _logger.LogInformation("Adding new entity of type {EntityType}", typeof(Entity).Name);
             await _context.Set<Entity>().AddAsync(entity);
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Entity of type {EntityType} added successfully", typeof(Entity).Name);
             return entity;
         }
 
@@ -37,6 +42,7 @@ namespace ABP.Infrastructure.Persistence.Repositories
             {
                 _context.Set<Entity>().Remove(entity);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("Entity of type {EntityType} with ID {Id} deleted successfully", typeof(Entity).Name, id);
             }
         }
 
@@ -77,6 +83,7 @@ namespace ABP.Infrastructure.Persistence.Repositories
 
         public virtual async Task<Entity?> UpdateAsync(int id, Entity entity)
         {
+            _logger.LogInformation("Updating entity of type {EntityType} with ID: {Id}", typeof(Entity).Name, id);
             var entry = await _context.Set<Entity>().FindAsync(id);
             if (entry != null)
             {
@@ -84,6 +91,7 @@ namespace ABP.Infrastructure.Persistence.Repositories
                 await _context.SaveChangesAsync();
                 return entry;
             }
+            _logger.LogWarning("Entity with ID {Id} not found for update", id);
             return null;
         }
     }

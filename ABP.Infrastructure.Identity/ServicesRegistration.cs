@@ -26,14 +26,13 @@ namespace ABP.Infrastructure.Identity
             services.Configure<IdentityOptions>(opt =>
             {
                 opt.Password.RequiredLength = 8;
-                opt.Password.RequireDigit = false;
+                opt.Password.RequireDigit = true;
                 opt.Password.RequireNonAlphanumeric = true;
-                opt.Password.RequireLowercase = false;
+                opt.Password.RequireLowercase = true;
                 opt.Password.RequireUppercase = true;
 
-                opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 opt.Lockout.MaxFailedAccessAttempts = 5;
-                opt.Lockout.AllowedForNewUsers = true;
 
                 opt.User.RequireUniqueEmail = true;
                 opt.SignIn.RequireConfirmedEmail = true;
@@ -81,14 +80,13 @@ namespace ABP.Infrastructure.Identity
             services.Configure<IdentityOptions>(opt =>
             {
                 opt.Password.RequiredLength = 8;
-                opt.Password.RequireDigit = false;
+                opt.Password.RequireDigit = true;
                 opt.Password.RequireNonAlphanumeric = true;
-                opt.Password.RequireLowercase = false;
+                opt.Password.RequireLowercase = true;
                 opt.Password.RequireUppercase = true;
 
-                opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 opt.Lockout.MaxFailedAccessAttempts = 5;
-                opt.Lockout.AllowedForNewUsers = true;
 
                 opt.User.RequireUniqueEmail = true;
                 opt.SignIn.RequireConfirmedEmail = true;
@@ -96,6 +94,7 @@ namespace ABP.Infrastructure.Identity
 
             services.AddIdentityCore<AppUser>()
                 .AddRoles<IdentityRole>()
+                .AddSignInManager()
                 .AddEntityFrameworkStores<IdentityContext>()
                 .AddTokenProvider<DataProtectorTokenProvider<AppUser>>(TokenOptions.DefaultProvider);
 
@@ -120,61 +119,39 @@ namespace ABP.Infrastructure.Identity
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero,
-                    ValidIssuer = config["JWTSettings:Issuer"],
-                    ValidAudience = config["JWTSettings:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWTSettings:SecurityKey"] ?? ""))
+                    ClockSkew = TimeSpan.FromMinutes(2),
+                    ValidIssuer = config["JwtSettings:Issuer"],
+                    ValidAudience = config["JwtSettings:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSettings:SecretKey"] ?? ""))
                 };
                 opt.Events = new JwtBearerEvents()
                 {
-                    OnAuthenticationFailed = c =>
+                    OnAuthenticationFailed = af =>
                     {
-                        c.NoResult();
-                        if (!c.Response.HasStarted)
-                        {
-                            c.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                            c.Response.ContentType = "application/problem+json";
-                            return c.Response.WriteAsJsonAsync(new
-                            {
-                                type = "https://httpstatuses.com/401",
-                                title = "Token inválido o expirado.",
-                                status = StatusCodes.Status401Unauthorized
-                            });
-                        }
-                        return Task.CompletedTask;
+                        af.NoResult();
+                        af.Response.StatusCode = 500;
+                        af.Response.ContentType = "text/plain";
+                        return af.Response.WriteAsync(af.Exception.Message.ToString());
                     },
                     OnChallenge = c =>
                     {
                         c.HandleResponse();
-                        if (!c.Response.HasStarted)
-                        {
-                            c.Response.StatusCode = 401;
-                            c.Response.ContentType = "application/json";
-                            var result = System.Text.Json.JsonSerializer.Serialize(new
-                            {
-                                HasError = true,
-                                Error = "No está autorizado para acceder a este recurso."
-                            });
-                            return c.Response.WriteAsync(result);
-                        }
-                        return Task.CompletedTask;
+                        c.Response.StatusCode = 401;
+                        c.Response.ContentType = "application/json";
+                        var result = System.Text.Json.JsonSerializer.Serialize(new ABP.Core.Application.Dtos.User.JwtResponseDto { HasError = true, Error = "You are not Authorized" });
+                        return c.Response.WriteAsync(result);
                     },
                     OnForbidden = c =>
                     {
-                        if (!c.Response.HasStarted)
-                        {
-                            c.Response.StatusCode = 403;
-                            c.Response.ContentType = "application/json";
-                            var result = System.Text.Json.JsonSerializer.Serialize(new
-                            {
-                                HasError = true,
-                                Error = "No tiene permisos para acceder a este recurso."
-                            });
-                            return c.Response.WriteAsync(result);
-                        }
-                        return Task.CompletedTask;
+                        c.Response.StatusCode = 403;
+                        c.Response.ContentType = "application/json";
+                        var result = System.Text.Json.JsonSerializer.Serialize(new ABP.Core.Application.Dtos.User.JwtResponseDto { HasError = true, Error = "You are not Authorized to access this resource" });
+                        return c.Response.WriteAsync(result);
                     }
                 };
+            }).AddCookie(IdentityConstants.ApplicationScheme, opt =>
+            {
+                opt.ExpireTimeSpan = TimeSpan.FromMinutes(180);
             });
             #endregion
 
@@ -214,6 +191,7 @@ namespace ABP.Infrastructure.Identity
 
                     (serviceProvider, opt) =>
                     {
+                        opt.EnableSensitiveDataLogging();
                         opt.UseSqlServer(connectionString,
                         m => {
                             m.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName);

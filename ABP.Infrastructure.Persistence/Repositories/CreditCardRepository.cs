@@ -10,7 +10,7 @@ namespace ABP.Infrastructure.Persistence.Repositories
 {
     public class CreditCardRepository : GenericRepository<CreditCard>, ICreditCardRepository
     {
-        public CreditCardRepository(ArtemisBankingAppContext context) : base(context)
+        public CreditCardRepository(ArtemisBankingAppContext context, Microsoft.Extensions.Logging.ILogger<GenericRepository<CreditCard>> logger) : base(context, logger)
         {
         }
 

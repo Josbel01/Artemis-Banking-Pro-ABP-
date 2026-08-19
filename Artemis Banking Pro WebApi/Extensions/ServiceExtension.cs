@@ -77,7 +77,7 @@ namespace Artemis_Banking_Pro_WebApi.Extensions
                     );
             }).AddApiExplorer(opt =>
             {
-                opt.GroupNameFormat = "'version'V";
+                opt.GroupNameFormat = "'v'V";
                 opt.SubstituteApiVersionInUrl = true;
             });
         }

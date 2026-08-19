@@ -29,7 +29,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.Commerces.Add(commerce);
             await context.SaveChangesAsync();
 
-            var repo = new CommerceRepository(context);
+            var repo = new CommerceRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Commerce>>>().Object);
 
             // Act
             var result = await repo.GetByRncAsync("123456789");
@@ -47,7 +47,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.Commerces.Add(new Commerce { Id = 1, Name = "Test", UserId = "U1" });
             await context.SaveChangesAsync();
 
-            var repo = new CommerceRepository(context);
+            var repo = new CommerceRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Commerce>>>().Object);
 
             // Act
             var result = await repo.GetByUserIdAsync("U1");
@@ -65,7 +65,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.Commerces.Add(new Commerce { Id = 1, Name = "Test", Email = "test@test.com" });
             await context.SaveChangesAsync();
 
-            var repo = new CommerceRepository(context);
+            var repo = new CommerceRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Commerce>>>().Object);
 
             // Act
             var result = await repo.GetByEmailAsync("test@test.com");
@@ -83,7 +83,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.Commerces.Add(new Commerce { Id = 1, Name = "Test", Rnc = "111" });
             await context.SaveChangesAsync();
 
-            var repo = new CommerceRepository(context);
+            var repo = new CommerceRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Commerce>>>().Object);
 
             // Act
             var exists = await repo.ExistsRncAsync("111");
@@ -100,7 +100,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.Commerces.Add(new Commerce { Id = 1, Name = "Test", Email = "a@a.com" });
             await context.SaveChangesAsync();
 
-            var repo = new CommerceRepository(context);
+            var repo = new CommerceRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Commerce>>>().Object);
 
             // Act
             var exists = await repo.ExistsEmailAsync("a@a.com");

@@ -10,7 +10,7 @@ namespace ABP.Infrastructure.Persistence.Repositories
 {
     public class LoanInstallmentRepository : GenericRepository<LoanInstallment>, ILoanInstallmentRepository
     {
-        public LoanInstallmentRepository(ArtemisBankingAppContext context) : base(context)
+        public LoanInstallmentRepository(ArtemisBankingAppContext context, Microsoft.Extensions.Logging.ILogger<GenericRepository<LoanInstallment>> logger) : base(context, logger)
         {
         }
 

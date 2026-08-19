@@ -40,7 +40,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.SavingAccounts.Add(account);
             await context.SaveChangesAsync();
 
-            var repo = new SavingAccountRepository(context);
+            var repo = new SavingAccountRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<SavingAccount>>>().Object);
 
             // Act
             var result = await repo.GetByAccountNumberAsync("123456789");
@@ -63,7 +63,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             );
             await context.SaveChangesAsync();
 
-            var repo = new SavingAccountRepository(context);
+            var repo = new SavingAccountRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<SavingAccount>>>().Object);
 
             // Act
             var result = await repo.GetAllByClientIdAsync("C1");
@@ -84,7 +84,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             );
             await context.SaveChangesAsync();
 
-            var repo = new SavingAccountRepository(context);
+            var repo = new SavingAccountRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<SavingAccount>>>().Object);
 
             // Act
             var result = await repo.GetPrincipalAccountByClientIdAsync("C2");
@@ -103,7 +103,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.Loans.Add(new Loan { Id = 1, LoanNumber = "222", ClientId = "C" });
             await context.SaveChangesAsync();
 
-            var repo = new SavingAccountRepository(context);
+            var repo = new SavingAccountRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<SavingAccount>>>().Object);
 
             // Act
             var exists1 = await repo.ExistsAccountNumberAsync("111");

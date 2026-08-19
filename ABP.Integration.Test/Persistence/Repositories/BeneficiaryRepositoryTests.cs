@@ -33,7 +33,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             );
             await context.SaveChangesAsync();
 
-            var repo = new BeneficiaryRepository(context);
+            var repo = new BeneficiaryRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Beneficiary>>>().Object);
 
             // Act
             var result = await repo.GetAllByClientIdAsync("C1");
@@ -56,7 +56,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             );
             await context.SaveChangesAsync();
 
-            var repo = new BeneficiaryRepository(context);
+            var repo = new BeneficiaryRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<Beneficiary>>>().Object);
 
             // Act
             var result = await repo.GetByAccountAndClientIdAsync("222", "C2");

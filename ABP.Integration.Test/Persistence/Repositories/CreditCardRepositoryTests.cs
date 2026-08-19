@@ -39,7 +39,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.CreditCards.Add(card);
             await context.SaveChangesAsync();
 
-            var repo = new CreditCardRepository(context);
+            var repo = new CreditCardRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<CreditCard>>>().Object);
 
             // Act
             var result = await repo.GetByCardNumberAsync("1234567890123456");
@@ -63,7 +63,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             );
             await context.SaveChangesAsync();
 
-            var repo = new CreditCardRepository(context);
+            var repo = new CreditCardRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<CreditCard>>>().Object);
 
             // Act
             var result = await repo.GetAllByClientIdAsync("C1");
@@ -83,7 +83,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             context.CreditCards.Add(new CreditCard { Id = 1, CardNumber = "111", ClientId = "C" });
             await context.SaveChangesAsync();
 
-            var repo = new CreditCardRepository(context);
+            var repo = new CreditCardRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<CreditCard>>>().Object);
 
             // Act
             var exists1 = await repo.ExistsCardNumberAsync("111");

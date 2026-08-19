@@ -11,7 +11,7 @@ namespace ABP.Infrastructure.Persistence.Repositories
 {
     public class SavingAccountRepository : GenericRepository<SavingAccount>, ISavingAccountRepository
     {
-        public SavingAccountRepository(ArtemisBankingAppContext context) : base(context)
+        public SavingAccountRepository(ArtemisBankingAppContext context, Microsoft.Extensions.Logging.ILogger<GenericRepository<SavingAccount>> logger) : base(context, logger)
         {
         }
 

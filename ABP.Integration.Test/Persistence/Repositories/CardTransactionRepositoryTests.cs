@@ -33,7 +33,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             );
             await context.SaveChangesAsync();
 
-            var repo = new CardTransactionRepository(context);
+            var repo = new CardTransactionRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<CardTransaction>>>().Object);
 
             // Act
             var result = await repo.GetAllByCreditCardIdAsync(1);
@@ -58,7 +58,7 @@ namespace ABP.Integration.Tests.Persistence.Repositories
             );
             await context.SaveChangesAsync();
 
-            var repo = new CardTransactionRepository(context);
+            var repo = new CardTransactionRepository(context, new Moq.Mock<Microsoft.Extensions.Logging.ILogger<GenericRepository<CardTransaction>>>().Object);
 
             // Act
             var result = await repo.GetAllByCommerceIdAsync(1);

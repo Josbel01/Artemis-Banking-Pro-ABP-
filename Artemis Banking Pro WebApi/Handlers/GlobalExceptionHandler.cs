@@ -1,42 +1,73 @@
+using ABP.Core.Application.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using ABP.Core.Application.Exceptions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ArtemisBankingApi.Handlers
 {
-public class GlobalExceptionHandler : IExceptionHandler
-{
-        private readonly ILogger<GlobalExceptionHandler> _logger;
-
-        public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) => _logger = logger;
-
-        public async ValueTask<bool> TryHandleAsync(
-            HttpContext httpContext,
-            Exception exception,
-            CancellationToken cancellationToken)
+    public class GlobalExceptionHandler : IExceptionHandler
+    {
+        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            _logger.LogError(exception, "Unhandled exception for {Method} {Path}", httpContext.Request.Method, httpContext.Request.Path);
-            var status = exception switch
+            string exceptionTitle = "An unexpected error occurred";
+            string details = exception.Message;
+
+            switch (exception)
             {
-                ValidationException => StatusCodes.Status400BadRequest,
-                ApiException => StatusCodes.Status400BadRequest,
-                KeyNotFoundException => StatusCodes.Status404NotFound,
-                _ => StatusCodes.Status500InternalServerError
-            };
-            var problemDetails = new ProblemDetails
+                case ApiException apiException:
+                    //custom exception handling
+                    switch (apiException.StatusCode)
+                    {
+                        case (int)HttpStatusCode.BadRequest:
+                            exceptionTitle = "Bad Request";
+                            httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                            break;
+                        case (int)HttpStatusCode.InternalServerError:
+                            httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            break;
+                        case (int)HttpStatusCode.NotFound:
+                            exceptionTitle = "Not found";
+                            httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                            break;
+                        default:
+                            httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                            break;
+                    }
+                    break;
+                case KeyNotFoundException:
+                    exceptionTitle = "Not found";
+                    httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    break;
+                case ArgumentException:
+                    exceptionTitle = "Bad Request";
+                    httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    break;
+                case ABP.Core.Application.Exceptions.ValidationException:
+                    exceptionTitle = "Bad Request";
+                    details = ((ABP.Core.Application.Exceptions.ValidationException)exception).Errors.Aggregate((a,b) => a + ", " + b);
+                    httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    break;
+                default:
+                    httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    break;
+            }
+
+            var problemDetails = new
             {
-                Status = status,
-                Title = status == StatusCodes.Status500InternalServerError ? "Error interno del servidor" : "La solicitud no pudo procesarse",
-                Detail = status == StatusCodes.Status500InternalServerError ? "Ocurrió un error inesperado." : exception.Message,
-                Type = $"https://httpstatuses.com/{status}"
+                Title = exceptionTitle,
+                Status = httpContext.Response.StatusCode,
+                Detail = details,
+                Instance = httpContext.Request.Path
             };
 
-            httpContext.Response.StatusCode = problemDetails.Status.Value;
+            httpContext.Response.ContentType = "application/problem+json";
 
-            await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+            await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken: cancellationToken);
 
             return true;
         }
