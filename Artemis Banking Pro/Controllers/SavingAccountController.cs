@@ -42,7 +42,7 @@ namespace ArtemisBankingPro.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", "No existe un cliente registrado con esta cédula.");
+                    ModelState.AddModelError("", "No existe un cliente registrado con esta cÃ©dula.");
                     accounts = new List<SavingAccountDto>(); // empty
                 }
                 ViewBag.Identification = identification;
@@ -91,6 +91,7 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(string clientId)
         {
             var allUsers = await _accountService.GetAllUser(isActive: true);
@@ -106,7 +107,7 @@ namespace ArtemisBankingPro.Controllers
             var client = await _accountService.GetUserById(clientId);
             if (client == null || !client.IsActive)
             {
-                ModelState.AddModelError("", "El cliente seleccionado no existe o no está activo.");
+                ModelState.AddModelError("", "El cliente seleccionado no existe o no estÃ¡ activo.");
                 return View();
             }
 
@@ -131,3 +132,4 @@ namespace ArtemisBankingPro.Controllers
         }
     }
 }
+

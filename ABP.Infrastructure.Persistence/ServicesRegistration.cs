@@ -22,7 +22,6 @@ namespace ABP.Infrastructure.Persistence
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
                 services.AddDbContext<ArtemisBankingAppContext>((serviceProvider, options) =>
                 {
-                    options.EnableSensitiveDataLogging();
                     options.UseSqlServer(connectionString,
                         m => {
                             m.MigrationsAssembly(typeof(ArtemisBankingAppContext).Assembly.FullName);

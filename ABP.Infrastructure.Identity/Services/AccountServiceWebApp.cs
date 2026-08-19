@@ -70,7 +70,8 @@ namespace ABP.Infrastructure.Identity.Services
 
             var roleList = await _userManager.GetRolesAsync(user);
 
-            if (roleList.Contains(UserRoles.Commerce.ToString()))
+            var allowedRoles = new[] { UserRoles.Admin.ToString(), UserRoles.Cashier.ToString(), UserRoles.Client.ToString() };
+            if (!roleList.Any(r => allowedRoles.Contains(r)))
             {
                 _logger.LogWarning("User {UserName} does not have required permissions for Web App. Roles: {Roles}", loginDto.UserName, string.Join(",", roleList));
                 responseDto.HasError = true;

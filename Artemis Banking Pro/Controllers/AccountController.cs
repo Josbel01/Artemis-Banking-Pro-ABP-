@@ -33,6 +33,7 @@ namespace Artemis_Banking_Pro.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        
         public async Task<IActionResult> Index(LoginViewModel model)
         {
             if (!ModelState.IsValid)
@@ -96,3 +97,4 @@ namespace Artemis_Banking_Pro.Controllers
         }
     }
 }
+

@@ -11,9 +11,9 @@ namespace ABP.Core.Application.Features.Commerces.Queries.GetCommerceById
     public class GetCommerceByIdQueryHandler : IRequestHandler<GetCommerceByIdQuery, object?>
     {
         private readonly ICommerceRepository _commerceRepository;
-        private readonly IAccountServiceWebApi _userManager;
+        private readonly IBaseAccountService _userManager;
 
-        public GetCommerceByIdQueryHandler(ICommerceRepository commerceRepository, IAccountServiceWebApi userManager)
+        public GetCommerceByIdQueryHandler(ICommerceRepository commerceRepository, IBaseAccountService userManager)
         {
             _commerceRepository = commerceRepository;
             _userManager = userManager;

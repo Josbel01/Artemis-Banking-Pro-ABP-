@@ -273,6 +273,7 @@ namespace ABP.Infrastructure.Identity.Services
             }
 
             user.EmailConfirmed = false;
+            user.IsActive = false;
 
             await _userManager.UpdateAsync(user);
 
@@ -283,7 +284,7 @@ namespace ABP.Infrastructure.Identity.Services
                 {
                     To = user.Email,
                     HtmlBody = $"Por favor restablezca su contraseña visitando este enlace: {resetUri}",
-                    Subject = "Restablecer contraseña - RealEstateApp"
+                    Subject = "Restablecer contraseña - Artemis Banking Pro"
                 });
             }
             else
@@ -293,7 +294,7 @@ namespace ABP.Infrastructure.Identity.Services
                 {
                     To = user.Email,
                     HtmlBody = $"Por favor restablezca su contraseña usando este token: {resetToken}",
-                    Subject = "Restablecer contraseña - RealEstateApp"
+                    Subject = "Restablecer contraseña - Artemis Banking Pro"
                 });
             }
 
@@ -481,11 +482,7 @@ namespace ABP.Infrastructure.Identity.Services
                 EmailConfirmed = false
             };
 
-            if(saveDto.Role == UserRoles.Admin.ToString())
-            {
-                user.EmailConfirmed = true;
-                user.IsActive = true;
-            }
+            // All users created from the system start inactive (only seeded users are active)
 
             _baseAccountServiceLogger.LogInformation("Creating user {UserName} with email {Email}", saveDto.UserName, saveDto.Email);
             var result = await _userManager.CreateAsync(user, saveDto.Password!);
@@ -495,7 +492,7 @@ namespace ABP.Infrastructure.Identity.Services
             {
                 await _userManager.AddToRoleAsync(user, saveDto.Role!);
 
-                if (user.EmailConfirmed)
+                if (!user.EmailConfirmed)
                 {
                     if(isApi != null && !isApi.Value)
                     {
@@ -596,6 +593,8 @@ namespace ABP.Infrastructure.Identity.Services
             }
 
             user.EmailConfirmed = true;
+            user.IsActive = true;
+            await _userManager.UpdateAsync(user);
             return responseDto;
         }
 
@@ -605,7 +604,7 @@ namespace ABP.Infrastructure.Identity.Services
         {
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-            var route = "/Login/ConfirmEmail";
+            var route = "/Account/ConfirmEmail";
             var completeUrl = new Uri(string.Concat(origin, "/", route));
             var verificationUri = QueryHelpers.AddQueryString(completeUrl.ToString(), "userId", user.Id);
             verificationUri = QueryHelpers.AddQueryString(verificationUri.ToString(), "token", token);
@@ -617,7 +616,7 @@ namespace ABP.Infrastructure.Identity.Services
         {
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-            var route = "/Login/ResetPassword";
+            var route = "/Account/ResetPassword";
             var completeUrl = new Uri(string.Concat(origin, "/", route));
             var resetUri = QueryHelpers.AddQueryString(completeUrl.ToString(), "token", token);
 

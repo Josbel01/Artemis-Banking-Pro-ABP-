@@ -6,6 +6,7 @@ using System.Security.Claims;
 
 namespace ArtemisBankingPro.Controllers
 {
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Cashier")]
     public class CashierController : Controller
     {
         private readonly ICashierService _cashierService;
@@ -29,6 +30,7 @@ namespace ArtemisBankingPro.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+       
         public async Task<IActionResult> Deposit(DepositViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -43,7 +45,7 @@ namespace ArtemisBankingPro.Controllers
 
             if (!result.Success)
             {
-                ModelState.AddModelError("", result.ErrorMessage ?? "Error al procesar el depósito.");
+                ModelState.AddModelError("", result.ErrorMessage ?? "Error al procesar el depÃ³sito.");
                 return View(vm);
             }
 
@@ -55,6 +57,7 @@ namespace ArtemisBankingPro.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+      
         public async Task<IActionResult> Withdrawal(WithdrawalViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -81,6 +84,7 @@ namespace ArtemisBankingPro.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        
         public async Task<IActionResult> CreditCardPayment(CreditCardPaymentViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -107,6 +111,7 @@ namespace ArtemisBankingPro.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        
         public async Task<IActionResult> LoanPayment(LoanPaymentViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -121,7 +126,7 @@ namespace ArtemisBankingPro.Controllers
 
             if (!result.Success)
             {
-                ModelState.AddModelError("", result.ErrorMessage ?? "Error al procesar el pago al préstamo.");
+                ModelState.AddModelError("", result.ErrorMessage ?? "Error al procesar el pago al prÃ©stamo.");
                 return View(vm);
             }
 
@@ -133,6 +138,7 @@ namespace ArtemisBankingPro.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+       
         public async Task<IActionResult> Transfer(CashierTransferViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -187,3 +193,4 @@ namespace ArtemisBankingPro.Controllers
         }
     }
 }
+

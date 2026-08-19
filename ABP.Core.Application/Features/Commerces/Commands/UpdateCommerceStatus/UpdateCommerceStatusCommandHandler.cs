@@ -10,9 +10,9 @@ namespace ABP.Core.Application.Features.Commerces.Commands.UpdateCommerceStatus
     public class UpdateCommerceStatusCommandHandler : IRequestHandler<UpdateCommerceStatusCommand, bool>
     {
         private readonly ICommerceRepository _commerceRepository;
-        private readonly IAccountServiceWebApi _userManager;
+        private readonly IBaseAccountService _userManager;
 
-        public UpdateCommerceStatusCommandHandler(ICommerceRepository commerceRepository, IAccountServiceWebApi userManager)
+        public UpdateCommerceStatusCommandHandler(ICommerceRepository commerceRepository, IBaseAccountService userManager)
         {
             _commerceRepository = commerceRepository;
             _userManager = userManager;

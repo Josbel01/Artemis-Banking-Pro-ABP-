@@ -11,9 +11,9 @@ namespace ABP.Core.Application.Features.SavingAccounts.Queries.GetAllSavingsAcco
     public class GetAllSavingsAccountsQueryHandler : IRequestHandler<GetAllSavingsAccountsQuery, object>
     {
         private readonly ISavingAccountService _savingAccountService;
-        private readonly IAccountServiceWebApi _userManager;
+        private readonly IBaseAccountService _userManager;
 
-        public GetAllSavingsAccountsQueryHandler(ISavingAccountService savingAccountService, IAccountServiceWebApi userManager)
+        public GetAllSavingsAccountsQueryHandler(ISavingAccountService savingAccountService, IBaseAccountService userManager)
         {
             _savingAccountService = savingAccountService;
             _userManager = userManager;

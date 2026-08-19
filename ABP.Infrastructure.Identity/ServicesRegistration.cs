@@ -46,7 +46,7 @@ namespace ABP.Infrastructure.Identity
 
             services.Configure<DataProtectionTokenProviderOptions>(opt =>
             {
-                opt.TokenLifespan = TimeSpan.FromHours(12);
+                opt.TokenLifespan = TimeSpan.FromMinutes(30);
             });
 
             services.AddAuthentication(opt =>
@@ -191,7 +191,6 @@ namespace ABP.Infrastructure.Identity
 
                     (serviceProvider, opt) =>
                     {
-                        opt.EnableSensitiveDataLogging();
                         opt.UseSqlServer(connectionString,
                         m => {
                             m.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName);

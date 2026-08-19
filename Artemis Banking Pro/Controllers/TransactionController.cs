@@ -55,6 +55,7 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Transfer(SaveTransferViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -67,7 +68,7 @@ namespace ArtemisBankingPro.Controllers
 
             if (!success)
             {
-                ModelState.AddModelError("", "La transferencia falló. Verifique que ambas cuentas existan y que la cuenta de origen tenga fondos suficientes.");
+                ModelState.AddModelError("", "La transferencia fallÃ³. Verifique que ambas cuentas existan y que la cuenta de origen tenga fondos suficientes.");
                 return View(vm);
             }
 
@@ -81,6 +82,7 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CashAdvance(SaveCashAdvanceViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -93,7 +95,7 @@ namespace ArtemisBankingPro.Controllers
 
             if (!success)
             {
-                ModelState.AddModelError("", "El Avance de Efectivo falló. Verifique el límite de su tarjeta o la validez de la cuenta destino.");
+                ModelState.AddModelError("", "El Avance de Efectivo fallÃ³. Verifique el lÃ­mite de su tarjeta o la validez de la cuenta destino.");
                 return View(vm);
             }
 
@@ -102,3 +104,4 @@ namespace ArtemisBankingPro.Controllers
         }
     }
 }
+

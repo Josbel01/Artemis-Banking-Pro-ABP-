@@ -11,9 +11,9 @@ namespace ABP.Core.Application.Features.CreditCards.Queries.GetAllCreditCards
     public class GetAllCreditCardsQueryHandler : IRequestHandler<GetAllCreditCardsQuery, object>
     {
         private readonly ICreditCardService _creditCardService;
-        private readonly IAccountServiceWebApi _userManager;
+        private readonly IBaseAccountService _userManager;
 
-        public GetAllCreditCardsQueryHandler(ICreditCardService creditCardService, IAccountServiceWebApi userManager)
+        public GetAllCreditCardsQueryHandler(ICreditCardService creditCardService, IBaseAccountService userManager)
         {
             _creditCardService = creditCardService;
             _userManager = userManager;

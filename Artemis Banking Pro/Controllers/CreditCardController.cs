@@ -2,6 +2,7 @@ using ABP.Core.Application.Dtos.CreditCards;
 using ABP.Core.Application.Interfaces;
 using ABP.Core.Application.ViewModels.CreditCards;
 using ABP.Core.Domain.Common.Enums;
+using ABP.Core.Application.Helpers;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +43,7 @@ namespace ArtemisBankingPro.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", "No existe un cliente registrado con esta cédula.");
+                    ModelState.AddModelError("", "No existe un cliente registrado con esta cÃ©dula.");
                     cards = new List<CreditCardDto>(); // empty
                 }
                 ViewBag.Identification = identification;
@@ -96,6 +97,7 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SaveCreditCardViewModel vm)
         {
             var allUsers = await _accountService.GetAllUser(isActive: true);
@@ -110,7 +112,7 @@ namespace ArtemisBankingPro.Controllers
             var client = await _accountService.GetUserById(vm.ClientId);
             if (client == null || !client.IsActive)
             {
-                ModelState.AddModelError("", "El cliente seleccionado no existe o no está activo.");
+                ModelState.AddModelError("", "El cliente seleccionado no existe o no estÃ¡ activo.");
                 return View(vm);
             }
 
@@ -131,7 +133,7 @@ namespace ArtemisBankingPro.Controllers
                 ClientId = vm.ClientId,
                 CreditLimit = vm.CreditLimit,
                 CardNumber = cardNumber,
-                Cvc = cvc, // Ideally this should be hashed according to the PDF
+                Cvc = PasswordEncryptation.ComputeSha256Hash(cvc), // Hashed according to the PDF
                 ExpirationDate = expirationDate.ToString("MM/yy"),
                 CurrentDebt = 0,
                 Status = CreditCardStatus.Active,
@@ -141,8 +143,9 @@ namespace ArtemisBankingPro.Controllers
             // Save the card
             await _creditCardService.AddAsync(dto);
 
-            TempData["SuccessMessage"] = "Tarjeta de crédito asignada correctamente.";
+            TempData["SuccessMessage"] = "Tarjeta de crÃ©dito asignada correctamente.";
             return RedirectToAction(nameof(Index));
         }
     }
 }
+

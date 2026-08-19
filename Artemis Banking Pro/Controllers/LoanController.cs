@@ -50,7 +50,7 @@ namespace ArtemisBankingPro.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", "No existe un cliente registrado con esta cédula.");
+                    ModelState.AddModelError("", "No existe un cliente registrado con esta cÃ©dula.");
                     loans = new List<LoanDto>(); // empty
                 }
                 ViewBag.Identification = identification;
@@ -67,7 +67,7 @@ namespace ArtemisBankingPro.Controllers
             }
             else
             {
-                // Default to active and completed, but mostly active as per PDF (Por defecto, el listado debe mostrar préstamos activos)
+                // Default to active and completed, but mostly active as per PDF (Por defecto, el listado debe mostrar prÃ©stamos activos)
                 if (string.IsNullOrEmpty(status))
                 {
                     loans = loans.Where(l => l.Status == LoanStatus.Active).ToList();
@@ -110,6 +110,7 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SaveLoanViewModel vm)
         {
             var allUsers = await _accountService.GetAllUser(isActive: true);
@@ -124,7 +125,7 @@ namespace ArtemisBankingPro.Controllers
             var client = await _accountService.GetUserById(vm.ClientId);
             if (client == null || !client.IsActive)
             {
-                ModelState.AddModelError("", "El cliente seleccionado no existe o no está activo.");
+                ModelState.AddModelError("", "El cliente seleccionado no existe o no estÃ¡ activo.");
                 return View(vm);
             }
 
@@ -132,7 +133,7 @@ namespace ArtemisBankingPro.Controllers
             var clientLoans = await _loanService.GetAllByClientIdAsync(vm.ClientId);
             if (clientLoans.Any(l => l.Status == LoanStatus.Active))
             {
-                ModelState.AddModelError("", "Este cliente ya tiene un préstamo activo asignado.");
+                ModelState.AddModelError("", "Este cliente ya tiene un prÃ©stamo activo asignado.");
                 return View(vm);
             }
 
@@ -196,11 +197,12 @@ namespace ArtemisBankingPro.Controllers
             else
             {
                 // Ideally this should rollback the loan, but we'll show a warning for now
-                TempData["WarningMessage"] = "Préstamo creado, pero el cliente no tiene una cuenta principal activa para el desembolso.";
+                TempData["WarningMessage"] = "PrÃ©stamo creado, pero el cliente no tiene una cuenta principal activa para el desembolso.";
             }
 
-            TempData["SuccessMessage"] = "Préstamo asignado correctamente.";
+            TempData["SuccessMessage"] = "PrÃ©stamo asignado correctamente.";
             return RedirectToAction(nameof(Index));
         }
     }
 }
+

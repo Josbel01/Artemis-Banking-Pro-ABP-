@@ -12,9 +12,9 @@ namespace ABP.Core.Application.Features.Loans.Queries.GetAllLoans
     public class GetAllLoansQueryHandler : IRequestHandler<GetAllLoansQuery, object>
     {
         private readonly ILoanService _loanService;
-        private readonly IAccountServiceWebApi _userManager;
+        private readonly IBaseAccountService _userManager;
 
-        public GetAllLoansQueryHandler(ILoanService loanService, IAccountServiceWebApi userManager)
+        public GetAllLoansQueryHandler(ILoanService loanService, IBaseAccountService userManager)
         {
             _loanService = loanService;
             _userManager = userManager;

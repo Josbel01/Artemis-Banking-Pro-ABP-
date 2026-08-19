@@ -1,8 +1,10 @@
 using ABP.Core.Application.Interfaces;
 using ABP.Core.Application.ViewModels.User;
 using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ArtemisBankingPro.Controllers
 {
@@ -40,8 +42,16 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(string id)
         {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (id == currentUserId)
+            {
+                TempData["ErrorMessage"] = "No puedes cambiar tu propio estado.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var user = await _accountService.GetUserById(id);
             if (user != null)
             {
@@ -70,6 +80,7 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateUserViewModel viewModel)
         {
             if (!ModelState.IsValid)
@@ -162,11 +173,18 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(UpdateUserViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
                 return View(viewModel);
+            }
+
+            var existingUser = await _accountService.GetUserById(viewModel.Id);
+            if (existingUser == null)
+            {
+                return RedirectToAction("Index");
             }
 
             var saveUserDto = new ABP.Core.Application.Dtos.User.SaveUserDto
@@ -177,7 +195,7 @@ namespace ArtemisBankingPro.Controllers
                 UserName = viewModel.UserName,
                 Email = viewModel.Email,
                 DNI = viewModel.Identification,
-                Role = viewModel.Role ?? "",
+                Role = existingUser.Roles?.FirstOrDefault() ?? "", // Maintain original role
                 Password = viewModel.Password ?? "",
                 ConfirmPassword = viewModel.ConfirmPassword ?? "",
                 IsActive = viewModel.IsActive
@@ -198,3 +216,4 @@ namespace ArtemisBankingPro.Controllers
         }
     }
 }
+

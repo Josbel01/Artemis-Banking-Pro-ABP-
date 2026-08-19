@@ -38,6 +38,7 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SaveBeneficiaryViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -56,6 +57,7 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             await _beneficiaryService.DeleteAsync(id);
@@ -64,3 +66,4 @@ namespace ArtemisBankingPro.Controllers
         }
     }
 }
+
