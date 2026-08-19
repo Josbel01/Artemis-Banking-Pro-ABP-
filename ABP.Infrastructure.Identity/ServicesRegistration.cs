@@ -65,6 +65,7 @@ namespace ABP.Infrastructure.Identity
 
             #region Services WebApp
             services.AddScoped<IAccountServiceWebApp, AccountServiceWebApp>();
+            services.AddScoped<IAccountServiceWebApi, AccountServiceWebApi>();
             services.AddScoped<IBaseAccountService, AccountServiceWebApp>();
             #endregion
         }
@@ -100,7 +101,7 @@ namespace ABP.Infrastructure.Identity
 
             services.Configure<DataProtectionTokenProviderOptions>(opt =>
             {
-                opt.TokenLifespan = TimeSpan.FromHours(12);
+                opt.TokenLifespan = TimeSpan.FromMinutes(30);
             });
 
             services.AddAuthentication(opt =>

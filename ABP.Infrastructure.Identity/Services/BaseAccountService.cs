@@ -476,6 +476,7 @@ namespace ABP.Infrastructure.Identity.Services
             {
                 Name = saveDto.FirstName ?? "",
                 LastName = saveDto.LastName ?? "",
+                UserName = saveDto.UserName ?? "",
                 Identification = saveDto.DNI,
                 Email = saveDto.Email,
                 ProfileImage = saveDto.PhotoUrl ?? string.Empty,

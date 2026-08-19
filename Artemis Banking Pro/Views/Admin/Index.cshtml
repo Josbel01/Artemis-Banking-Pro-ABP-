@@ -1,3 +1,4 @@
+@model ABP.Core.Application.ViewModels.Admin.AdminDashboardViewModel
 @{
     ViewData["Title"] = "Panel de Administrador";
 }
@@ -15,6 +16,55 @@
         </div>
     </div>
 
+    <!-- Indicadores de Productos Financieros Activos -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 h-100 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width:48px; height:48px; border-radius:10px; background-color:rgba(22,163,74,0.1); display:flex; align-items:center; justify-content:center; color:#16a34a; font-size:1.5rem; margin-right:1rem;">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0" style="color: var(--navy-text);">Préstamos Vigentes</h5>
+                    </div>
+                </div>
+                <h2 class="fw-bold" style="color: #16a34a;">@Model.ActiveLoans</h2>
+                <p class="text-muted small mb-0">Préstamos actualmente activos en el sistema.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 h-100 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width:48px; height:48px; border-radius:10px; background-color:rgba(26,86,219,0.1); display:flex; align-items:center; justify-content:center; color:#1a56db; font-size:1.5rem; margin-right:1rem;">
+                        <i class="fa-solid fa-credit-card"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0" style="color: var(--navy-text);">Tarjetas de Crédito Activas</h5>
+                    </div>
+                </div>
+                <h2 class="fw-bold" style="color: #1a56db;">@Model.ActiveCreditCards</h2>
+                <p class="text-muted small mb-0">Tarjetas de crédito actualmente activas en el sistema.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 h-100 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width:48px; height:48px; border-radius:10px; background-color:rgba(53,104,178,0.1); display:flex; align-items:center; justify-content:center; color:var(--navy-text); font-size:1.5rem; margin-right:1rem;">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0" style="color: var(--navy-text);">Cuentas de Ahorro Activas</h5>
+                    </div>
+                </div>
+                <h2 class="fw-bold" style="color: var(--navy-text);">@Model.ActiveSavingAccounts</h2>
+                <p class="text-muted small mb-0">Cuentas de ahorro actualmente activas en el sistema.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Gestión -->
     <div class="row g-4">
         <div class="col-md-4">
             <div class="card border-0 h-100 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
