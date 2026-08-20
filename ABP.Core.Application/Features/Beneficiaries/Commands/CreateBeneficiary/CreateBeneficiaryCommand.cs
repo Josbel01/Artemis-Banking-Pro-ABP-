@@ -44,6 +44,11 @@ namespace ABP.Core.Application.Features.Beneficiaries.Commands.CreateBeneficiary
                 throw new Exception("No puedes agregarte a ti mismo como beneficiario.");
             }
 
+            if (destinationAccount.Status == ABP.Core.Domain.Common.Enums.SavingAccountStatus.Cancelled)
+            {
+                throw new Exception("No puedes agregar una cuenta cancelada como beneficiario.");
+            }
+
             var existingBeneficiary = await _beneficiaryRepository.GetByAccountAndClientIdAsync(command.BeneficiaryAccountNumber, command.ClientId);
             if (existingBeneficiary != null)
             {

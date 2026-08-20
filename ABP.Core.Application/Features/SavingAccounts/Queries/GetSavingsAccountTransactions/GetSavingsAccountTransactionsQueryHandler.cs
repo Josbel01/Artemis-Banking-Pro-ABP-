@@ -47,10 +47,21 @@ namespace ABP.Core.Application.Features.SavingAccounts.Queries.GetSavingsAccount
                         id = t.Id.ToString(),
                         date = t.TransactionDate,
                         amount = t.Amount,
-                        transactionType = t.Type == TransactionType.Credit ? "CR�DITO" : "D�BITO",
+                        transactionType = t.Type switch
+                        {
+                            TransactionType.Debit => "DÉBITO",
+                            TransactionType.Credit => "CRÉDITO",
+                            TransactionType.Deposit => "DEPÓSITO",
+                            TransactionType.Withdrawal => "RETIRO",
+                            TransactionType.CreditCardPayment => "PAGO TARJETA DE CRÉDITO",
+                            TransactionType.LoanPayment => "PAGO PRÉSTAMO",
+                            TransactionType.Transfer => "TRANSFERENCIA",
+                            TransactionType.CashAdvance => "AVANCE DE EFECTIVO",
+                            _ => t.Type.ToString()
+                        },
                         origin = t.Origin ?? "Desconocido",
                         beneficiary = t.Beneficiary,
-                        status = "APROBADA"
+                        status = t.Status == TransactionStatus.Approved ? "APROBADA" : "RECHAZADO"
                     })
                 }
             };

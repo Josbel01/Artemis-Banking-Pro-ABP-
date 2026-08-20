@@ -67,7 +67,7 @@
             <div class="col-md-4">
                 <label class="form-label text-muted fw-semibold small">Filtrar por Estado</label>
                 <select name="status" class="form-select">
-                    <option value="" selected="@(ViewBag.Status == null || ViewBag.Status == "" ? "selected" : null)">Todas</option>
+                    <option value="" selected="@(ViewBag.Status == null || ViewBag.Status == "" || ViewBag.Status == "Todas" ? "selected" : null)">Todas</option>
                     <option value="Active" selected="@(ViewBag.Status == "Active" ? "selected" : null)">Activas</option>
                     <option value="Cancelled" selected="@(ViewBag.Status == "Cancelled" ? "selected" : null)">Canceladas</option>
                 </select>

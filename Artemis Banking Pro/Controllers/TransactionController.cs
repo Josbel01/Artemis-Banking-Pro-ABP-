@@ -138,10 +138,11 @@ namespace ArtemisBankingPro.Controllers
             }
 
             // Store confirmation data and redirect to confirmation page
+            var destOwner = await _accountService.GetUserById(destAccount.ClientId);
             TempData["ConfirmOriginAccount"] = vm.OriginAccountNumber;
             TempData["ConfirmDestAccount"] = vm.DestinationAccountNumber;
             TempData["ConfirmAmount"] = vm.Amount;
-            TempData["ConfirmDestName"] = $"{destAccount.AccountNumber}";
+            TempData["ConfirmDestName"] = destOwner != null ? $"{destOwner.FirstName} {destOwner.LastName}" : "";
             return RedirectToAction(nameof(TransferConfirm));
         }
 

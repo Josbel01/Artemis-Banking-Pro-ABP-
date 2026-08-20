@@ -65,6 +65,7 @@
                             <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Tipo</th>
                             <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Balance</th>
                             <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Estado</th>
+                            <th class="py-3 px-4 fw-semibold text-end" style="font-size: 0.8rem; text-transform: uppercase;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,7 +84,21 @@
                                     }
                                 </td>
                                 <td class="py-3 px-4 fw-bold">@account.Balance.ToString("C")</td>
-                                <td class="py-3 px-4"><span class="badge rounded-pill" style="background-color: #dcfce7; color: #166534;">Activa</span></td>
+                                <td class="py-3 px-4">
+                                    @if (account.Status == ABP.Core.Domain.Common.Enums.SavingAccountStatus.Active)
+                                    {
+                                        <span class="badge rounded-pill" style="background-color: #dcfce7; color: #166534;">Activa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill" style="background-color: #fee2e2; color: #991b1b;">Cancelada</span>
+                                    }
+                                </td>
+                                <td class="py-3 px-4 text-end">
+                                    <a href="/Transaction/Index?accountId=@account.Id" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;">
+                                        <i class="fa-solid fa-eye me-1"></i>Ver Detalles
+                                    </a>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -105,8 +120,10 @@
                             <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Capital</th>
                             <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Pendiente</th>
                             <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Tasa</th>
-                            <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Cuotas</th>
+                            <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Total Cuotas</th>
+                            <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Cuotas Pagadas</th>
                             <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Estado</th>
+                            <th class="py-3 px-4 fw-semibold text-end" style="font-size: 0.8rem; text-transform: uppercase;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -117,7 +134,8 @@
                                 <td class="py-3 px-4 fw-bold">@loan.AmountApproved.ToString("C")</td>
                                 <td class="py-3 px-4 fw-bold" style="color: #991b1b;">@loan.AmountPending.ToString("C")</td>
                                 <td class="py-3 px-4">@loan.AnnualInterestRate%</td>
-                                <td class="py-3 px-4">@loan.PaidInstallments / @loan.TermInMonths</td>
+                                <td class="py-3 px-4">@loan.TermInMonths</td>
+                                <td class="py-3 px-4">@loan.PaidInstallments</td>
                                 <td class="py-3 px-4">
                                     @if (loan.Status == ABP.Core.Domain.Common.Enums.LoanStatus.Active)
                                     {
@@ -127,6 +145,11 @@
                                     {
                                         <span class="badge rounded-pill" style="background-color: #f1f5f9; color: #475569; font-weight: 600;">Completado</span>
                                     }
+                                </td>
+                                <td class="py-3 px-4 text-end">
+                                    <a href="/Loan/Index" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;">
+                                        <i class="fa-solid fa-eye me-1"></i>Ver Detalles
+                                    </a>
                                 </td>
                             </tr>
                         }
