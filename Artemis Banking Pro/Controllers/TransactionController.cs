@@ -122,6 +122,74 @@ namespace ArtemisBankingPro.Controllers
             TempData["SuccessMessage"] = $"Avance de efectivo por RD${vm.Amount} aprobado y depositado en su cuenta.";
             return RedirectToAction("Index", "Client");
         }
+
+        [Authorize(Roles = "Client")]
+        public IActionResult CreditCardPayment()
+        {
+            return View(new SaveCreditCardPaymentViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Client")]
+        public async Task<IActionResult> CreditCardPayment(SaveCreditCardPaymentViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(vm);
+            }
+
+            var dto = new SaveCreditCardPaymentDto
+            {
+                CreditCardNumber = vm.CreditCardNumber,
+                OriginAccountNumber = vm.OriginAccountNumber,
+                Amount = vm.Amount
+            };
+            var success = await _transactionService.CreditCardPaymentAsync(dto);
+
+            if (!success)
+            {
+                ModelState.AddModelError("", "El pago a tarjeta de crédito falló. Verifique que la tarjeta tenga deuda pendiente y que la cuenta tenga fondos suficientes.");
+                return View(vm);
+            }
+
+            TempData["SuccessMessage"] = $"Pago de RD${vm.Amount} a tarjeta realizado exitosamente.";
+            return RedirectToAction("Index", "Client");
+        }
+
+        [Authorize(Roles = "Client")]
+        public IActionResult LoanPayment()
+        {
+            return View(new SaveLoanPaymentViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Client")]
+        public async Task<IActionResult> LoanPayment(SaveLoanPaymentViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(vm);
+            }
+
+            var dto = new SaveLoanPaymentDto
+            {
+                LoanNumber = vm.LoanNumber,
+                OriginAccountNumber = vm.OriginAccountNumber,
+                Amount = vm.Amount
+            };
+            var success = await _transactionService.LoanPaymentAsync(dto);
+
+            if (!success)
+            {
+                ModelState.AddModelError("", "El pago al préstamo falló. Verifique que el préstamo tenga cuotas pendientes y que la cuenta tenga fondos suficientes.");
+                return View(vm);
+            }
+
+            TempData["SuccessMessage"] = $"Pago de RD${vm.Amount} al préstamo realizado exitosamente.";
+            return RedirectToAction("Index", "Client");
+        }
     }
 }
 

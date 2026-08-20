@@ -112,11 +112,16 @@
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" role="button"
                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fa-solid fa-money-bill-wave"></i> Pagos
+                                        <i class="fa-solid fa-money-bill-wave"></i> Transacciones
                                     </a>
                                     <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Transaction" asp-action="Transfer"><i class="fa-solid fa-arrow-right-arrow-left me-2" style="color:#1a56db;"></i>Express (a otra cuenta)</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" asp-controller="Transaction" asp-action="CreditCardPayment"><i class="fa-solid fa-credit-card me-2" style="color:#7c3aed;"></i>Pago a Tarjeta de Crédito</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Transaction" asp-action="LoanPayment"><i class="fa-solid fa-hand-holding-dollar me-2" style="color:#16a34a;"></i>Pago a Préstamo</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Beneficiary" asp-action="Index"><i class="fa-solid fa-users me-2" style="color:#0891b2;"></i>Transacciones a Beneficiarios</a></li>
+                                        <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Transaction" asp-action="CashAdvance"><i class="fa-solid fa-money-check-dollar me-2" style="color:#16a34a;"></i>Avance de Efectivo</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Transaction" asp-action="Transfer"><i class="fa-solid fa-arrows-left-right me-2" style="color:#1a56db;"></i>Transferencia</a></li>
                                         <li><a class="dropdown-item" asp-controller="Transaction" asp-action="MyHistory"><i class="fa-solid fa-clock-rotate-left me-2" style="color:#0891b2;"></i>Mi Historial</a></li>
                                     </ul>
                                 </li>

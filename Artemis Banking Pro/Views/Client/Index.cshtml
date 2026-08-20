@@ -131,7 +131,7 @@
             {
                 var lastFour = card.CardNumber.Length >= 4 ? card.CardNumber.Substring(card.CardNumber.Length - 4) : card.CardNumber;
                 var maskedNumber = "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 " + lastFour;
-                var exp = card.ExpirationDate;
+                var exp = card.ExpirationDate.ToString("MM/yy");
                 <div class="col-md-6">
                     @await Html.PartialAsync("_CreditCardAnimated", new
                     {

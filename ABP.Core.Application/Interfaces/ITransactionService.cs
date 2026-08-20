@@ -9,5 +9,7 @@ namespace ABP.Core.Application.Interfaces
         Task<List<TransactionDto>> GetTransactionsByAccountIdAsync(int accountId);
         Task<bool> TransferAsync(SaveTransferDto dto);
         Task<bool> CashAdvanceAsync(SaveCashAdvanceDto dto);
+        Task<bool> CreditCardPaymentAsync(SaveCreditCardPaymentDto dto);
+        Task<bool> LoanPaymentAsync(SaveLoanPaymentDto dto);
     }
 }
