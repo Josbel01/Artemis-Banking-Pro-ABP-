@@ -38,7 +38,7 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCardAPI
                 Status = CreditCardStatus.Active,
                 CardNumber = cardNumber,
                 Cvc = ComputeSha256Hash(cvc),
-                ExpirationDate = DateTime.UtcNow.AddYears(3).ToString("MM/yy")
+                ExpirationDate = DateTime.UtcNow.AddYears(3)
             };
 
             var created = await _creditCardService.AddAsync(card);

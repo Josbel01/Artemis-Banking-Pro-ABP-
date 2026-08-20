@@ -10,5 +10,7 @@ namespace ABP.Core.Application.Dtos.SavingAccounts
         public decimal Balance { get; set; }
         public SavingAccountType AccountType { get; set; }
         public SavingAccountStatus Status { get; set; }
+        public string AssignedByUserId { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

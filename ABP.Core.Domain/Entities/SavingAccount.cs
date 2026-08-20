@@ -12,6 +12,7 @@ namespace ABP.Core.Domain.Entities
         public decimal Balance { get; set; }
         public SavingAccountType AccountType { get; set; }
         public SavingAccountStatus Status { get; set; }
+        public string AssignedByUserId { get; set; } = string.Empty; // Administrador responsable de la asignación
 
         public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     }

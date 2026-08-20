@@ -16,7 +16,7 @@ namespace ABP.Core.Application.Dtos.Loans
 
         public int TotalInstallments { get; set; }
         public int PaidInstallments { get; set; }
-        public string ClientPaymentStatus { get; set; } = string.Empty;
+        public ClientPaymentStatus ClientPaymentStatus { get; set; }
 
         public ICollection<LoanInstallmentDto> LoanInstallments { get; set; } = new List<LoanInstallmentDto>();
     }

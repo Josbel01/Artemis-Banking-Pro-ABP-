@@ -20,6 +20,7 @@ namespace ABP.Infrastructure.Persistence.EntityConfigurations
             builder.Property(s => s.Balance).HasColumnType("decimal(18,2)").IsRequired();
             builder.Property(s => s.AccountType).IsRequired();
             builder.Property(s => s.Status).IsRequired();
+            builder.Property(s => s.AssignedByUserId).IsRequired();
             #endregion
 
             #region relationships

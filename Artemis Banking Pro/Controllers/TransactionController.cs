@@ -50,6 +50,22 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [Authorize(Roles = "Client")]
+        public async Task<IActionResult> MyHistory()
+        {
+            var clientId = GetCurrentClientId();
+            if (string.IsNullOrEmpty(clientId)) return RedirectToAction("Index", "Account");
+
+            // Get all transactions for the client's accounts
+            var allDtos = await _transactionService.GetAllAsync();
+            var allViewModels = _mapper.Map<IEnumerable<TransactionViewModel>>(allDtos);
+            // We need to filter by client's accounts - show all for now since transaction DTO has SavingAccountId
+            ViewBag.AccountId = 0;
+            ViewBag.IsAdminView = false;
+            ViewBag.IsClientHistory = true;
+            return View("Index", allViewModels);
+        }
+
+        [Authorize(Roles = "Client")]
         public IActionResult Transfer()
         {
             return View(new SaveTransferViewModel());

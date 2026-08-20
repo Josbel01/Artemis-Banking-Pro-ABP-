@@ -37,6 +37,15 @@ namespace ABP.Core.Application.ViewModels.Loans
         [Display(Name = "Estado")]
         public LoanStatus Status { get; set; }
 
+        [Display(Name = "Estado del Cliente")]
+        public ClientPaymentStatus ClientPaymentStatus { get; set; }
+
+        [Display(Name = "Total Cuotas")]
+        public int TotalInstallments { get; set; }
+
+        [Display(Name = "Cuotas Pagadas")]
+        public int PaidInstallments { get; set; }
+
         public List<LoanInstallmentViewModel> Installments { get; set; } = new List<LoanInstallmentViewModel>();
     }
 }

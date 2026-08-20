@@ -15,6 +15,7 @@ namespace ABP.Core.Domain.Entities
         public decimal PendingAmount { get; set; }
         public PaymentStatus PaymentStatus { get; set; }
         public bool IsLate { get; set; }
+        public DateTime? PaidDate { get; set; }
 
         public Loan Loan { get; set; } = null!;
     }

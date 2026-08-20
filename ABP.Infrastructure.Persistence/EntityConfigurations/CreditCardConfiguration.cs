@@ -19,7 +19,7 @@ namespace ABP.Infrastructure.Persistence.EntityConfigurations
             builder.Property(c => c.ClientId).IsRequired();
             builder.Property(c => c.CreditLimit).HasColumnType("decimal(18,2)").IsRequired();
             builder.Property(c => c.CurrentDebt).HasColumnType("decimal(18,2)").IsRequired();
-            builder.Property(c => c.ExpirationDate).IsRequired().HasMaxLength(5);
+            builder.Property(c => c.ExpirationDate).IsRequired();
             builder.Property(c => c.Cvc).IsRequired();
             builder.Property(c => c.Status).IsRequired();
             builder.Property(c => c.AssignedByUserId).IsRequired();

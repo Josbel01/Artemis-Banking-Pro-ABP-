@@ -8,6 +8,7 @@ namespace ABP.Core.Domain.Common.Enums
         Withdrawal = 3,
         CreditCardPayment = 4,
         LoanPayment = 5,
-        Transfer = 6
+        Transfer = 6,
+        CashAdvance = 7
     }
 }

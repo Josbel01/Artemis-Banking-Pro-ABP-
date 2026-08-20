@@ -23,6 +23,7 @@ namespace ABP.Infrastructure.Persistence.EntityConfigurations
             builder.Property(li => li.PendingAmount).HasColumnType("decimal(18,2)").IsRequired();
             builder.Property(li => li.PaymentStatus).IsRequired();
             builder.Property(li => li.IsLate).IsRequired();
+            builder.Property(li => li.PaidDate).IsRequired(false);
             #endregion
 
             #region relationships

@@ -77,7 +77,13 @@ namespace ABP.Core.Application.Features.Loans.Queries.GetAllLoans
                         annualInterestRate = l.AnnualInterestRate,
                         termInMonths = l.TermInMonths,
                         status = l.Status == LoanStatus.Active ? "Activo" : "Completado",
-                        clientPaymentStatus = l.ClientPaymentStatus
+                        clientPaymentStatus = l.ClientPaymentStatus switch
+                        {
+                            ClientPaymentStatus.UpToDate => "Al día",
+                            ClientPaymentStatus.Late => "Atrasado",
+                            ClientPaymentStatus.Defaulted => "En mora",
+                            _ => l.ClientPaymentStatus.ToString()
+                        }
                     };
                 })
             };

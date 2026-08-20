@@ -161,9 +161,9 @@ namespace ABP.Core.Application.Services
                 SavingAccountId = destinationAccount.Id,
                 TransactionDate = DateTime.UtcNow,
                 Amount = dto.Amount,
-                Type = TransactionType.Credit,
+                Type = TransactionType.CashAdvance,
                 Beneficiary = destinationAccount.AccountNumber,
-                Origin = creditCard.CardNumber,
+                Origin = creditCard.CardNumber.Substring(creditCard.CardNumber.Length - 4),
                 Status = TransactionStatus.Approved
             };
             await _transactionRepository.AddAsync(creditTransaction);

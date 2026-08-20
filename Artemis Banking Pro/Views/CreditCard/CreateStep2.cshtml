@@ -1,0 +1,86 @@
+@model ABP.Core.Application.ViewModels.CreditCards.SaveCreditCardViewModel
+@{
+    ViewData["Title"] = "Asignar Tarjeta de Cr\u00e9dito - Configurar";
+}
+
+<div class="container-xxl px-4 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            
+            <div class="d-flex align-items-center mb-4">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; background: rgba(26,86,219,0.1); color: #1a56db;">
+                    <i class="fa-regular fa-credit-card fs-5"></i>
+                </div>
+                <div>
+                    <h2 class="h4 fw-bold mb-0" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">Asignar Tarjeta de Cr\u00e9dito</h2>
+                    <p class="text-muted mb-0" style="font-size: 0.85rem;">Paso 2: Configure el l\u00edmite de cr\u00e9dito para la tarjeta.</p>
+                </div>
+            </div>
+
+            <!-- Client info card -->
+            <div class="card border-0 mb-4" style="border-radius: 16px; border: 1px solid #e5e7eb !important; background: rgba(26,86,219,0.03);">
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <small class="text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">Cliente</small>
+                            <div class="fw-semibold" style="color: #0b1f3a;">@ViewBag.ClientName</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">C\u00e9dula</small>
+                            <div class="fw-semibold" style="color: #0b1f3a;">@ViewBag.ClientDNI</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">Correo</small>
+                            <div class="fw-semibold" style="color: #0b1f3a;">@ViewBag.ClientEmail</div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <small class="text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">Deuda Total</small>
+                            <div class="fw-bold" style="color: #991b1b;">@(((decimal)ViewBag.ClientDebt).ToString("C"))</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e5e7eb !important;">
+                <div class="card-body p-4 p-md-5">
+                    
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger" style="border-radius: 10px;">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i><strong>Ocurrieron errores:</strong>
+                            <div class="mt-2">
+                                @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                            </div>
+                        </div>
+                    }
+
+                    <form asp-action="CreateStep2" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ClientId" />
+
+                        <div class="mb-4">
+                            <label asp-for="CreditLimit" class="form-label fw-bold text-dark">L\u00edmite de Cr\u00e9dito <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 fw-bold" style="border-radius: 10px 0 0 10px;">RD$</span>
+                                <input asp-for="CreditLimit" type="number" step="0.01" min="0.01" class="form-control form-control-lg border-start-0" style="border-radius: 0 10px 10px 0; background-color: #f8fafc;" required />
+                            </div>
+                            <span asp-validation-for="CreditLimit" class="text-danger small"></span>
+                            <div class="form-text mt-2"><i class="fa-solid fa-info-circle me-1"></i>El n\u00famero de tarjeta, CVC y fecha de expiraci\u00f3n se generar\u00e1n autom\u00e1ticamente.</div>
+                        </div>
+
+                        <div class="d-flex gap-3 mt-5">
+                            <a asp-action="Create" class="btn btn-light py-2 px-4 fw-semibold" style="border-radius: 8px;">
+                                <i class="fa-solid fa-arrow-left me-2"></i>Volver atr\u00e1s
+                            </a>
+                            <button type="submit" class="btn btn-primary py-2 px-4 fw-bold flex-grow-1" style="border-radius: 8px; background: linear-gradient(135deg, #1a56db, #3b82f6); border: none;">
+                                Asignar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

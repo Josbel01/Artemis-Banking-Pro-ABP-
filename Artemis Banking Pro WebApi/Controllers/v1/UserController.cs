@@ -1,4 +1,6 @@
 using ABP.Core.Application.Dtos.User;
+using ABP.Core.Application.Interfaces;
+using ABP.Core.Domain.Common.Enums;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -25,10 +27,12 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
     public class UserController : BaseApiController
     {
         private readonly IMediator _mediator;
+        private readonly ISavingAccountService _savingAccountService;
 
-        public UserController(IMediator mediator)
+        public UserController(IMediator mediator, ISavingAccountService savingAccountService)
         {
             _mediator = mediator;
+            _savingAccountService = savingAccountService;
         }
 
         [HttpGet("users")]
@@ -103,7 +107,7 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                     firstName = u.FirstName,
                     lastName = u.LastName,
                     email = u.Email,
-                    role = "Comercio",
+                    role = ABP.Core.Domain.Common.Enums.UserRoles.Commerce.ToString(),
                     isActive = u.IsActive
                 })
             });
@@ -184,7 +188,7 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                 id = response.Id,
                 userName = dto.UserName,
                 email = dto.Email,
-                role = "Comercio",
+                role = ABP.Core.Domain.Common.Enums.UserRoles.Commerce.ToString(),
                 isActive = false
             });
         }
@@ -266,6 +270,10 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                 return NotFound(new { Message = "El usuario indicado no existe." });
             }
 
+            // Query real account data from DB
+            var clientAccounts = await _savingAccountService.GetAllByClientIdAsync(user.Id);
+            var mainAccount = clientAccounts.FirstOrDefault(a => a.AccountType == SavingAccountType.Main);
+
             return Ok(new
             {
                 id = user.Id,
@@ -276,14 +284,13 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                 email = user.Email,
                 role = user.Roles?.FirstOrDefault(),
                 isActive = user.IsActive,
-                createdAt = "2026-07-01T10:30:00",
-                mainAccount = new
+                mainAccount = mainAccount != null ? new
                 {
-                    accountNumber = "123456789",
-                    balance = 17000.00,
+                    accountNumber = mainAccount.AccountNumber,
+                    balance = mainAccount.Balance,
                     isPrincipal = true,
-                    status = "Activa"
-                }
+                    status = mainAccount.Status == SavingAccountStatus.Active ? "Activa" : "Cancelada"
+                } : null
             });
         }
     }

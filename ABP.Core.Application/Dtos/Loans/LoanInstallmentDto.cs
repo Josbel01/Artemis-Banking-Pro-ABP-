@@ -14,5 +14,6 @@ namespace ABP.Core.Application.Dtos.Loans
         public decimal PendingAmount { get; set; }
         public PaymentStatus PaymentStatus { get; set; }
         public bool IsLate { get; set; }
+        public DateTime? PaidDate { get; set; }
     }
 }

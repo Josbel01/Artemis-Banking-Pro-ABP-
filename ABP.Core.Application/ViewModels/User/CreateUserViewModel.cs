@@ -40,7 +40,7 @@ namespace ABP.Core.Application.ViewModels.User
         [Display(Name = "Rol")]
         public string Role { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Debe especificar el monto inicial (cuando aplique)")]
+        [Range(0, (double)decimal.MaxValue, ErrorMessage = "El monto inicial no puede ser negativo.")]
         [Display(Name = "Monto Inicial")]
         public decimal InitialAmount { get; set; }
 

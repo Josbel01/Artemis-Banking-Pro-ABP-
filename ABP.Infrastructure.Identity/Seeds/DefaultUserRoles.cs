@@ -11,7 +11,6 @@ namespace ABP.Infrastructure.Identity.Seeds
             await roleManager.CreateAsync(new IdentityRole(UserRoles.Admin.ToString()));
             await roleManager.CreateAsync(new IdentityRole(UserRoles.Cashier.ToString()));
             await roleManager.CreateAsync(new IdentityRole(UserRoles.Client.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(UserRoles.Commerce.ToString()));
         }
     }
 }

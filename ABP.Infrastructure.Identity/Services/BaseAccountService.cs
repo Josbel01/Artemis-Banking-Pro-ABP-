@@ -501,10 +501,35 @@ namespace ABP.Infrastructure.Identity.Services
                         await _emailService.SendAsync(new EmailRequestDto()
                         {
                             To = saveDto.Email,
-                            HtmlBody = $"<p>Hola {user.Name},</p><p>Su cuenta ha sido registrada correctamente en Artemis Banking.</p>" +
-                            $"<p>Por favor confirme su cuenta visitando este enlace: <a href='{verificationUri}'>Confirmar Cuenta</a></p><br/>" +
-                            $"<p><small>Si usted no realizó este registro, puede ignorar este mensaje.</small></p>",
-                            Subject = "Confirmacion de Cuenta"
+                            HtmlBody = $"""
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+<div style="max-width:520px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#1a56db,#3b82f6);padding:28px 30px;text-align:center;">
+<h1 style="color:#fff;margin:0;font-size:20px;">&#128231; Confirmaci&#243;n de Cuenta</h1>
+</div>
+<div style="padding:30px;">
+<p style="color:#334155;font-size:15px;margin:0 0 18px;">Hola <strong>{user.Name}</strong>,</p>
+<p style="color:#334155;font-size:15px;margin:0 0 24px;">Su cuenta ha sido registrada correctamente en <strong>Artemis Banking Pro</strong>. Para activar su usuario, haga clic en el siguiente bot&#243;n:</p>
+<div style="text-align:center;margin:0 0 24px;">
+<a href="{verificationUri}" style="display:inline-block;background:linear-gradient(135deg,#1a56db,#3b82f6);color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;">&#9989; Activar Mi Cuenta</a>
+</div>
+<div style="background:#f8fafc;border-radius:8px;padding:16px;margin-bottom:20px;">
+<p style="color:#64748b;font-size:12px;margin:0 0 8px;">Si el bot&#243;n no funciona, copie y pegue este enlace en su navegador:</p>
+<p style="color:#1a56db;font-size:11px;margin:0;word-break:break-all;">{verificationUri}</p>
+</div>
+<div style="background:#fef9c3;border-left:4px solid #ca8a04;padding:12px 16px;border-radius:0 6px 6px 0;">
+<p style="color:#854d0e;font-size:12px;margin:0;">Si usted no realiz&#243; este registro, puede ignorar este mensaje.</p>
+</div>
+</div>
+<div style="background:#f8fafc;padding:18px 30px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="color:#94a3b8;font-size:11px;margin:0;">Artemis Banking Pro &mdash; Plataforma de Banca Digital ITLA</p>
+</div>
+</div>
+</body></html>
+""",
+                            Subject = "Activación de Cuenta - Artemis Banking Pro"
                         });
                     }
                     else

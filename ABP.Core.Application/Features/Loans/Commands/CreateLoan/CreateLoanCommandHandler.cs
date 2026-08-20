@@ -60,7 +60,7 @@ namespace ABP.Core.Application.Features.Loans.Commands.CreateLoan
                 LoanNumber = new Random().Next(100000000, 999999999).ToString(),
                 TotalInstallments = request.TermInMonths,
                 AmountPending = request.CapitalAmount,
-                ClientPaymentStatus = "Al día"
+                ClientPaymentStatus = ClientPaymentStatus.UpToDate
             };
 
             var created = await _loanService.AddAsync(loan);

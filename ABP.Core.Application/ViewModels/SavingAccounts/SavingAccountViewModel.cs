@@ -14,6 +14,12 @@ namespace ABP.Core.Application.ViewModels.SavingAccounts
         public string ClientId { get; set; } = string.Empty;
         
         public string ClientName { get; set; } = string.Empty; // Useful for UI display
+
+        [Display(Name = "Asignado por")]
+        public string AdminName { get; set; } = string.Empty;
+
+        [Display(Name = "Asignado por")]
+        public string AssignedByUserId { get; set; } = string.Empty;
         
         [Display(Name = "Balance")]
         [DataType(DataType.Currency)]
@@ -24,5 +30,9 @@ namespace ABP.Core.Application.ViewModels.SavingAccounts
         
         [Display(Name = "Estado")]
         public SavingAccountStatus Status { get; set; }
+
+        [Display(Name = "Fecha de Creación")]
+        [DataType(DataType.DateTime)]
+        public DateTime CreatedAt { get; set; }
     }
 }

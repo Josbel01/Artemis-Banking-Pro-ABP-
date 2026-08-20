@@ -6,115 +6,181 @@
 <div class="container-xxl py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-1" style="color: var(--navy-text);">Panel de Administración</h2>
-            <p class="text-muted mb-0">Bienvenido al área de administración de Artemis Banking Pro</p>
+            <h2 class="fw-bold mb-1" style="color: #0b1f3a;">Panel de Administraci&oacute;n</h2>
+            <p class="text-muted mb-0">Bienvenido al &aacute;rea de administraci&oacute;n de Artemis Banking Pro</p>
         </div>
         <div>
-            <span class="badge" style="background-color: var(--navy-text); color: white; padding: 0.5rem 1rem; border-radius: 50px;">
+            <span class="badge" style="background-color: #0b1f3a; color: white; padding: 0.5rem 1rem; border-radius: 50px;">
                 <i class="fa-solid fa-shield-halved me-2"></i>Admin
             </span>
         </div>
     </div>
 
-    <!-- Indicadores de Productos Financieros Activos -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 h-100 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center mb-3">
-                    <div style="width:48px; height:48px; border-radius:10px; background-color:rgba(22,163,74,0.1); display:flex; align-items:center; justify-content:center; color:#16a34a; font-size:1.5rem; margin-right:1rem;">
+    <!-- Indicadores de Productos Financieros -->
+    <h5 class="fw-bold text-muted mb-3" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Productos Financieros</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(22,163,74,0.1); display:flex; align-items:center; justify-content:center; color:#16a34a; margin-right:0.75rem;">
                         <i class="fa-solid fa-hand-holding-dollar"></i>
                     </div>
-                    <div>
-                        <h5 class="fw-bold mb-0" style="color: var(--navy-text);">Préstamos Vigentes</h5>
-                    </div>
+                    <small class="text-muted fw-bold">Pr&eacute;stamos Vigentes</small>
                 </div>
-                <h2 class="fw-bold" style="color: #16a34a;">@Model.ActiveLoans</h2>
-                <p class="text-muted small mb-0">Préstamos actualmente activos en el sistema.</p>
+                <h3 class="fw-bold mb-0" style="color: #16a34a;">@Model.ActiveLoans</h3>
             </div>
         </div>
-
-        <div class="col-md-4">
-            <div class="card border-0 h-100 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center mb-3">
-                    <div style="width:48px; height:48px; border-radius:10px; background-color:rgba(26,86,219,0.1); display:flex; align-items:center; justify-content:center; color:#1a56db; font-size:1.5rem; margin-right:1rem;">
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(26,86,219,0.1); display:flex; align-items:center; justify-content:center; color:#1a56db; margin-right:0.75rem;">
                         <i class="fa-solid fa-credit-card"></i>
                     </div>
-                    <div>
-                        <h5 class="fw-bold mb-0" style="color: var(--navy-text);">Tarjetas de Crédito Activas</h5>
-                    </div>
+                    <small class="text-muted fw-bold">Tarjetas de Cr&eacute;dito Activas</small>
                 </div>
-                <h2 class="fw-bold" style="color: #1a56db;">@Model.ActiveCreditCards</h2>
-                <p class="text-muted small mb-0">Tarjetas de crédito actualmente activas en el sistema.</p>
+                <h3 class="fw-bold mb-0" style="color: #1a56db;">@Model.ActiveCreditCards</h3>
             </div>
         </div>
-
-        <div class="col-md-4">
-            <div class="card border-0 h-100 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center mb-3">
-                    <div style="width:48px; height:48px; border-radius:10px; background-color:rgba(53,104,178,0.1); display:flex; align-items:center; justify-content:center; color:var(--navy-text); font-size:1.5rem; margin-right:1rem;">
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(53,104,178,0.1); display:flex; align-items:center; justify-content:center; color:#3568b2; margin-right:0.75rem;">
                         <i class="fa-solid fa-piggy-bank"></i>
                     </div>
-                    <div>
-                        <h5 class="fw-bold mb-0" style="color: var(--navy-text);">Cuentas de Ahorro Activas</h5>
-                    </div>
+                    <small class="text-muted fw-bold">Cuentas de Ahorro Activas</small>
                 </div>
-                <h2 class="fw-bold" style="color: var(--navy-text);">@Model.ActiveSavingAccounts</h2>
-                <p class="text-muted small mb-0">Cuentas de ahorro actualmente activas en el sistema.</p>
+                <h3 class="fw-bold mb-0" style="color: #3568b2;">@Model.ActiveSavingAccounts</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(124,58,237,0.1); display:flex; align-items:center; justify-content:center; color:#7c3aed; margin-right:0.75rem;">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <small class="text-muted fw-bold">Total Productos Financieros</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color: #7c3aed;">@Model.TotalFinancialProducts</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicadores de Clientes -->
+    <h5 class="fw-bold text-muted mb-3" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Clientes</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(22,163,74,0.1); display:flex; align-items:center; justify-content:center; color:#16a34a; margin-right:0.75rem;">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <small class="text-muted fw-bold">Clientes Activos</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color: #16a34a;">@Model.ActiveClients</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(220,38,38,0.1); display:flex; align-items:center; justify-content:center; color:#dc2626; margin-right:0.75rem;">
+                        <i class="fa-solid fa-user-slash"></i>
+                    </div>
+                    <small class="text-muted fw-bold">Clientes Inactivos</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color: #dc2626;">@Model.InactiveClients</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(234,179,8,0.1); display:flex; align-items:center; justify-content:center; color:#ca8a04; margin-right:0.75rem;">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <small class="text-muted fw-bold">Monto Prom. Deuda/Cliente</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color: #ca8a04;">@Model.AverageDebtPerClient.ToString("C")</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicadores de Transacciones y Pagos -->
+    <h5 class="fw-bold text-muted mb-3" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Transacciones y Pagos</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(6,182,212,0.1); display:flex; align-items:center; justify-content:center; color:#0891b2; margin-right:0.75rem;">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                    </div>
+                    <small class="text-muted fw-bold">Transacciones Hist&oacute;ricas</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color: #0891b2;">@Model.TotalHistoricalTransactions</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(14,165,233,0.1); display:flex; align-items:center; justify-content:center; color:#0ea5e9; margin-right:0.75rem;">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <small class="text-muted fw-bold">Transacciones del D&iacute;a</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color: #0ea5e9;">@Model.TodayTransactions</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(22,163,74,0.1); display:flex; align-items:center; justify-content:center; color:#16a34a; margin-right:0.75rem;">
+                        <i class="fa-solid fa-money-check-dollar"></i>
+                    </div>
+                    <small class="text-muted fw-bold">Pagos Hist&oacute;ricos</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color: #16a34a;">@Model.TotalHistoricalPayments</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-3" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center mb-2">
+                    <div style="width:40px; height:40px; border-radius:8px; background-color:rgba(22,163,74,0.1); display:flex; align-items:center; justify-content:center; color:#16a34a; margin-right:0.75rem;">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <small class="text-muted fw-bold">Pagos del D&iacute;a</small>
+                </div>
+                <h3 class="fw-bold mb-0" style="color: #16a34a;">@Model.TodayPayments</h3>
             </div>
         </div>
     </div>
 
     <!-- Panel de Gestión -->
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card border-0 h-100 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center mb-3">
-                    <div style="width:48px; height:48px; border-radius:10px; background-color:rgba(53,104,178,0.1); display:flex; align-items:center; justify-content:center; color:var(--navy-text); font-size:1.5rem; margin-right:1rem;">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <h5 class="fw-bold mb-0" style="color: var(--navy-text);">Usuarios</h5>
-                </div>
-                <p class="text-muted small mb-0">Gestión de usuarios del sistema, clientes, cajeros y administradores.</p>
-                <div class="mt-3">
-                    <a class="btn btn-outline-primary btn-sm rounded-pill px-3" asp-controller="User" asp-action="Index">Gestionar <i class="fa-solid fa-arrow-right ms-1"></i></a>
-                </div>
+    <h5 class="fw-bold text-muted mb-3" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Accesos R&aacute;pidos</h5>
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-4 text-center" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <i class="fa-solid fa-users fs-2 mb-3" style="color: #1a56db;"></i>
+                <h6 class="fw-bold">Usuarios</h6>
+                <a class="btn btn-outline-primary btn-sm rounded-pill px-3 mt-2" asp-controller="User" asp-action="Index">Gestionar</a>
             </div>
         </div>
-
-        <div class="col-md-4">
-            <div class="card border-0 h-100 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center mb-3">
-                    <div style="width:48px; height:48px; border-radius:10px; background-color:rgba(26,86,219,0.1); display:flex; align-items:center; justify-content:center; color:#1a56db; font-size:1.5rem; margin-right:1rem;">
-                        <i class="fa-solid fa-vault"></i>
-                    </div>
-                    <h5 class="fw-bold mb-0" style="color: var(--navy-text);">Productos</h5>
-                </div>
-                <p class="text-muted small mb-0">Configuración de cuentas de ahorro, préstamos y tarjetas de crédito.</p>
-                <div class="mt-3 dropdown">
-                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Gestionar
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" asp-controller="SavingAccount" asp-action="Index"><i class="fa-solid fa-piggy-bank me-2" style="color:#3568b2;"></i>Cuentas de Ahorro</a></li>
-                        <li><a class="dropdown-item" asp-controller="CreditCard" asp-action="Index"><i class="fa-solid fa-credit-card me-2" style="color:#1a56db;"></i>Tarjetas de Crédito</a></li>
-                        <li><a class="dropdown-item" asp-controller="Loan" asp-action="Index"><i class="fa-solid fa-hand-holding-dollar me-2" style="color:#16a34a;"></i>Préstamos</a></li>
-                    </ul>
-                </div>
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-4 text-center" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <i class="fa-solid fa-hand-holding-dollar fs-2 mb-3" style="color: #16a34a;"></i>
+                <h6 class="fw-bold">Pr&eacute;stamos</h6>
+                <a class="btn btn-outline-success btn-sm rounded-pill px-3 mt-2" asp-controller="Loan" asp-action="Index">Gestionar</a>
             </div>
         </div>
-
-        <div class="col-md-4">
-            <div class="card border-0 h-100 p-4" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center mb-3">
-                    <div style="width:48px; height:48px; border-radius:10px; background-color:rgba(22,163,74,0.1); display:flex; align-items:center; justify-content:center; color:#16a34a; font-size:1.5rem; margin-right:1rem;">
-                        <i class="fa-solid fa-money-bill-transfer"></i>
-                    </div>
-                    <h5 class="fw-bold mb-0" style="color: var(--navy-text);">Transacciones</h5>
-                </div>
-                <p class="text-muted small mb-0">Monitoreo de transferencias y pagos realizados en el sistema.</p>
-                <div class="mt-3">
-                    <a class="btn btn-outline-primary btn-sm rounded-pill px-3" asp-controller="Transaction" asp-action="Index">Ver <i class="fa-solid fa-arrow-right ms-1"></i></a>
-                </div>
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-4 text-center" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <i class="fa-solid fa-credit-card fs-2 mb-3" style="color: #1a56db;"></i>
+                <h6 class="fw-bold">Tarjetas de Cr&eacute;dito</h6>
+                <a class="btn btn-outline-primary btn-sm rounded-pill px-3 mt-2" asp-controller="CreditCard" asp-action="Index">Gestionar</a>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 h-100 p-4 text-center" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+                <i class="fa-solid fa-piggy-bank fs-2 mb-3" style="color: #3568b2;"></i>
+                <h6 class="fw-bold">Cuentas de Ahorro</h6>
+                <a class="btn btn-outline-secondary btn-sm rounded-pill px-3 mt-2" asp-controller="SavingAccount" asp-action="Index">Gestionar</a>
             </div>
         </div>
     </div>

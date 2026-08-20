@@ -27,8 +27,8 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCard
         [SwaggerParameter(Description = "The credit limit for the card")]
         public decimal CreditLimit { get; set; }
 
-        [SwaggerParameter(Description = "The expiration date in MM/AA format")]
-        public string ExpirationDate { get; set; } = string.Empty;
+        [SwaggerParameter(Description = "The expiration date")]
+        public DateTime ExpirationDate { get; set; }
 
         [SwaggerParameter(Description = "The CVC security code")]
         public string Cvc { get; set; } = string.Empty;

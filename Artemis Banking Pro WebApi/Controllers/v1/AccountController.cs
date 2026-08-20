@@ -43,17 +43,17 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
 
             if (response.HasError)
             {
-                if ((response.Errors?.FirstOrDefault() ?? "") == "Su cuenta se encuentra inactiva. Debe activar su cuenta antes de iniciar sesiA3n.")
+                if ((response.Errors?.FirstOrDefault() ?? "").Contains("inactiva", StringComparison.OrdinalIgnoreCase))
                 {
                     return BadRequest(new { Message = (response.Errors?.FirstOrDefault() ?? "") });
                 }
                 
-                if ((response.Errors?.FirstOrDefault() ?? "") == "Acceso denegado. No tiene permisos para utilizar este recurso.")
+                if ((response.Errors?.FirstOrDefault() ?? "").Contains("permisos", StringComparison.OrdinalIgnoreCase))
                 {
                     return StatusCode(StatusCodes.Status403Forbidden, new { Message = (response.Errors?.FirstOrDefault() ?? "") });
                 }
 
-                return Unauthorized(new { Message = (response.Errors?.FirstOrDefault() ?? "") ?? "No tiene autorizaciA3n para acceder a este recurso." });
+                return Unauthorized(new { Message = (response.Errors?.FirstOrDefault() ?? "Credenciales inválidas.") });
             }
 
             return Ok(new JwtResponseDto
