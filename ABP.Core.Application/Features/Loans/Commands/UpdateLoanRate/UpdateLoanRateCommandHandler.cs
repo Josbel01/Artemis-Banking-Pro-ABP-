@@ -37,7 +37,7 @@ namespace ABP.Core.Application.Features.Loans.Commands.UpdateLoanRate
             if (loan == null) return false;
 
             var pendingInstallments = (await _loanInstallmentService.GetAllByLoanIdAsync(id))
-                .Where(installment => installment.PaymentStatus == PaymentStatus.Pending && installment.PendingAmount > 0)
+                .Where(installment => installment.PaymentStatus == PaymentStatus.Pending && installment.PendingAmount > 0 && installment.DueDate.Date > DateTime.Now.Date)
                 .OrderBy(installment => installment.InstallmentNumber)
                 .ToList();
 

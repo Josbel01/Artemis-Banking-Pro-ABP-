@@ -46,6 +46,16 @@
                             <span asp-validation-for="LoanNumber" class="text-danger small mt-1 d-block"></span>
                         </div>
 
+                        <!-- Cuenta de Origen -->
+                        <div class="mb-4">
+                            <label asp-for="OriginAccountNumber" class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Cuenta de Ahorro Origen</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted" style="border: 1px solid #e5e7eb;"><i class="fa-solid fa-piggy-bank"></i></span>
+                                <input asp-for="OriginAccountNumber" class="form-control bg-light border-start-0 ps-0 text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1.1rem; box-shadow: none;" placeholder="Ej. 123456789" />
+                            </div>
+                            <span asp-validation-for="OriginAccountNumber" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
                         <!-- Monto -->
                         <div class="mb-4">
                             <label asp-for="Amount" class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Monto a Pagar</label>

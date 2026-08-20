@@ -23,7 +23,7 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.DeleteCreditCardAPI
             var card = await _creditCardService.GetByIdAsync(id);
             if (card == null) return false;
             if (card.CurrentDebt > 0)
-                throw new ApiException("No se puede cancelar una tarjeta con deuda pendiente.");
+                throw new ApiException("No se puede cancelar una tarjeta con deuda pendiente.", (int)System.Net.HttpStatusCode.BadRequest);
 
             card.Status = CreditCardStatus.Cancelled;
             await _creditCardService.UpdateAsync(card, id);

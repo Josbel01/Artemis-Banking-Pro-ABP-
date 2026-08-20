@@ -27,11 +27,11 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <label class="form-label text-muted fw-semibold small">Filtrar por Tipo</label>
+                <label class="form-label text-muted fw-semibold small">Filtrar por Estado</label>
                 <select name="accountType" class="form-select">
                     <option value="Todas" selected="@(ViewBag.AccountType == "Todas" ? "selected" : null)">Todas</option>
-                    <option value="Main" selected="@(ViewBag.AccountType == "Main" ? "selected" : null)">Principales</option>
-                    <option value="Secondary" selected="@(ViewBag.AccountType == "Secondary" ? "selected" : null)">Secundarias</option>
+                    <option value="Active" selected="@(ViewBag.AccountType == "Active" ? "selected" : null)">Activas</option>
+                    <option value="Cancelled" selected="@(ViewBag.AccountType == "Cancelled" ? "selected" : null)">Canceladas</option>
                 </select>
             </div>
             <div class="col-md-3">

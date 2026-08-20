@@ -9,7 +9,6 @@ using ABP.Core.Application.Helpers;
 using ABP.Core.Application.Dtos.Loans;
 using ABP.Core.Application.Dtos.Transactions;
 using System.Linq;
-using System.Transactions;
 
 namespace ABP.Core.Application.Features.Loans.Commands.CreateLoan
 {
@@ -48,7 +47,6 @@ namespace ABP.Core.Application.Features.Loans.Commands.CreateLoan
             if (principalAccount == null)
                 throw new ApiException("El cliente no tiene una cuenta de ahorro principal activa para recibir el desembolso del préstamo.");
 
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
             var loan = new LoanDto
             {
                 Id = 0,
@@ -128,8 +126,6 @@ namespace ABP.Core.Application.Features.Loans.Commands.CreateLoan
             {
                 emailSent = false;
             }
-
-            scope.Complete();
 
             return new
             {

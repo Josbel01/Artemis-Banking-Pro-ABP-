@@ -12,5 +12,9 @@ namespace ABP.Core.Application.ViewModels.Cashier
         [Range(1, double.MaxValue, ErrorMessage = "El monto debe ser mayor a RD$0.")]
         [Display(Name = "Monto a Pagar (RD$)")]
         public decimal Amount { get; set; }
+
+        [Required(ErrorMessage = "El número de cuenta de ahorro es requerido.")]
+        [Display(Name = "Cuenta de Ahorro Origen")]
+        public string OriginAccountNumber { get; set; } = string.Empty;
     }
 }

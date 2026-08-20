@@ -94,6 +94,7 @@ namespace ArtemisBankingPro.Controllers
             {
                 CardNumber = vm.CardNumber,
                 Amount = vm.Amount,
+                OriginAccountNumber = vm.OriginAccountNumber,
                 ResponsibleUserId = GetCashierUserId()
             });
 
@@ -121,6 +122,7 @@ namespace ArtemisBankingPro.Controllers
             {
                 LoanNumber = vm.LoanNumber,
                 Amount = vm.Amount,
+                OriginAccountNumber = vm.OriginAccountNumber,
                 ResponsibleUserId = GetCashierUserId()
             });
 
@@ -177,6 +179,8 @@ namespace ArtemisBankingPro.Controllers
                 Amount = result.Amount,
                 AccountNumber = result.AccountNumber,
                 DestinationAccountNumber = result.DestinationAccountNumber,
+                AccountHolderName = result.AccountHolderName,
+                DestinationHolderName = result.DestinationHolderName,
                 NewBalance = result.NewBalance,
                 OperationDate = result.OperationDate,
                 TransactionId = result.TransactionId

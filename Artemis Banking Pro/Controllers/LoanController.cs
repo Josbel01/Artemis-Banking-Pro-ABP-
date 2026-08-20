@@ -18,6 +18,7 @@ namespace ArtemisBankingPro.Controllers
     public class LoanController : Controller
     {
         private readonly ILoanService _loanService;
+        private readonly ILoanInstallmentService _loanInstallmentService;
         private readonly IBaseAccountService _accountService;
         private readonly ISavingAccountService _savingAccountService;
         private readonly ITransactionService _transactionService;
@@ -27,6 +28,7 @@ namespace ArtemisBankingPro.Controllers
 
         public LoanController(
             ILoanService loanService, 
+            ILoanInstallmentService loanInstallmentService,
             IBaseAccountService accountService,
             ISavingAccountService savingAccountService,
             ITransactionService transactionService,
@@ -35,6 +37,7 @@ namespace ArtemisBankingPro.Controllers
             IMapper mapper)
         {
             _loanService = loanService;
+            _loanInstallmentService = loanInstallmentService;
             _accountService = accountService;
             _savingAccountService = savingAccountService;
             _transactionService = transactionService;
@@ -288,8 +291,9 @@ namespace ArtemisBankingPro.Controllers
         [HttpGet]
         public IActionResult RiskConfirmation()
         {
-            if (TempData["RiskMessage"] == null)
+            if (TempData.Peek("RiskMessage") == null)
                 return RedirectToAction(nameof(Create));
+            TempData.Keep(); // Keep all values so POST can read them
             return View();
         }
 
@@ -347,6 +351,7 @@ namespace ArtemisBankingPro.Controllers
                 AnnualInterestRate = vm.InterestRate,
                 TermInMonths = vm.TermInMonths,
                 Status = LoanStatus.Active,
+                TotalInstallments = vm.TermInMonths,
                 AssignedByUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? ""
             };
             
@@ -359,9 +364,27 @@ namespace ArtemisBankingPro.Controllers
             );
             
             dto.AmountPending = installments.Sum(i => i.InstallmentAmount);
-            dto.LoanInstallments = _mapper.Map<List<LoanInstallmentDto>>(installments);
 
             var createdLoan = await _loanService.AddAsync(dto);
+
+            // Add installments separately after loan is created
+            foreach (var installment in installments)
+            {
+                installment.LoanId = createdLoan.Id;
+                await _loanInstallmentService.AddAsync(new LoanInstallmentDto
+                {
+                    Id = 0,
+                    LoanId = createdLoan.Id,
+                    InstallmentNumber = installment.InstallmentNumber,
+                    DueDate = installment.DueDate,
+                    InstallmentAmount = installment.InstallmentAmount,
+                    InterestAmount = installment.InterestAmount,
+                    CapitalAmount = installment.CapitalAmount,
+                    PendingAmount = installment.PendingAmount,
+                    PaymentStatus = installment.PaymentStatus,
+                    IsLate = installment.IsLate
+                });
+            }
 
             // Deposit to the main saving account
             var clientAccounts = await _savingAccountService.GetAllByClientIdAsync(vm.ClientId);

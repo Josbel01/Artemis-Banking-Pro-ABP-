@@ -84,12 +84,18 @@ namespace ABP.Core.Application.Services
 
             _logger.LogInformation("Deposit of RD${Amount} to account {Account} completed successfully. TxId: {TxId}", dto.Amount, dto.AccountNumber, saved?.Id);
 
+            // Get account holder name
+            var accountOwner = await _accountService.GetUserById(account.ClientId);
+            var holderName = accountOwner != null ? $"{accountOwner.FirstName} {accountOwner.LastName}" : "";
+            var lastFourAccount = account.AccountNumber.Length >= 4 ? account.AccountNumber.Substring(account.AccountNumber.Length - 4) : account.AccountNumber;
+
             var result = new OperationResultDto
             {
                 Success = true,
                 OperationType = "Depósito",
                 Amount = dto.Amount,
                 AccountNumber = account.AccountNumber,
+                AccountHolderName = holderName,
                 NewBalance = account.Balance,
                 OperationDate = DateTime.Now,
                 TransactionId = saved?.Id ?? 0
@@ -102,7 +108,7 @@ namespace ABP.Core.Application.Services
                 $"Se ha realizado un depósito exitoso en tu cuenta de ahorro.",
                 new[] {
                     ("Monto depositado", $"RD${dto.Amount:N2}"),
-                    ("Cuenta destino", account.AccountNumber),
+                    ("Cuenta destino", $"****{lastFourAccount}"),
                     ("Nuevo balance", $"RD${account.Balance:N2}"),
                     ("Fecha y hora", DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
                 },
@@ -158,12 +164,18 @@ namespace ABP.Core.Application.Services
 
             _logger.LogInformation("Withdrawal of RD${Amount} from account {Account} completed successfully. TxId: {TxId}", dto.Amount, dto.AccountNumber, saved?.Id);
 
+            // Get account holder name
+            var accountOwner = await _accountService.GetUserById(account.ClientId);
+            var holderName = accountOwner != null ? $"{accountOwner.FirstName} {accountOwner.LastName}" : "";
+            var lastFourAccount = account.AccountNumber.Length >= 4 ? account.AccountNumber.Substring(account.AccountNumber.Length - 4) : account.AccountNumber;
+
             var result = new OperationResultDto
             {
                 Success = true,
                 OperationType = "Retiro",
                 Amount = dto.Amount,
                 AccountNumber = account.AccountNumber,
+                AccountHolderName = holderName,
                 NewBalance = account.Balance,
                 OperationDate = DateTime.Now,
                 TransactionId = saved?.Id ?? 0
@@ -176,7 +188,7 @@ namespace ABP.Core.Application.Services
                 $"Se ha realizado un retiro exitoso de tu cuenta de ahorro.",
                 new[] {
                     ("Monto retirado", $"RD${dto.Amount:N2}"),
-                    ("Cuenta origen", account.AccountNumber),
+                    ("Cuenta origen", $"****{lastFourAccount}"),
                     ("Nuevo balance", $"RD${account.Balance:N2}"),
                     ("Fecha y hora", DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
                 },
@@ -410,6 +422,14 @@ namespace ABP.Core.Application.Services
 
             _logger.LogInformation("Transfer of RD${Amount} completed successfully. Debit TxId: {TxId}", dto.Amount, savedDebit?.Id);
 
+            // Get account holder names
+            var originOwner = await _accountService.GetUserById(originAccount.ClientId);
+            var destOwner = await _accountService.GetUserById(destinationAccount.ClientId);
+            var originHolderName = originOwner != null ? $"{originOwner.FirstName} {originOwner.LastName}" : "";
+            var destHolderName = destOwner != null ? $"{destOwner.FirstName} {destOwner.LastName}" : "";
+            var lastFourOrigin = originAccount.AccountNumber.Length >= 4 ? originAccount.AccountNumber.Substring(originAccount.AccountNumber.Length - 4) : originAccount.AccountNumber;
+            var lastFourDest = destinationAccount.AccountNumber.Length >= 4 ? destinationAccount.AccountNumber.Substring(destinationAccount.AccountNumber.Length - 4) : destinationAccount.AccountNumber;
+
             var result = new OperationResultDto
             {
                 Success = true,
@@ -417,6 +437,8 @@ namespace ABP.Core.Application.Services
                 Amount = dto.Amount,
                 AccountNumber = originAccount.AccountNumber,
                 DestinationAccountNumber = destinationAccount.AccountNumber,
+                AccountHolderName = originHolderName,
+                DestinationHolderName = destHolderName,
                 NewBalance = originAccount.Balance,
                 OperationDate = DateTime.Now,
                 TransactionId = savedDebit?.Id ?? 0
@@ -429,12 +451,26 @@ namespace ABP.Core.Application.Services
                 $"Se ha realizado una transferencia exitosa desde tu cuenta.",
                 new[] {
                     ("Monto transferido", $"RD${dto.Amount:N2}"),
-                    ("Cuenta origen", originAccount.AccountNumber),
-                    ("Cuenta destino", destinationAccount.AccountNumber),
+                    ("Cuenta origen", $"****{lastFourOrigin}"),
+                    ("Cuenta destino", $"****{lastFourDest}"),
                     ("Nuevo balance", $"RD${originAccount.Balance:N2}"),
                     ("Fecha y hora", DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
                 },
                 "#0891b2", "#22d3ee");
+
+            // Send email to destination account holder
+            await SendAccountEmailAsync(destinationAccount.ClientId,
+                "Transferencia recibida en tu cuenta",
+                "💰 Transferencia Recibida",
+                $"Se ha recibido una transferencia en tu cuenta de ahorro.",
+                new[] {
+                    ("Monto recibido", $"RD${dto.Amount:N2}"),
+                    ("Cuenta destino", $"****{lastFourDest}"),
+                    ("Cuenta origen", $"****{lastFourOrigin}"),
+                    ("Nuevo balance", $"RD${destinationAccount.Balance:N2}"),
+                    ("Fecha y hora", DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
+                },
+                "#16a34a", "#22c55e");
 
             return result;
         }

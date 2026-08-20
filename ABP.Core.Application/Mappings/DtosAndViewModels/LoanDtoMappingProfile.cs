@@ -8,7 +8,12 @@ namespace ABP.Core.Application.Mappings.DtosAndViewModels
     {
         public LoanDtoMappingProfile()
         {
-            CreateMap<LoanViewModel, LoanDto>().ReverseMap();
+            CreateMap<LoanDto, LoanViewModel>()
+                .ForMember(dest => dest.PrincipalAmount, opt => opt.MapFrom(src => src.AmountApproved))
+                .ForMember(dest => dest.RemainingDebt, opt => opt.MapFrom(src => src.AmountPending))
+                .ReverseMap()
+                .ForMember(dest => dest.AmountApproved, opt => opt.MapFrom(src => src.PrincipalAmount))
+                .ForMember(dest => dest.AmountPending, opt => opt.MapFrom(src => src.RemainingDebt));
             CreateMap<SaveLoanViewModel, LoanDto>().ReverseMap();
             CreateMap<LoanInstallmentViewModel, LoanInstallmentDto>().ReverseMap();
         }

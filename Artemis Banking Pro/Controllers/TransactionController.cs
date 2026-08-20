@@ -141,7 +141,7 @@ namespace ArtemisBankingPro.Controllers
             var destOwner = await _accountService.GetUserById(destAccount.ClientId);
             TempData["ConfirmOriginAccount"] = vm.OriginAccountNumber;
             TempData["ConfirmDestAccount"] = vm.DestinationAccountNumber;
-            TempData["ConfirmAmount"] = vm.Amount;
+            TempData["ConfirmAmount"] = vm.Amount.ToString();
             TempData["ConfirmDestName"] = destOwner != null ? $"{destOwner.FirstName} {destOwner.LastName}" : "";
             return RedirectToAction(nameof(TransferConfirm));
         }
@@ -149,8 +149,9 @@ namespace ArtemisBankingPro.Controllers
         [Authorize(Roles = "Client")]
         public IActionResult TransferConfirm()
         {
-            if (TempData["ConfirmDestAccount"] == null)
+            if (TempData.Peek("ConfirmDestAccount") == null)
                 return RedirectToAction(nameof(Transfer));
+            TempData.Keep(); // Keep all values so POST can read them after the view consumes them
             return View();
         }
 

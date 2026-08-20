@@ -63,9 +63,9 @@ namespace ArtemisBankingPro.Controllers
 
             if (!string.IsNullOrEmpty(accountType) && accountType != "Todas")
             {
-                if (Enum.TryParse<SavingAccountType>(accountType, true, out var typeEnum))
+                if (Enum.TryParse<SavingAccountStatus>(accountType, true, out var statusEnum))
                 {
-                    accounts = accounts.Where(a => a.AccountType == typeEnum).ToList();
+                    accounts = accounts.Where(a => a.Status == statusEnum).ToList();
                 }
                 ViewBag.AccountType = accountType;
             }

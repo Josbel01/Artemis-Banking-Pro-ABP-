@@ -37,8 +37,10 @@ namespace ABP.Unit.Tests.Features.Loans.Commands.UpdateLoanRate
             using var context = new ArtemisBankingAppContext(_dbOptions);
             var mockloanService = new Mock<ILoanService>();
             var mockloanInstallmentService = new Mock<ILoanInstallmentService>();
+            var mockEmailService = new Mock<IEmailService>();
+            var mockAccountService = new Mock<IBaseAccountService>();
 
-            var handler = new UpdateLoanRateCommandHandler(mockloanService.Object, mockloanInstallmentService.Object);
+            var handler = new UpdateLoanRateCommandHandler(mockloanService.Object, mockloanInstallmentService.Object, mockEmailService.Object, mockAccountService.Object);
             var request = new UpdateLoanRateCommand();
 
             // Act

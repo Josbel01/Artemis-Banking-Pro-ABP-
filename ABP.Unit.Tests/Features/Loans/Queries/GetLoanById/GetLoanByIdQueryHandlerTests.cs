@@ -37,8 +37,9 @@ namespace ABP.Unit.Tests.Features.Loans.Queries.GetLoanById
             using var context = new ArtemisBankingAppContext(_dbOptions);
             var mockloanService = new Mock<ILoanService>();
             var mockinstallmentService = new Mock<ILoanInstallmentService>();
+            var mockAccountService = new Mock<IBaseAccountService>();
 
-            var handler = new GetLoanByIdQueryHandler(mockloanService.Object, mockinstallmentService.Object);
+            var handler = new GetLoanByIdQueryHandler(mockloanService.Object, mockinstallmentService.Object, mockAccountService.Object);
             var request = new GetLoanByIdQuery();
 
             // Act
