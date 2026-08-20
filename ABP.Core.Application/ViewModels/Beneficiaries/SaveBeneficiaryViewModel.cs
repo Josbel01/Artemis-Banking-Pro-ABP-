@@ -6,7 +6,7 @@ namespace ABP.Core.Application.ViewModels.Beneficiaries
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "El cliente es requerido")]
+        // ClientId is set server-side, no client validation needed
         public string ClientId { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El número de cuenta es requerido")]

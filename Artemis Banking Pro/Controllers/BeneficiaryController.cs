@@ -41,19 +41,33 @@ namespace ArtemisBankingPro.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SaveBeneficiaryViewModel vm)
         {
-            var clientId = GetCurrentClientId();
-            vm.ClientId = clientId ?? string.Empty;
-
-            if (!ModelState.IsValid)
+            try
             {
+                var clientId = GetCurrentClientId();
+                vm.ClientId = clientId ?? string.Empty;
+
+                if (!ModelState.IsValid)
+                {
+                    return View(vm);
+                }
+
+                var dto = _mapper.Map<ABP.Core.Application.Dtos.Beneficiaries.BeneficiaryDto>(vm);
+                var result = await _beneficiaryService.AddAsync(dto);
+
+                if (result == null)
+                {
+                    ModelState.AddModelError("", "No se pudo guardar el beneficiario. Verifique los datos e intente de nuevo.");
+                    return View(vm);
+                }
+
+                TempData["SuccessMessage"] = "Beneficiario agregado exitosamente.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Error al guardar el beneficiario: " + ex.Message);
                 return View(vm);
             }
-
-            var dto = _mapper.Map<ABP.Core.Application.Dtos.Beneficiaries.BeneficiaryDto>(vm);
-            await _beneficiaryService.AddAsync(dto);
-
-            TempData["SuccessMessage"] = "Beneficiario agregado exitosamente.";
-            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -66,4 +80,3 @@ namespace ArtemisBankingPro.Controllers
         }
     }
 }
-

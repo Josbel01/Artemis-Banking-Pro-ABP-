@@ -125,6 +125,52 @@ namespace ABP.Core.Application.Services
             await _transactionRepository.AddAsync(creditTransaction);
 
             _logger.LogInformation("Transfer completed successfully.");
+
+            // Send email to origin account holder
+            try
+            {
+                var originOwner = await _accountService.GetUserById(originAccount.ClientId);
+                if (originOwner != null)
+                {
+                    var lastFourDest = destinationAccount.AccountNumber.Substring(destinationAccount.AccountNumber.Length - 4);
+                    var lastFourOrig = originAccount.AccountNumber.Substring(originAccount.AccountNumber.Length - 4);
+                    await _emailService.SendAsync(new ABP.Core.Application.Dtos.Email.EmailRequestDto
+                    {
+                        To = originOwner.Email,
+                        Subject = $"Transferencia realizada a cuenta {lastFourDest}",
+                        HtmlBody = $"""
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+<div style="max-width:520px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#0891b2,#22d3ee);padding:28px 30px;text-align:center;">
+<h1 style="color:#fff;margin:0;font-size:20px;">&#128260; Transferencia Realizada</h1>
+</div>
+<div style="padding:30px;">
+<p style="color:#334155;font-size:15px;margin:0 0 18px;">Hola <strong>{originOwner.FirstName}</strong>,</p>
+<p style="color:#334155;font-size:15px;margin:0 0 24px;">Se ha procesado una transferencia exitosa desde tu cuenta.</p>
+<table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Monto transferido</td><td style="padding:10px 14px;background:#f8fafc;font-size:18px;font-weight:700;color:#0891b2;border-radius:0 6px 6px 0;">RD${dto.Amount:N2}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Cuenta origen</td><td style="padding:10px 14px;font-size:15px;font-weight:700;color:#0b1f3a;">&#9679;&#9679;&#9679;&#9679; {lastFourOrig}</td></tr>
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Cuenta destino</td><td style="padding:10px 14px;background:#f8fafc;font-size:15px;color:#0b1f3a;border-radius:0 6px 6px 0;">&#9679;&#9679;&#9679;&#9679; {lastFourDest}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Nuevo balance</td><td style="padding:10px 14px;font-size:15px;font-weight:700;color:#0b1f3a;">RD${originAccount.Balance:N2}</td></tr>
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Fecha y hora</td><td style="padding:10px 14px;background:#f8fafc;font-size:15px;color:#0b1f3a;border-radius:0 6px 6px 0;">{DateTime.Now:dd/MM/yyyy HH:mm}</td></tr>
+</table>
+</div>
+<div style="background:#f8fafc;padding:18px 30px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="color:#94a3b8;font-size:11px;margin:0;">Artemis Banking Pro &mdash; Plataforma de Banca Digital ITLA</p>
+</div>
+</div>
+</body></html>
+"""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Transfer completed but email notification failed.");
+            }
+
             return true;
         }
 
@@ -181,6 +227,53 @@ namespace ABP.Core.Application.Services
             await _transactionRepository.AddAsync(creditTransaction);
 
             _logger.LogInformation("Cash advance completed successfully.");
+
+            // Send email to card holder
+            try
+            {
+                var cardOwner = await _accountService.GetUserById(creditCard.ClientId);
+                if (cardOwner != null)
+                {
+                    var lastFourCard = creditCard.CardNumber.Substring(creditCard.CardNumber.Length - 4);
+                    var lastFourAcc = destinationAccount.AccountNumber.Substring(destinationAccount.AccountNumber.Length - 4);
+                    await _emailService.SendAsync(new ABP.Core.Application.Dtos.Email.EmailRequestDto
+                    {
+                        To = cardOwner.Email,
+                        Subject = $"Avance de efectivo por RD${dto.Amount:N2}",
+                        HtmlBody = $"""
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+<div style="max-width:520px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#16a34a,#22c55e);padding:28px 30px;text-align:center;">
+<h1 style="color:#fff;margin:0;font-size:20px;">&#128176; Avance de Efectivo</h1>
+</div>
+<div style="padding:30px;">
+<p style="color:#334155;font-size:15px;margin:0 0 18px;">Hola <strong>{cardOwner.FirstName}</strong>,</p>
+<p style="color:#334155;font-size:15px;margin:0 0 24px;">Se ha procesado un avance de efectivo desde tu tarjeta de cr&#233;dito.</p>
+<table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Monto del avance</td><td style="padding:10px 14px;background:#f8fafc;font-size:18px;font-weight:700;color:#16a34a;border-radius:0 6px 6px 0;">RD${dto.Amount:N2}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Comisi&#243;n (6.25%)</td><td style="padding:10px 14px;font-size:15px;font-weight:700;color:#dc2626;">RD${dto.Amount * 0.0625m:N2}</td></tr>
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Total debitado</td><td style="padding:10px 14px;background:#f8fafc;font-size:15px;font-weight:700;color:#0b1f3a;border-radius:0 6px 6px 0;">RD${amountWithInterest:N2}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Tarjeta</td><td style="padding:10px 14px;font-size:15px;font-weight:700;color:#0b1f3a;">&#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; {lastFourCard}</td></tr>
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Cuenta destino</td><td style="padding:10px 14px;background:#f8fafc;font-size:15px;color:#0b1f3a;border-radius:0 6px 6px 0;">&#9679;&#9679;&#9679;&#9679; {lastFourAcc}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Fecha y hora</td><td style="padding:10px 14px;font-size:15px;color:#0b1f3a;">{DateTime.Now:dd/MM/yyyy HH:mm}</td></tr>
+</table>
+</div>
+<div style="background:#f8fafc;padding:18px 30px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="color:#94a3b8;font-size:11px;margin:0;">Artemis Banking Pro &mdash; Plataforma de Banca Digital ITLA</p>
+</div>
+</div>
+</body></html>
+"""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Cash advance completed but email notification failed.");
+            }
+
             return true;
         }
 
