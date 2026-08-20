@@ -105,7 +105,8 @@
                             <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Capital</th>
                             <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Pendiente</th>
                             <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Tasa</th>
-                            <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Plazo</th>
+                            <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Cuotas</th>
+                            <th class="py-3 px-4 fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Estado</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -116,7 +117,17 @@
                                 <td class="py-3 px-4 fw-bold">@loan.AmountApproved.ToString("C")</td>
                                 <td class="py-3 px-4 fw-bold" style="color: #991b1b;">@loan.AmountPending.ToString("C")</td>
                                 <td class="py-3 px-4">@loan.AnnualInterestRate%</td>
-                                <td class="py-3 px-4">@loan.TermInMonths meses</td>
+                                <td class="py-3 px-4">@loan.PaidInstallments / @loan.TermInMonths</td>
+                                <td class="py-3 px-4">
+                                    @if (loan.Status == ABP.Core.Domain.Common.Enums.LoanStatus.Active)
+                                    {
+                                        <span class="badge rounded-pill" style="background-color: #dcfce7; color: #166534; font-weight: 600;">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill" style="background-color: #f1f5f9; color: #475569; font-weight: 600;">Completado</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>

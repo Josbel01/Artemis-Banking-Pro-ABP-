@@ -107,7 +107,7 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                     firstName = u.FirstName,
                     lastName = u.LastName,
                     email = u.Email,
-                    role = ABP.Core.Domain.Common.Enums.UserRoles.Commerce.ToString(),
+                    role = UserRoles.Commerce.ToString(),
                     isActive = u.IsActive
                 })
             });
@@ -125,8 +125,8 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var command = new CreateUserCommand 
-            { 
+            var command = new CreateUserCommand
+            {
                 UserDto = dto,
                 Origin = Request.Headers["origin"]
             };
@@ -166,8 +166,8 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var command = new CreateCommerceUserCommand 
-            { 
+            var command = new CreateCommerceUserCommand
+            {
                 CommerceId = commerceId,
                 UserDto = dto,
                 Origin = Request.Headers["origin"]
@@ -188,7 +188,7 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                 id = response.Id,
                 userName = dto.UserName,
                 email = dto.Email,
-                role = ABP.Core.Domain.Common.Enums.UserRoles.Commerce.ToString(),
+                role = UserRoles.Commerce.ToString(),
                 isActive = false
             });
         }
@@ -206,8 +206,8 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var command = new UpdateUserCommand 
-            { 
+            var command = new UpdateUserCommand
+            {
                 Id = id,
                 UserDto = dto
             };
@@ -237,8 +237,8 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         {
             if (dto == null) return BadRequest(new { Message = "Body inválido o campo status faltante." });
 
-            var command = new UpdateUserStatusCommand 
-            { 
+            var command = new UpdateUserStatusCommand
+            {
                 Id = id,
                 Status = dto.Status
             };
@@ -270,7 +270,6 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                 return NotFound(new { Message = "El usuario indicado no existe." });
             }
 
-            // Query real account data from DB
             var clientAccounts = await _savingAccountService.GetAllByClientIdAsync(user.Id);
             var mainAccount = clientAccounts.FirstOrDefault(a => a.AccountType == SavingAccountType.Main);
 
@@ -293,10 +292,5 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                 } : null
             });
         }
-    }
-
-    public class UpdateUserStatusDto
-    {
-        public bool Status { get; set; }
     }
 }

@@ -107,8 +107,8 @@
                                 </td>
                                 <td class="py-3 px-4 text-end">
                                     <div class="d-flex gap-2 justify-content-end">
-                                        <a href="/Transaction/Index?accountId=@account.Id" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;" title="Ver Transacciones">
-                                            <i class="fa-solid fa-list-ul"></i>
+                                        <a href="/Transaction/Index?accountId=@account.Id" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;" title="Ver Detalles">
+                                            <i class="fa-solid fa-eye me-1"></i>Ver Detalles
                                         </a>
                                         @if (account.Status == ABP.Core.Domain.Common.Enums.SavingAccountStatus.Active && account.AccountType == ABP.Core.Domain.Common.Enums.SavingAccountType.Secondary)
                                         {

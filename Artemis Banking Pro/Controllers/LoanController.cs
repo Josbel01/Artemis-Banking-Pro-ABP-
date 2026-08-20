@@ -480,18 +480,18 @@ namespace ArtemisBankingPro.Controllers
                 return View(vm);
             }
 
-            // Recalculate only future pending installments
+            // Recalculate only future pending installments (due date after today)
             ABP.Core.Application.Dtos.Loans.LoanInstallmentDto nextPendingInstallment = null;
             if (loan.LoanInstallments != null)
             {
-                var pendingInstallments = loan.LoanInstallments
-                    .Where(i => i.PaymentStatus == PaymentStatus.Pending)
+                var futurePendingInstallments = loan.LoanInstallments
+                    .Where(i => i.PaymentStatus == PaymentStatus.Pending && i.DueDate > DateTime.Now.Date)
                     .ToList();
 
-                nextPendingInstallment = pendingInstallments.OrderBy(i => i.DueDate).FirstOrDefault();
+                nextPendingInstallment = futurePendingInstallments.OrderBy(i => i.DueDate).FirstOrDefault();
 
                 decimal monthlyRate = vm.AnnualInterestRate / 100m / 12m;
-                foreach (var installment in pendingInstallments)
+                foreach (var installment in futurePendingInstallments)
                 {
                     decimal interest = installment.PendingAmount * monthlyRate;
                     installment.InterestAmount = Math.Round(interest, 2);

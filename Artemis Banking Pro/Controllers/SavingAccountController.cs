@@ -348,7 +348,8 @@ namespace ArtemisBankingPro.Controllers
                 }
             }
 
-            // Cancel the secondary account
+            // Cancel the secondary account and set balance to 0
+            account.Balance = 0;
             account.Status = SavingAccountStatus.Cancelled;
             await _savingAccountService.UpdateAsync(account, account.Id);
 

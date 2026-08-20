@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Artemis_Banking_Pro_WebApi</RootNamespace>
   <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  <NoWarn>CS1591</NoWarn>
   <OpenApiGenerateDocuments>false</OpenApiGenerateDocuments>
   </PropertyGroup>
 

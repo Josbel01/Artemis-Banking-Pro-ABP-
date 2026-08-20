@@ -88,9 +88,35 @@ namespace ABP.Core.Application.Services
                 return false;
             }
 
+            // Prevent self-transfer
+            if (originAccount.Id == destinationAccount.Id)
+            {
+                _logger.LogWarning("Transfer failed: Cannot transfer to the same account.");
+                return false;
+            }
+
+            // Prevent transfer to canceled accounts
+            if (destinationAccount.Status != SavingAccountStatus.Active)
+            {
+                _logger.LogWarning("Transfer failed: Destination account is not active.");
+                return false;
+            }
+
             if (originAccount.Balance < dto.Amount)
             {
                 _logger.LogWarning("Transfer failed: Insufficient funds in origin account {Origin}", dto.OriginAccountNumber);
+                // Register rejected transaction
+                var rejectedTx = new Transaction
+                {
+                    SavingAccountId = originAccount.Id,
+                    TransactionDate = DateTime.UtcNow,
+                    Amount = dto.Amount,
+                    Type = TransactionType.Debit,
+                    Beneficiary = destinationAccount.AccountNumber,
+                    Origin = originAccount.AccountNumber,
+                    Status = TransactionStatus.Rejected
+                };
+                await _transactionRepository.AddAsync(rejectedTx);
                 return false;
             }
 
@@ -195,7 +221,17 @@ namespace ABP.Core.Application.Services
             if (availableLimit < amountWithInterest)
             {
                 _logger.LogWarning("Cash advance failed: Insufficient credit limit in credit card {Origin}", dto.OriginCreditCardNumber);
-                return false; 
+                // Register rejected card transaction
+                var rejectedCardTx = new CardTransaction
+                {
+                    CreditCardId = creditCard.Id,
+                    TransactionDate = DateTime.UtcNow,
+                    Amount = amountWithInterest,
+                    CommerceName = "Avance de Efectivo - Rechazado",
+                    Status = TransactionStatus.Rejected
+                };
+                await _cardTransactionRepository.AddAsync(rejectedCardTx);
+                return false;
             }
 
             creditCard.CurrentDebt += amountWithInterest;
