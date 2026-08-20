@@ -2,15 +2,16 @@ using ABP.Core.Application;
 using ABP.Infrastructure.Identity;
 using ABP.Infrastructure.Persistence;
 using ABP.Infrastructure.Shared;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext().CreateLogger(); 
+    .Enrich.FromLogContext().CreateLogger();
 
-builder.Host.UseSerilog(Log.Logger); 
+builder.Host.UseSerilog(Log.Logger);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -31,11 +32,14 @@ var app = builder.Build();
 
 await app.Services.RunIdentitySeedAsync();
 
+// Ensure all seeded clients have a main saving account
+await EnsureSeededClientAccountsAsync(app.Services);
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    // The default HSTS value is 30 days; you may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -101,3 +105,37 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 await app.RunAsync();
+
+// Helper method to ensure all clients have a main saving account
+static async Task EnsureSeededClientAccountsAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var scopedServices = scope.ServiceProvider;
+
+    var userManager = scopedServices.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<ABP.Infrastructure.Identity.Entities.AppUser>>();
+    var context = scopedServices.GetRequiredService<ABP.Infrastructure.Persistence.Contexts.ArtemisBankingAppContext>();
+
+    // Find all users with Client role who don't have a main account
+    var allClients = await userManager.GetUsersInRoleAsync("Client");
+    foreach (var user in allClients)
+    {
+        var hasMainAccount = await context.SavingAccounts
+            .AnyAsync(a => a.ClientId == user.Id && a.AccountType == ABP.Core.Domain.Common.Enums.SavingAccountType.Main);
+
+        if (!hasMainAccount)
+        {
+            var rnd = new Random();
+            string accountNumber = rnd.Next(100000000, 999999999).ToString();
+            var mainAccount = new ABP.Core.Domain.Entities.SavingAccount
+            {
+                ClientId = user.Id,
+                AccountNumber = accountNumber,
+                Balance = 0,
+                AccountType = ABP.Core.Domain.Common.Enums.SavingAccountType.Main,
+                Status = ABP.Core.Domain.Common.Enums.SavingAccountStatus.Active
+            };
+            context.SavingAccounts.Add(mainAccount);
+        }
+    }
+    await context.SaveChangesAsync();
+}
