@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -18,6 +18,21 @@ namespace ABP.Infrastructure.Persistence.Migrations
                 nullable: false,
                 defaultValue: "");
 
+            // Safely convert ClientPaymentStatus from string to int
+            migrationBuilder.Sql(@"
+                UPDATE Loans
+                SET ClientPaymentStatus = 
+                    CASE 
+                        WHEN ClientPaymentStatus = 'OnTime' THEN 0
+                        WHEN ClientPaymentStatus = 'Late' THEN 1
+                        WHEN ClientPaymentStatus = 'Default' THEN 2
+                        WHEN ClientPaymentStatus = 'Completed' THEN 3
+                        ELSE 0
+                    END
+                WHERE ClientPaymentStatus IS NOT NULL
+                  AND TRY_CAST(ClientPaymentStatus AS INT) IS NULL
+            ");
+
             migrationBuilder.AlterColumn<int>(
                 name: "ClientPaymentStatus",
                 table: "Loans",
@@ -31,6 +46,21 @@ namespace ABP.Infrastructure.Persistence.Migrations
                 table: "LoanInstallments",
                 type: "datetime2",
                 nullable: true);
+
+            // Safely convert ExpirationDate from string to datetime2
+            migrationBuilder.Sql(@"
+                UPDATE CreditCards
+                SET ExpirationDate = 
+                    CASE 
+                        WHEN ExpirationDate LIKE '[0-9][0-9]/[0-9][0-9]' 
+                        THEN CAST('01/' + ExpirationDate AS DATETIME2)
+                        WHEN TRY_CAST(ExpirationDate AS DATETIME2) IS NOT NULL
+                        THEN TRY_CAST(ExpirationDate AS DATETIME2)
+                        ELSE '2030-01-01'
+                    END
+                WHERE ExpirationDate IS NOT NULL 
+                  AND TRY_CAST(ExpirationDate AS DATETIME2) IS NULL
+            ");
 
             migrationBuilder.AlterColumn<DateTime>(
                 name: "ExpirationDate",

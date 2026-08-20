@@ -12,11 +12,13 @@ namespace ArtemisBankingPro.Controllers
     public class TransactionController : Controller
     {
         private readonly ITransactionService _transactionService;
+        private readonly ISavingAccountService _savingAccountService;
         private readonly IMapper _mapper;
 
-        public TransactionController(ITransactionService transactionService, IMapper mapper)
+        public TransactionController(ITransactionService transactionService, ISavingAccountService savingAccountService, IMapper mapper)
         {
             _transactionService = transactionService;
+            _savingAccountService = savingAccountService;
             _mapper = mapper;
         }
 
@@ -55,14 +57,19 @@ namespace ArtemisBankingPro.Controllers
             var clientId = GetCurrentClientId();
             if (string.IsNullOrEmpty(clientId)) return RedirectToAction("Index", "Account");
 
-            // Get all transactions for the client's accounts
+            // Get the client's saving account IDs
+            var clientAccounts = await _savingAccountService.GetAllByClientIdAsync(clientId);
+            var accountIds = clientAccounts.Select(a => a.Id).ToHashSet();
+
+            // Get all transactions and filter only those belonging to the client's accounts
             var allDtos = await _transactionService.GetAllAsync();
-            var allViewModels = _mapper.Map<IEnumerable<TransactionViewModel>>(allDtos);
-            // We need to filter by client's accounts - show all for now since transaction DTO has SavingAccountId
+            var filteredDtos = allDtos.Where(t => accountIds.Contains(t.SavingAccountId));
+            var viewModels = _mapper.Map<IEnumerable<TransactionViewModel>>(filteredDtos);
+
             ViewBag.AccountId = 0;
             ViewBag.IsAdminView = false;
             ViewBag.IsClientHistory = true;
-            return View("Index", allViewModels);
+            return View("Index", viewModels);
         }
 
         [Authorize(Roles = "Client")]

@@ -20,6 +20,8 @@ namespace ABP.Core.Application.Services
         private readonly ICardTransactionRepository _cardTransactionRepository;
         private readonly ILoanRepository _loanRepository;
         private readonly ILoanInstallmentRepository _loanInstallmentRepository;
+        private readonly IEmailService _emailService;
+        private readonly IBaseAccountService _accountService;
         private readonly IMapper _mapper;
         private readonly ILogger<TransactionService> _logger;
 
@@ -30,6 +32,8 @@ namespace ABP.Core.Application.Services
             ICardTransactionRepository cardTransactionRepository,
             ILoanRepository loanRepository,
             ILoanInstallmentRepository loanInstallmentRepository,
+            IEmailService emailService,
+            IBaseAccountService accountService,
             IMapper mapper,
             ILoggerFactory loggerFactory) : base(transactionRepository, mapper, loggerFactory.CreateLogger<GenericService<Transaction, TransactionDto>>())
         {
@@ -39,6 +43,8 @@ namespace ABP.Core.Application.Services
             _cardTransactionRepository = cardTransactionRepository;
             _loanRepository = loanRepository;
             _loanInstallmentRepository = loanInstallmentRepository;
+            _emailService = emailService;
+            _accountService = accountService;
             _mapper = mapper;
             _logger = loggerFactory.CreateLogger<TransactionService>();
         }
@@ -251,6 +257,51 @@ namespace ABP.Core.Application.Services
             await _transactionRepository.AddAsync(debitTransaction);
 
             _logger.LogInformation("Credit card payment completed successfully.");
+
+            // Send email notification to the card owner
+            try
+            {
+                var cardOwner = await _accountService.GetUserById(creditCard.ClientId);
+                if (cardOwner != null)
+                {
+                    var lastFourCard = creditCard.CardNumber.Substring(creditCard.CardNumber.Length - 4);
+                    var lastFourAccount = originAccount.AccountNumber.Substring(originAccount.AccountNumber.Length - 4);
+                    await _emailService.SendAsync(new ABP.Core.Application.Dtos.Email.EmailRequestDto
+                    {
+                        To = cardOwner.Email,
+                        Subject = $"Pago realizado a la tarjeta {lastFourCard}",
+                        HtmlBody = $"""
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+<div style="max-width:520px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#1a56db,#3b82f6);padding:28px 30px;text-align:center;">
+<h1 style="color:#fff;margin:0;font-size:20px;">&#128179; Pago a Tarjeta</h1>
+</div>
+<div style="padding:30px;">
+<p style="color:#334155;font-size:15px;margin:0 0 18px;">Hola <strong>{cardOwner.FirstName}</strong>,</p>
+<p style="color:#334155;font-size:15px;margin:0 0 24px;">Se ha procesado un pago a su tarjeta de cr&#233;dito.</p>
+<table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Monto pagado</td><td style="padding:10px 14px;background:#f8fafc;font-size:18px;font-weight:700;color:#16a34a;border-radius:0 6px 6px 0;">RD${effectiveAmount:N2}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Tarjeta</td><td style="padding:10px 14px;font-size:15px;font-weight:700;color:#0b1f3a;">&#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; {lastFourCard}</td></tr>
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Cuenta origen</td><td style="padding:10px 14px;background:#f8fafc;font-size:15px;color:#0b1f3a;border-radius:0 6px 6px 0;">&#9679;&#9679;&#9679;&#9679; {lastFourAccount}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Fecha y hora</td><td style="padding:10px 14px;font-size:15px;color:#0b1f3a;">{DateTime.Now:dd/MM/yyyy HH:mm}</td></tr>
+</table>
+</div>
+<div style="background:#f8fafc;padding:18px 30px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="color:#94a3b8;font-size:11px;margin:0;">Artemis Banking Pro &mdash; Plataforma de Banca Digital ITLA</p>
+</div>
+</div>
+</body></html>
+"""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Credit card payment completed but email notification failed.");
+            }
+
             return true;
         }
 
@@ -348,6 +399,50 @@ namespace ABP.Core.Application.Services
             await _transactionRepository.AddAsync(debitTransaction);
 
             _logger.LogInformation("Loan payment completed successfully.");
+
+            // Send email notification to the client
+            try
+            {
+                var loanClient = await _accountService.GetUserById(loan.ClientId);
+                if (loanClient != null)
+                {
+                    var lastFourAccount = originAccount.AccountNumber.Substring(originAccount.AccountNumber.Length - 4);
+                    await _emailService.SendAsync(new ABP.Core.Application.Dtos.Email.EmailRequestDto
+                    {
+                        To = loanClient.Email,
+                        Subject = $"Pago realizado al pr&#233;stamo {loan.LoanNumber}",
+                        HtmlBody = $"""
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+<div style="max-width:520px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#16a34a,#22c55e);padding:28px 30px;text-align:center;">
+<h1 style="color:#fff;margin:0;font-size:20px;">&#128176; Pago a Pr&#233;stamo</h1>
+</div>
+<div style="padding:30px;">
+<p style="color:#334155;font-size:15px;margin:0 0 18px;">Hola <strong>{loanClient.FirstName}</strong>,</p>
+<p style="color:#334155;font-size:15px;margin:0 0 24px;">Se ha procesado un pago a su pr&#233;stamo.</p>
+<table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Monto pagado</td><td style="padding:10px 14px;background:#f8fafc;font-size:18px;font-weight:700;color:#16a34a;border-radius:0 6px 6px 0;">RD${effectiveAmount:N2}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">N&#250;mero de pr&#233;stamo</td><td style="padding:10px 14px;font-size:15px;font-weight:700;color:#0b1f3a;">#{loan.LoanNumber}</td></tr>
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Cuenta origen</td><td style="padding:10px 14px;background:#f8fafc;font-size:15px;color:#0b1f3a;border-radius:0 6px 6px 0;">&#9679;&#9679;&#9679;&#9679; {lastFourAccount}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Fecha y hora</td><td style="padding:10px 14px;font-size:15px;color:#0b1f3a;">{DateTime.Now:dd/MM/yyyy HH:mm}</td></tr>
+</table>
+</div>
+<div style="background:#f8fafc;padding:18px 30px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="color:#94a3b8;font-size:11px;margin:0;">Artemis Banking Pro &mdash; Plataforma de Banca Digital ITLA</p>
+</div>
+</div>
+</body></html>
+"""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Loan payment completed but email notification failed.");
+            }
+
             return true;
         }
     }

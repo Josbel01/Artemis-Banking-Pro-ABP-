@@ -7,8 +7,11 @@
 
 <div class="container-xxl py-5">
     <div class="mb-4">
-        <h2 class="fw-bold mb-1" style="color: #0b1f3a;">Bienvenido, @User.Identity?.Name</h2>
-        <p class="text-muted mb-0">Resumen de tus productos financieros</p>
+        <h2 class="fw-bold mb-1" style="color: #0b1f3a;">Bienvenido, @ViewBag.ClientName</h2>
+        <p class="text-muted mb-0">
+            <i class="fa-solid fa-id-card me-1"></i>Cuenta: <strong style="color:#3568b2; font-family: monospace;">@ViewBag.PrimaryAccountNumber</strong>
+            <span class="ms-3 text-muted">Resumen de tus productos financieros</span>
+        </p>
     </div>
 
     <!-- Summary Cards -->
