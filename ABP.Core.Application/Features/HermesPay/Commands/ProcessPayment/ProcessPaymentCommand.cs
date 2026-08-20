@@ -44,6 +44,7 @@ namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
         private readonly ICardTransactionRepository _cardTransactionRepository;
         private readonly ITransactionRepository _transactionRepository;
         private readonly IEmailService _emailService;
+        private readonly IBaseAccountService _accountService;
         private readonly Microsoft.Extensions.Logging.ILogger<ProcessPaymentCommandHandler> _logger;
 
         public ProcessPaymentCommandHandler(
@@ -53,6 +54,7 @@ namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
             ICardTransactionRepository cardTransactionRepository,
             ITransactionRepository transactionRepository,
             IEmailService emailService,
+            IBaseAccountService accountService,
             Microsoft.Extensions.Logging.ILoggerFactory loggerFactory)
         {
             _creditCardRepository = creditCardRepository;
@@ -61,6 +63,7 @@ namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
             _cardTransactionRepository = cardTransactionRepository;
             _transactionRepository = transactionRepository;
             _emailService = emailService;
+            _accountService = accountService;
             _logger = loggerFactory.CreateLogger<ProcessPaymentCommandHandler>();
         }
 
@@ -217,17 +220,54 @@ namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
                 _logger.LogInformation("Payment of RD${Amount} for Commerce ID: {CommerceId} processed successfully.", command.TransactionAmount, commerce.Id);
             }
 
+            // Send email to card holder about the purchase
             try
             {
-                var emailDto = new ABP.Core.Application.Dtos.Email.EmailRequestDto
+                var cardOwner = await GetCardOwnerAsync(creditCard.ClientId);
+                if (cardOwner != null)
                 {
-                    To = commerce.Email,
-                    Subject = $"Pago recibido a través de tarjeta {lastFour}",
-                    HtmlBody = $"Se ha procesado exitosamente un pago por el monto de {command.TransactionAmount} usando Hermes Pay. Fecha: {DateTime.Now}"
-                };
-                await _emailService.SendAsync(emailDto);
+                    await _emailService.SendAsync(new ABP.Core.Application.Dtos.Email.EmailRequestDto
+                    {
+                        To = cardOwner.Email,
+                        Subject = $"Compra en {commerce.Name} por RD${command.TransactionAmount:N2}",
+                        HtmlBody = $"""
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+<div style="max-width:520px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#7c3aed,#a78bfa);padding:28px 30px;text-align:center;">
+<h1 style="color:#fff;margin:0;font-size:20px;">&#128722; Compra con Hermes Pay</h1>
+</div>
+<div style="padding:30px;">
+<p style="color:#334155;font-size:15px;margin:0 0 18px;">Hola <strong>{cardOwner.FirstName}</strong>,</p>
+<p style="color:#334155;font-size:15px;margin:0 0 24px;">Se ha procesado una compra con tu tarjeta de cr&#233;dito en <strong>{commerce.Name}</strong>.</p>
+<table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Comercio</td><td style="padding:10px 14px;background:#f8fafc;font-size:15px;font-weight:700;color:#0b1f3a;border-radius:0 6px 6px 0;">{commerce.Name}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Monto</td><td style="padding:10px 14px;font-size:18px;font-weight:700;color:#7c3aed;">RD${command.TransactionAmount:N2}</td></tr>
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Tarjeta</td><td style="padding:10px 14px;background:#f8fafc;font-size:15px;font-weight:700;color:#0b1f3a;border-radius:0 6px 6px 0;">&#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; {lastFour}</td></tr>
+<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Deuda actual</td><td style="padding:10px 14px;font-size:15px;font-weight:700;color:#dc2626;">RD${creditCard.CurrentDebt:N2}</td></tr>
+<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Fecha y hora</td><td style="padding:10px 14px;background:#f8fafc;font-size:15px;color:#0b1f3a;border-radius:0 6px 6px 0;">{DateTime.Now:dd/MM/yyyy HH:mm}</td></tr>
+</table>
+</div>
+<div style="background:#f8fafc;padding:18px 30px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="color:#94a3b8;font-size:11px;margin:0;">Artemis Banking Pro &mdash; Hermes Pay</p>
+</div>
+</div>
+</body></html>
+"""
+                    });
+                }
             }
             catch { }
+        }
+
+        private async Task<ABP.Core.Application.Dtos.User.UserDto?> GetCardOwnerAsync(string clientId)
+        {
+            try
+            {
+                return await _accountService.GetUserById(clientId);
+            }
+            catch { return null; }
         }
 
         public static string ComputeSha256Hash(string rawData)

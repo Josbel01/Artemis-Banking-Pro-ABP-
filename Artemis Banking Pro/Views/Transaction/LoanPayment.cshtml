@@ -1,6 +1,8 @@
 @model ABP.Core.Application.ViewModels.Transactions.SaveLoanPaymentViewModel
 @{
     ViewData["Title"] = "Pago a Préstamo";
+    var accounts = ViewBag.ClientAccounts as List<ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto>;
+    var loans = ViewBag.ClientLoans as List<ABP.Core.Application.Dtos.Loans.LoanDto>;
 }
 
 <div class="container-xxl px-4 mt-5">
@@ -23,15 +25,39 @@
                     <form asp-action="LoanPayment" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
+                        <!-- Préstamo: Dropdown -->
                         <div class="mb-4">
-                            <label asp-for="LoanNumber" class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Préstamo a Pagar</label>
-                            <input asp-for="LoanNumber" class="form-control bg-light text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1.1rem; box-shadow: none;" placeholder="Número de 9 dígitos del préstamo" />
+                            <label class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Préstamo a Pagar</label>
+                            <select asp-for="LoanNumber" class="form-select bg-light text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1rem; box-shadow: none;">
+                                <option value="">-- Selecciona un préstamo --</option>
+                                @if (loans != null)
+                                {
+                                    foreach (var loan in loans)
+                                    {
+                                        <option value="@loan.LoanNumber">
+                                            #@loan.LoanNumber — Pendiente: @loan.AmountPending.ToString("C", new System.Globalization.CultureInfo("es-DO"))
+                                        </option>
+                                    }
+                                }
+                            </select>
                             <span asp-validation-for="LoanNumber" class="text-danger small mt-1 d-block"></span>
                         </div>
 
+                        <!-- Cuenta origen: Dropdown -->
                         <div class="mb-4">
-                            <label asp-for="OriginAccountNumber" class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Cuenta de Origen</label>
-                            <input asp-for="OriginAccountNumber" class="form-control bg-light text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1.1rem; box-shadow: none;" placeholder="Número de cuenta desde la que pagarás" />
+                            <label class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Cuenta de Origen</label>
+                            <select asp-for="OriginAccountNumber" class="form-select bg-light text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1rem; box-shadow: none;">
+                                <option value="">-- Selecciona una cuenta --</option>
+                                @if (accounts != null)
+                                {
+                                    foreach (var acc in accounts)
+                                    {
+                                        <option value="@acc.AccountNumber">
+                                            @acc.AccountNumber — Balance: @acc.Balance.ToString("C", new System.Globalization.CultureInfo("es-DO"))
+                                        </option>
+                                    }
+                                }
+                            </select>
                             <span asp-validation-for="OriginAccountNumber" class="text-danger small mt-1 d-block"></span>
                         </div>
 

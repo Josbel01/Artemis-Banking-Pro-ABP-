@@ -1,14 +1,15 @@
 @model ABP.Core.Application.ViewModels.Transactions.SaveCashAdvanceViewModel
 @{
     ViewData["Title"] = "Avance de Efectivo";
+    var accounts = ViewBag.ClientAccounts as List<ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto>;
+    var cards = ViewBag.ClientCards as List<ABP.Core.Application.Dtos.CreditCards.CreditCardDto>;
 }
-
 
 <div class="container-xxl px-4 mt-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-8 col-lg-6">
             
-            <a href="/" class="text-muted mb-4 d-inline-block text-decoration-none" style="transition: color 0.2s;">
+            <a href="/Client/Index" class="text-muted mb-4 d-inline-block text-decoration-none" style="transition: color 0.2s;">
                 <i class="fa-solid fa-arrow-left me-2"></i>Volver al Inicio
             </a>
 
@@ -28,21 +29,40 @@
                     <form asp-action="CashAdvance" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
+                        <!-- Tarjeta de Crédito: Dropdown -->
                         <div class="mb-4">
-                            <label asp-for="OriginCreditCardNumber" class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Desde Tarjeta de Crédito</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted" style="border: 1px solid #e5e7eb;"><i class="fa-regular fa-credit-card"></i></span>
-                                <input asp-for="OriginCreditCardNumber" class="form-control bg-light border-start-0 ps-0 text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1.1rem; box-shadow: none;" placeholder="Ingresa los 16 dígitos de la tarjeta" />
-                            </div>
+                            <label class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Desde Tarjeta de Crédito</label>
+                            <select asp-for="OriginCreditCardNumber" class="form-select bg-light text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1rem; box-shadow: none;">
+                                <option value="">-- Selecciona una tarjeta --</option>
+                                @if (cards != null)
+                                {
+                                    foreach (var card in cards)
+                                    {
+                                        var lastFour = card.CardNumber.Substring(card.CardNumber.Length - 4);
+                                        <option value="@card.CardNumber">
+                                            •••• •••• •••• @lastFour — Disponible: @((card.CreditLimit - card.CurrentDebt).ToString("C", new System.Globalization.CultureInfo("es-DO")))
+                                        </option>
+                                    }
+                                }
+                            </select>
                             <span asp-validation-for="OriginCreditCardNumber" class="text-danger small mt-1 d-block"></span>
                         </div>
 
+                        <!-- Cuenta destino: Dropdown -->
                         <div class="mb-4">
-                            <label asp-for="DestinationAccountNumber" class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Hacia Cuenta de Ahorro</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted" style="border: 1px solid #e5e7eb;"><i class="fa-solid fa-piggy-bank"></i></span>
-                                <input asp-for="DestinationAccountNumber" class="form-control bg-light border-start-0 ps-0 text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1.1rem; box-shadow: none;" placeholder="Ingresa tu número de cuenta" />
-                            </div>
+                            <label class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Hacia Cuenta de Ahorro</label>
+                            <select asp-for="DestinationAccountNumber" class="form-select bg-light text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1rem; box-shadow: none;">
+                                <option value="">-- Selecciona una cuenta --</option>
+                                @if (accounts != null)
+                                {
+                                    foreach (var acc in accounts)
+                                    {
+                                        <option value="@acc.AccountNumber">
+                                            @acc.AccountNumber — Balance: @acc.Balance.ToString("C", new System.Globalization.CultureInfo("es-DO"))
+                                        </option>
+                                    }
+                                }
+                            </select>
                             <span asp-validation-for="DestinationAccountNumber" class="text-danger small mt-1 d-block"></span>
                         </div>
 

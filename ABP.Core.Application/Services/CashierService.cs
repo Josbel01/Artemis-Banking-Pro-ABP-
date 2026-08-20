@@ -16,6 +16,8 @@ namespace ABP.Core.Application.Services
         private readonly ILoanRepository _loanRepository;
         private readonly ITransactionRepository _transactionRepository;
         private readonly ICardTransactionRepository _cardTransactionRepository;
+        private readonly IEmailService _emailService;
+        private readonly IBaseAccountService _accountService;
         private readonly IMapper _mapper;
         private readonly ILogger<CashierService> _logger;
 
@@ -25,6 +27,8 @@ namespace ABP.Core.Application.Services
             ILoanRepository loanRepository,
             ITransactionRepository transactionRepository,
             ICardTransactionRepository cardTransactionRepository,
+            IEmailService emailService,
+            IBaseAccountService accountService,
             IMapper mapper,
             ILogger<CashierService> logger)
         {
@@ -33,6 +37,8 @@ namespace ABP.Core.Application.Services
             _loanRepository = loanRepository;
             _transactionRepository = transactionRepository;
             _cardTransactionRepository = cardTransactionRepository;
+            _emailService = emailService;
+            _accountService = accountService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -78,7 +84,7 @@ namespace ABP.Core.Application.Services
 
             _logger.LogInformation("Deposit of RD${Amount} to account {Account} completed successfully. TxId: {TxId}", dto.Amount, dto.AccountNumber, saved?.Id);
 
-            return new OperationResultDto
+            var result = new OperationResultDto
             {
                 Success = true,
                 OperationType = "Depósito",
@@ -88,6 +94,21 @@ namespace ABP.Core.Application.Services
                 OperationDate = DateTime.Now,
                 TransactionId = saved?.Id ?? 0
             };
+
+            // Send email to account holder
+            await SendAccountEmailAsync(account.ClientId,
+                "Depósito recibido en tu cuenta",
+                "💰 Depósito",
+                $"Se ha realizado un depósito exitoso en tu cuenta de ahorro.",
+                new[] {
+                    ("Monto depositado", $"RD${dto.Amount:N2}"),
+                    ("Cuenta destino", account.AccountNumber),
+                    ("Nuevo balance", $"RD${account.Balance:N2}"),
+                    ("Fecha y hora", DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
+                },
+                "#16a34a", "#22c55e");
+
+            return result;
         }
 
         public async Task<OperationResultDto> WithdrawalAsync(CashierWithdrawalDto dto)
@@ -137,7 +158,7 @@ namespace ABP.Core.Application.Services
 
             _logger.LogInformation("Withdrawal of RD${Amount} from account {Account} completed successfully. TxId: {TxId}", dto.Amount, dto.AccountNumber, saved?.Id);
 
-            return new OperationResultDto
+            var result = new OperationResultDto
             {
                 Success = true,
                 OperationType = "Retiro",
@@ -147,6 +168,21 @@ namespace ABP.Core.Application.Services
                 OperationDate = DateTime.Now,
                 TransactionId = saved?.Id ?? 0
             };
+
+            // Send email to account holder
+            await SendAccountEmailAsync(account.ClientId,
+                "Retiro realizado en tu cuenta",
+                "🏧 Retiro",
+                $"Se ha realizado un retiro exitoso de tu cuenta de ahorro.",
+                new[] {
+                    ("Monto retirado", $"RD${dto.Amount:N2}"),
+                    ("Cuenta origen", account.AccountNumber),
+                    ("Nuevo balance", $"RD${account.Balance:N2}"),
+                    ("Fecha y hora", DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
+                },
+                "#dc2626", "#ef4444");
+
+            return result;
         }
 
         public async Task<OperationResultDto> CreditCardPaymentAsync(CashierCreditCardPaymentDto dto)
@@ -193,7 +229,9 @@ namespace ABP.Core.Application.Services
 
             _logger.LogInformation("Credit card payment of RD${Amount} to card {Card} completed successfully. TxId: {TxId}", dto.Amount, dto.CardNumber, saved?.Id);
 
-            return new OperationResultDto
+            var lastFourCard = card.CardNumber.Substring(card.CardNumber.Length - 4);
+
+            var result = new OperationResultDto
             {
                 Success = true,
                 OperationType = "Pago a Tarjeta de Crédito",
@@ -203,6 +241,21 @@ namespace ABP.Core.Application.Services
                 OperationDate = DateTime.Now,
                 TransactionId = saved?.Id ?? 0
             };
+
+            // Send email to card holder
+            await SendAccountEmailAsync(card.ClientId,
+                $"Pago realizado a la tarjeta {lastFourCard}",
+                "💳 Pago a Tarjeta",
+                $"Se ha procesado un pago a tu tarjeta de crédito en caja.",
+                new[] {
+                    ("Monto pagado", $"RD${dto.Amount:N2}"),
+                    ("Tarjeta", $"•••• •••• •••• {lastFourCard}"),
+                    ("Deuda restante", $"RD${card.CurrentDebt:N2}"),
+                    ("Fecha y hora", DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
+                },
+                "#1a56db", "#3b82f6");
+
+            return result;
         }
 
         public async Task<OperationResultDto> LoanPaymentAsync(CashierLoanPaymentDto dto)
@@ -247,7 +300,7 @@ namespace ABP.Core.Application.Services
 
             _logger.LogInformation("Loan payment of RD${Amount} to loan {Loan} completed successfully.", dto.Amount, dto.LoanNumber);
 
-            return new OperationResultDto
+            var result = new OperationResultDto
             {
                 Success = true,
                 OperationType = "Pago a Préstamo",
@@ -257,6 +310,22 @@ namespace ABP.Core.Application.Services
                 OperationDate = DateTime.Now,
                 TransactionId = 0
             };
+
+            // Send email to loan client
+            await SendAccountEmailAsync(loan.ClientId,
+                $"Pago realizado al préstamo {loan.LoanNumber}",
+                "💰 Pago a Préstamo",
+                $"Se ha procesado un pago a tu préstamo en caja.",
+                new[] {
+                    ("Monto pagado", $"RD${dto.Amount:N2}"),
+                    ("Préstamo", $"#{loan.LoanNumber}"),
+                    ("Pendiente restante", $"RD${loan.AmountPending:N2}"),
+                    ("Cuotas pagadas", $"{loan.PaidInstallments}"),
+                    ("Fecha y hora", DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
+                },
+                "#16a34a", "#22c55e");
+
+            return result;
         }
 
         public async Task<OperationResultDto> TransferBetweenAccountsAsync(CashierTransferDto dto)
@@ -341,7 +410,7 @@ namespace ABP.Core.Application.Services
 
             _logger.LogInformation("Transfer of RD${Amount} completed successfully. Debit TxId: {TxId}", dto.Amount, savedDebit?.Id);
 
-            return new OperationResultDto
+            var result = new OperationResultDto
             {
                 Success = true,
                 OperationType = "Transferencia entre Cuentas",
@@ -352,6 +421,22 @@ namespace ABP.Core.Application.Services
                 OperationDate = DateTime.Now,
                 TransactionId = savedDebit?.Id ?? 0
             };
+
+            // Send email to origin account holder
+            await SendAccountEmailAsync(originAccount.ClientId,
+                "Transferencia realizada desde tu cuenta",
+                "🔄 Transferencia",
+                $"Se ha realizado una transferencia exitosa desde tu cuenta.",
+                new[] {
+                    ("Monto transferido", $"RD${dto.Amount:N2}"),
+                    ("Cuenta origen", originAccount.AccountNumber),
+                    ("Cuenta destino", destinationAccount.AccountNumber),
+                    ("Nuevo balance", $"RD${originAccount.Balance:N2}"),
+                    ("Fecha y hora", DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
+                },
+                "#0891b2", "#22d3ee");
+
+            return result;
         }
 
 
@@ -368,7 +453,7 @@ namespace ABP.Core.Application.Services
             {
                 TotalDeposits        = dailyByMe.Count(t => t.Type == TransactionType.Deposit),
                 TotalWithdrawals     = dailyByMe.Count(t => t.Type == TransactionType.Withdrawal),
-                TotalCreditCardPayments = 0, // Card transactions are in a different table
+                TotalCreditCardPayments = 0,
                 TotalLoanPayments    = dailyByMe.Count(t => t.Type == TransactionType.LoanPayment),
                 TotalTransfers       = dailyByMe.Count(t => t.Type == TransactionType.Transfer),
                 TotalAmountOperated  = dailyByMe.Sum(t => t.Amount)
@@ -388,6 +473,50 @@ namespace ABP.Core.Application.Services
             return _mapper.Map<List<TransactionDto>>(daily);
         }
 
+        // ─── Email helper ──────────────────────────────────────
+        private async Task SendAccountEmailAsync(string userId, string subject, string icon, string description, (string label, string value)[] rows, string colorDark, string colorLight)
+        {
+            try
+            {
+                var user = await _accountService.GetUserById(userId);
+                if (user == null) return;
+
+                string rowsHtml = "";
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    string bgColor = i % 2 == 0 ? "#f8fafc" : "#ffffff";
+                    string radius = i == 0 ? "border-radius:6px 0 0 6px;" : i == rows.Length - 1 ? "border-radius:0 6px 6px 0;" : "";
+                    rowsHtml += $"<tr><td style=\"padding:10px 14px;background:{bgColor};color:#64748b;font-size:13px;font-weight:600;{radius}\">{rows[i].label}</td><td style=\"padding:10px 14px;background:{bgColor};font-size:15px;font-weight:700;color:#0b1f3a;{radius}\">{rows[i].value}</td></tr>";
+                }
+
+                await _emailService.SendAsync(new ABP.Core.Application.Dtos.Email.EmailRequestDto
+                {
+                    To = user.Email,
+                    Subject = subject,
+                    HtmlBody = $@"<!DOCTYPE html>
+<html><head><meta charset=""utf-8""></head>
+<body style=""margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;"">
+<div style=""max-width:520px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);"">
+<div style=""background:linear-gradient(135deg,{colorDark},{colorLight});padding:28px 30px;text-align:center;"">
+<h1 style=""color:#fff;margin:0;font-size:20px;"">{icon}</h1>
+</div>
+<div style=""padding:30px;"">
+<p style=""color:#334155;font-size:15px;margin:0 0 18px;"">Hola <strong>{user.FirstName}</strong>,</p>
+<p style=""color:#334155;font-size:15px;margin:0 0 24px;"">{description}</p>
+<table style=""width:100%;border-collapse:collapse;margin-bottom:24px;"">{rowsHtml}</table>
+</div>
+<div style=""background:#f8fafc;padding:18px 30px;text-align:center;border-top:1px solid #e2e8f0;"">
+<p style=""color:#94a3b8;font-size:11px;margin:0;"">Artemis Banking Pro &mdash; Plataforma de Banca Digital ITLA</p>
+</div>
+</div>
+</body></html>"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send email for operation to user {UserId}.", userId);
+            }
+        }
 
         private static OperationResultDto Error(string message) =>
             new() { Success = false, ErrorMessage = message };

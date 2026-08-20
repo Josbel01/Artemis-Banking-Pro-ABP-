@@ -46,6 +46,11 @@ namespace Artemis_Banking_Pro.Controllers
             ViewBag.ActiveCards = activeCards.Count;
             ViewBag.Cards = activeCards;
 
+            // Client info
+            var primaryAccount = activeAccounts.FirstOrDefault(a => a.AccountType == SavingAccountType.Main);
+            ViewBag.ClientName = User.Identity?.Name ?? "";
+            ViewBag.PrimaryAccountNumber = primaryAccount?.AccountNumber ?? "N/A";
+
             return View();
         }
     }

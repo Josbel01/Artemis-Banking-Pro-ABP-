@@ -165,14 +165,27 @@ namespace ArtemisBankingPro.Controllers
                 return RedirectToAction(nameof(Create));
             }
 
-            // Verify client has a main active saving account
+            // Verify client has a main active saving account, create if missing
             var clientAccounts = await _savingAccountService.GetAllByClientIdAsync(clientId);
             var hasMainAccount = clientAccounts.Any(a => a.AccountType == SavingAccountType.Main && a.Status == SavingAccountStatus.Active);
             
             if (!hasMainAccount)
             {
-                TempData["ErrorMessage"] = "El cliente debe tener una cuenta de ahorro principal activa antes de asignarle una cuenta secundaria.";
-                return RedirectToAction(nameof(Create));
+                // Auto-create main account for clients who don't have one
+                var rnd = new Random();
+                string accountNumber = rnd.Next(100000000, 999999999).ToString();
+                var mainAccount = new ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto
+                {
+                    Id = 0,
+                    ClientId = clientId,
+                    AccountNumber = accountNumber,
+                    Balance = 0,
+                    AccountType = ABP.Core.Domain.Common.Enums.SavingAccountType.Main,
+                    Status = ABP.Core.Domain.Common.Enums.SavingAccountStatus.Active
+                };
+                await _savingAccountService.AddAsync(mainAccount);
+                // Refresh accounts list
+                clientAccounts = await _savingAccountService.GetAllByClientIdAsync(clientId);
             }
 
             ViewBag.ClientName = $"{client.FirstName} {client.LastName}";

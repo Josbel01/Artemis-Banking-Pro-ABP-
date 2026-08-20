@@ -47,8 +47,10 @@ namespace ABP.Unit.Tests.Services
             var cardTxRepo = new CardTransactionRepository(context, new NullLogger<GenericRepository<CardTransaction>>());
             var loanRepo = new LoanRepository(context, new NullLogger<GenericRepository<Loan>>());
             var loanInstRepo = new LoanInstallmentRepository(context, new NullLogger<GenericRepository<LoanInstallment>>());
+            var emailServiceMock = new Mock<ABP.Core.Application.Interfaces.IEmailService>();
+            var accountServiceMock = new Mock<ABP.Core.Application.Interfaces.IBaseAccountService>();
             
-            return new TransactionService(repo, savingRepo, creditRepo, cardTxRepo, loanRepo, loanInstRepo, _mapper, factoryMoq.Object);
+            return new TransactionService(repo, savingRepo, creditRepo, cardTxRepo, loanRepo, loanInstRepo, emailServiceMock.Object, accountServiceMock.Object, _mapper, factoryMoq.Object);
         }
 
         [Fact]

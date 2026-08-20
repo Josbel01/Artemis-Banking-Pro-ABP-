@@ -78,7 +78,6 @@ namespace ABP.Infrastructure.Identity
             services.Configure<JwtSettings>(config.GetSection("JwtSettings"));
 
             #region Identity
-
             services.Configure<IdentityOptions>(opt =>
             {
                 opt.Password.RequiredLength = 8;
@@ -171,11 +170,13 @@ namespace ABP.Infrastructure.Identity
 
             var userManager = services.GetRequiredService<UserManager<AppUser>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            // Resolve the banking DbContext (ArtemisBankingAppContext) which is registered as DbContext
+            var bankingDbContext = services.GetService<DbContext>();
 
             await DefaultUserRoles.SeedAsync(roleManager);
             await DefaultAdminUser.SeedAsync(userManager);
             await DefaultCashierUser.SeedAsync(userManager);
-            await DefaultClientUser.SeedAsync(userManager);
+            await DefaultClientUser.SeedAsync(userManager, bankingDbContext);
         }
 
         private static void GeneralConfiguration(IServiceCollection services, IConfiguration config)

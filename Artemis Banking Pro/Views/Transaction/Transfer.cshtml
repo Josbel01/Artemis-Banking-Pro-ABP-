@@ -1,14 +1,14 @@
 @model ABP.Core.Application.ViewModels.Transactions.SaveTransferViewModel
 @{
     ViewData["Title"] = "Transferencia Express";
+    var accounts = ViewBag.ClientAccounts as List<ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto>;
 }
-
 
 <div class="container-xxl px-4 mt-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-8 col-lg-6">
             
-            <a href="/" class="text-muted mb-4 d-inline-block text-decoration-none" style="transition: color 0.2s;">
+            <a href="/Client/Index" class="text-muted mb-4 d-inline-block text-decoration-none" style="transition: color 0.2s;">
                 <i class="fa-solid fa-arrow-left me-2"></i>Volver al Inicio
             </a>
 
@@ -24,11 +24,21 @@
                     <form asp-action="Transfer" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        <!-- Origen -->
+                        <!-- Origen: Dropdown de cuentas -->
                         <div class="mb-4">
                             <label asp-for="OriginAccountNumber" class="form-label text-muted fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Desde mi Cuenta</label>
-                            <!-- Idealmente aqui iria un <select> con las cuentas del usuario. Por ahora usamos input para que funcione el DTO manual -->
-                            <input asp-for="OriginAccountNumber" class="form-control bg-light text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1.1rem; box-shadow: none;" placeholder="Ingresa tu número de cuenta origen" />
+                            <select asp-for="OriginAccountNumber" class="form-select bg-light text-dark" style="border: 1px solid #e5e7eb; font-family: monospace; font-size: 1rem; box-shadow: none;">
+                                <option value="">-- Selecciona una cuenta --</option>
+                                @if (accounts != null)
+                                {
+                                    foreach (var acc in accounts)
+                                    {
+                                        <option value="@acc.AccountNumber">
+                                            @acc.AccountNumber — Balance: @acc.Balance.ToString("C", new System.Globalization.CultureInfo("es-DO"))
+                                        </option>
+                                    }
+                                }
+                            </select>
                             <span asp-validation-for="OriginAccountNumber" class="text-danger small mt-1 d-block"></span>
                         </div>
 

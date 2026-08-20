@@ -20,6 +20,8 @@ namespace ABP.Unit.Tests.Services
         private readonly Mock<ILoanRepository> _loanRepo;
         private readonly Mock<ITransactionRepository> _transactionRepo;
         private readonly Mock<ICardTransactionRepository> _cardTransactionRepo;
+        private readonly Mock<IEmailService> _emailService;
+        private readonly Mock<IBaseAccountService> _accountService;
         private readonly Mock<IMapper> _mapper;
         private readonly CashierService _service;
 
@@ -30,6 +32,8 @@ namespace ABP.Unit.Tests.Services
             _loanRepo = new Mock<ILoanRepository>();
             _transactionRepo = new Mock<ITransactionRepository>();
             _cardTransactionRepo = new Mock<ICardTransactionRepository>();
+            _emailService = new Mock<IEmailService>();
+            _accountService = new Mock<IBaseAccountService>();
             _mapper = new Mock<IMapper>();
             ILogger<CashierService> logger = new NullLogger<CashierService>();
 
@@ -39,6 +43,8 @@ namespace ABP.Unit.Tests.Services
                 _loanRepo.Object,
                 _transactionRepo.Object,
                 _cardTransactionRepo.Object,
+                _emailService.Object,
+                _accountService.Object,
                 _mapper.Object,
                 logger);
         }
