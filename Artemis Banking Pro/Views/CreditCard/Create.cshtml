@@ -1,6 +1,6 @@
 @model List<ABP.Core.Application.ViewModels.Common.ClientSelectionViewModel>
 @{
-    ViewData["Title"] = "Asignar Tarjeta de Cr\u00e9dito - Seleccionar Cliente";
+    ViewData["Title"] = "Asignar Tarjeta de Crédito - Seleccionar Cliente";
 }
 
 <div class="container-xxl px-4 mt-5">
@@ -13,8 +13,8 @@
                         <i class="fa-regular fa-credit-card fs-5"></i>
                     </div>
                     <div>
-                        <h2 class="h4 fw-bold mb-0" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">Asignar Tarjeta de Cr\u00e9dito</h2>
-                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Paso 1: Seleccione el cliente al que le asignar\u00e1 la tarjeta.</p>
+                        <h2 class="h4 fw-bold mb-0" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">Asignar Tarjeta de Crédito</h2>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Paso 1: Seleccione el cliente al que le asignará la tarjeta.</p>
                     </div>
                 </div>
                 @if(ViewBag.AverageDebt != null)
@@ -49,7 +49,7 @@
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass"></i></span>
                         <input type="text" id="dniSearch" class="form-control form-control-lg border-start-0" 
-                               placeholder="Buscar cliente por c\u00e9dula..." 
+                               placeholder="Buscar cliente por cédula..." 
                                style="border-radius: 0 10px 10px 0; background-color: #f8fafc;" />
                     </div>
                 </div>
@@ -66,9 +66,9 @@
                                 <thead style="background-color: #f8fafc;">
                                     <tr>
                                         <th style="width: 50px;"></th>
-                                        <th>C\u00e9dula</th>
+                                        <th>Cédula</th>
                                         <th>Nombre y apellido</th>
-                                        <th>Correo electr\u00f3nico</th>
+                                        <th>Correo electrónico</th>
                                         <th class="text-end">Monto total de deuda</th>
                                     </tr>
                                 </thead>
@@ -103,7 +103,7 @@
 
                 <div class="d-flex gap-3 mt-4">
                     <a asp-action="Index" class="btn btn-light py-2 px-4 fw-semibold" style="border-radius: 8px;">
-                        <i class="fa-solid fa-arrow-left me-2"></i>Volver atr\u00e1s
+                        <i class="fa-solid fa-arrow-left me-2"></i>Volver atrás
                     </a>
                     <button type="submit" class="btn btn-primary py-2 px-4 fw-bold flex-grow-1" style="border-radius: 8px; background: linear-gradient(135deg, #1a56db, #3b82f6); border: none;">
                         Siguiente paso <i class="fa-solid fa-arrow-right ms-2"></i>

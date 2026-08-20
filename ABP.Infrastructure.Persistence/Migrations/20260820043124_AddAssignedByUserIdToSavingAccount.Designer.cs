@@ -4,6 +4,7 @@ using ABP.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ABP.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ArtemisBankingAppContext))]
-    partial class ArtemisBankingAppContextModelSnapshot : ModelSnapshot
+    [Migration("20260820043124_AddAssignedByUserIdToSavingAccount")]
+    partial class AddAssignedByUserIdToSavingAccount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

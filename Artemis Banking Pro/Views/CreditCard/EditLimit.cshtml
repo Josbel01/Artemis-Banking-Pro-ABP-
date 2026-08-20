@@ -1,6 +1,6 @@
 @model ABP.Core.Application.ViewModels.CreditCards.UpdateCreditCardLimitViewModel
 @{
-    ViewData["Title"] = "Editar L\u00edmite de Cr\u00e9dito";
+    ViewData["Title"] = "Editar Límite de Crédito";
 }
 
 <div class="container-xxl px-4 mt-5">
@@ -12,8 +12,8 @@
                     <i class="fa-solid fa-pen fs-5"></i>
                 </div>
                 <div>
-                    <h2 class="h4 fw-bold mb-0" style="color: #0b1f3a;">Editar L\u00edmite de Cr\u00e9dito</h2>
-                    <p class="text-muted mb-0" style="font-size: 0.85rem;">Modificar el l\u00edmite de cr\u00e9dito de la tarjeta.</p>
+                    <h2 class="h4 fw-bold mb-0" style="color: #0b1f3a;">Editar Límite de Crédito</h2>
+                    <p class="text-muted mb-0" style="font-size: 0.85rem;">Modificar el límite de crédito de la tarjeta.</p>
                 </div>
             </div>
 
@@ -55,18 +55,18 @@
                         <input type="hidden" asp-for="Id" />
 
                         <div class="mb-4">
-                            <label asp-for="CreditLimit" class="form-label fw-bold text-dark">Nuevo L\u00edmite de Cr\u00e9dito <span class="text-danger">*</span></label>
+                            <label asp-for="CreditLimit" class="form-label fw-bold text-dark">Nuevo Límite de Crédito <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 fw-bold" style="border-radius: 10px 0 0 10px;">RD$</span>
                                 <input asp-for="CreditLimit" type="number" step="0.01" min="0.01" class="form-control form-control-lg border-start-0" style="border-radius: 0 10px 10px 0; background-color: #f8fafc;" required />
                             </div>
                             <span asp-validation-for="CreditLimit" class="text-danger small"></span>
-                            <div class="form-text mt-2"><i class="fa-solid fa-info-circle me-1"></i>El nuevo l\u00edmite no puede ser menor al monto adeudado actualmente.</div>
+                            <div class="form-text mt-2"><i class="fa-solid fa-info-circle me-1"></i>El nuevo límite no puede ser menor al monto adeudado actualmente.</div>
                         </div>
 
                         <div class="d-flex gap-3 mt-5">
                             <a asp-action="Index" class="btn btn-light py-2 px-4 fw-semibold" style="border-radius: 8px;">
-                                <i class="fa-solid fa-arrow-left me-2"></i>Volver atr\u00e1s
+                                <i class="fa-solid fa-arrow-left me-2"></i>Volver atrás
                             </a>
                             <button type="submit" class="btn btn-primary py-2 px-4 fw-bold flex-grow-1" style="border-radius: 8px; background: linear-gradient(135deg, #1a56db, #3b82f6); border: none;">
                                 Guardar Cambios
