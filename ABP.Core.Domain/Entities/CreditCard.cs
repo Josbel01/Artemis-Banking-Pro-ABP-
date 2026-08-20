@@ -11,7 +11,7 @@ namespace ABP.Core.Domain.Entities
         public string ClientId { get; set; } = string.Empty;
         public decimal CreditLimit { get; set; }
         public decimal CurrentDebt { get; set; }
-        public string ExpirationDate { get; set; } = string.Empty; // Format: MM/AA
+        public DateTime ExpirationDate { get; set; }
         public string Cvc { get; set; } = string.Empty;
         public CreditCardStatus Status { get; set; }
         public string AssignedByUserId { get; set; } = string.Empty; // Administrador responsable de la asignación

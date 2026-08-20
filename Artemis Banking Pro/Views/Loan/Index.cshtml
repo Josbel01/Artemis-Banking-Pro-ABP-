@@ -63,7 +63,9 @@
                         <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Monto Pendiente</th>
                         <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Tasa</th>
                         <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Plazo</th>
+                        <th class="py-3 px-4 text-muted fw-semibold text-center" style="font-size: 0.8rem; text-transform: uppercase;">Cuotas</th>
                         <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Estado</th>
+                        <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.8rem; text-transform: uppercase;">Estado Cliente</th>
                         <th class="py-3 px-4 text-muted fw-semibold text-end" style="font-size: 0.8rem; text-transform: uppercase;">Acciones</th>
                     </tr>
                 </thead>
@@ -71,7 +73,7 @@
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="8" class="text-center py-5">
+                            <td colspan="10" class="text-center py-5">
                                 <div class="text-muted">No se encontraron préstamos que coincidan con los criterios de búsqueda.</div>
                             </td>
                         </tr>
@@ -87,6 +89,7 @@
                                 <td class="py-3 px-4 fw-bold" style="color: #991b1b;">@loan.RemainingDebt.ToString("C")</td>
                                 <td class="py-3 px-4 text-muted">@loan.InterestRate%</td>
                                 <td class="py-3 px-4 text-muted">@loan.TermInMonths meses</td>
+                                <td class="py-3 px-4 text-center">@loan.PaidInstallments / @loan.TotalInstallments</td>
                                 <td class="py-3 px-4">
                                     @if (loan.Status == ABP.Core.Domain.Common.Enums.LoanStatus.Active)
                                     {
@@ -97,6 +100,23 @@
                                         <span class="badge rounded-pill" style="background-color: #f1f5f9; color: #475569; font-weight: 600;">Completado</span>
                                     }
                                 </td>
+                                <td class="py-3 px-4">
+                                    @{
+                                        var clientPaymentStatus = loan.ClientPaymentStatus;
+                                    }
+                                    @if (clientPaymentStatus == ABP.Core.Domain.Common.Enums.ClientPaymentStatus.UpToDate)
+                                    {
+                                        <span class="badge rounded-pill" style="background-color: #dcfce7; color: #166534; font-weight: 600;">Al día</span>
+                                    }
+                                    else if (clientPaymentStatus == ABP.Core.Domain.Common.Enums.ClientPaymentStatus.Defaulted)
+                                    {
+                                        <span class="badge rounded-pill" style="background-color: #fee2e2; color: #991b1b; font-weight: 600;">En mora</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill" style="background-color: #f1f5f9; color: #475569; font-weight: 600;">@clientPaymentStatus</span>
+                                    }
+                                </td>
                                 <td class="py-3 px-4 text-end">
                                     <div class="d-flex gap-2 justify-content-end">
                                         <a href="/LoanInstallment/Index?loanId=@loan.Id" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;">
@@ -104,7 +124,7 @@
                                         </a>
                                         @if (loan.Status == ABP.Core.Domain.Common.Enums.LoanStatus.Active)
                                         {
-                                            <a href="#" class="btn btn-sm btn-outline-secondary" style="border-radius: 6px;" title="Editar Tasa">
+                                            <a href="/Loan/EditRate?id=@loan.Id" class="btn btn-sm btn-outline-secondary" style="border-radius: 6px;" title="Editar Tasa">
                                                 <i class="fa-solid fa-pen"></i>
                                             </a>
                                         }
@@ -116,5 +136,23 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        @if ((int)ViewBag.TotalPages > 1)
+        {
+            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center py-3" style="border-top: 1px solid #f1f5f9;">
+                <small class="text-muted">Mostrando @((ViewBag.CurrentPage - 1) * 20 + 1) - @(Math.Min((int)ViewBag.CurrentPage * 20, (int)ViewBag.TotalRecords)) de @ViewBag.TotalRecords registros</small>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == (int)ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = i, identification = ViewBag.Identification, status = ViewBag.Status })">@i</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
     </div>
 </div>

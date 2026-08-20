@@ -1,21 +1,16 @@
-using ABP.Core.Domain.Common.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace ABP.Core.Application.ViewModels.SavingAccounts
 {
     public class SaveSavingAccountViewModel
     {
-        public int Id { get; set; }
-
-        [Required(ErrorMessage = "Debe especificar el cliente")]
+        [Required(ErrorMessage = "El cliente seleccionado es requerido.")]
         public string ClientId { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Debe especificar el monto inicial")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "El monto debe ser mayor a cero")]
-        public decimal InitialAmount { get; set; }
-
-        public SavingAccountType AccountType { get; set; } = SavingAccountType.Main;
-        
-        public SavingAccountStatus Status { get; set; } = SavingAccountStatus.Active;
+        [Required(ErrorMessage = "El balance inicial es requerido.")]
+        [Range(0, double.MaxValue, ErrorMessage = "El balance inicial no puede ser negativo.")]
+        [Display(Name = "Balance Inicial")]
+        [DataType(DataType.Currency)]
+        public decimal InitialBalance { get; set; }
     }
 }

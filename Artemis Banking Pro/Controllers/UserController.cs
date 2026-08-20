@@ -28,8 +28,9 @@ namespace ArtemisBankingPro.Controllers
             _mapper = mapper;
         }
 
-        public async Task<IActionResult> Index(string filterRole = null)
+        public async Task<IActionResult> Index(string filterRole = null, int page = 1)
         {
+            int pageSize = 20;
             var users = await _accountService.GetAllUser(null);
             var allowedRoles = new List<string> { 
                 ABP.Core.Domain.Common.Enums.UserRoles.Admin.ToString(), 
@@ -43,10 +44,20 @@ namespace ArtemisBankingPro.Controllers
                 filteredUsers = filteredUsers.Where(u => u.Roles != null && u.Roles.Contains(filterRole)).ToList();
             }
 
-            filteredUsers.Reverse(); // Reverse to show newest to oldest (approximation)
+            filteredUsers.Reverse(); // Newest to oldest
 
-            var viewModels = _mapper.Map<IEnumerable<UserViewModel>>(filteredUsers);
+            int totalRecords = filteredUsers.Count;
+            int totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var pagedUsers = filteredUsers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var viewModels = _mapper.Map<IEnumerable<UserViewModel>>(pagedUsers);
+
             ViewBag.CurrentFilter = filterRole;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalRecords = totalRecords;
             return View(viewModels);
         }
 

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using ABP.Core.Domain.Common.Enums;
 
 namespace ABP.Core.Application.Features.Commerces.Commands.CreateCommerceUser
 {
@@ -34,7 +35,7 @@ namespace ABP.Core.Application.Features.Commerces.Commands.CreateCommerceUser
                 return new RegisterResponseDto { HasError = true, Errors = new List<string> { "El comercio ya tiene un usuario asociado." }, Id = "", FirstName = "", LastName = "", Email = "", UserName = "" };
             }
 
-            request.UserDto.Role = "Comercio";
+            request.UserDto.Role = UserRoles.Commerce.ToString();
 
             var response = await _accountService.RegisterUser(request.UserDto, request.Origin, true);
             if (response.HasError) return response;

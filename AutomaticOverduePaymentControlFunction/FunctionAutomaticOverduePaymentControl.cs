@@ -125,7 +125,7 @@ public class FunctionAutomaticOverduePaymentControl(
             }
 
             bool isOverdue = loan.LoanInstallments.Any(i => i.IsLate);
-            string newStatus = isOverdue ? "En mora" : "Al dA-a";
+            var newStatus = isOverdue ? ClientPaymentStatus.Defaulted : ClientPaymentStatus.UpToDate;
 
             if (loan.ClientPaymentStatus != newStatus)
             {
@@ -145,7 +145,27 @@ public class FunctionAutomaticOverduePaymentControl(
                 var user = await _userManager.FindByIdAsync(loan.ClientId);
                 if (user != null && user.EmailConfirmed && !string.IsNullOrWhiteSpace(user.Email))
                 {
-                    emailNotifications.Add((user.Email, $"Estimado cliente,<br><br>Le informamos que una o mAs cuotas de su prAcstamo han pasado a estado de <strong>atraso</strong>. Por favor, realice su pago a la mayor brevedad posible para evitar cargos adicionales o paso a mora.<br><br>Atentamente,<br>Artemis Banking Pro"));
+                    emailNotifications.Add((user.Email, $"""
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+<div style="max-width:520px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#dc2626,#ef4444);padding:28px 30px;text-align:center;">
+<h1 style="color:#fff;margin:0;font-size:20px;">&#9888;&#65039; Cuota Atrasada</h1>
+</div>
+<div style="padding:30px;">
+<p style="color:#334155;font-size:15px;margin:0 0 18px;">Hola <strong>{user.Name}</strong>,</p>
+<p style="color:#334155;font-size:15px;margin:0 0 24px;">Le informamos que una o m&#225;s cuotas de su pr&#233;stamo han pasado a estado de <strong>atraso</strong>.</p>
+<div style="background:#fee2e2;border-left:4px solid #dc2626;padding:12px 16px;border-radius:0 6px 6px 0;margin-bottom:20px;">
+<p style="color:#991b1b;font-size:13px;margin:0;">Por favor, realice su pago a la mayor brevedad posible para evitar cargos adicionales o paso a mora.</p>
+</div>
+</div>
+<div style="background:#f8fafc;padding:18px 30px;text-align:center;border-top:1px solid #e2e8f0;">
+<p style="color:#94a3b8;font-size:11px;margin:0;">Artemis Banking Pro &mdash; Plataforma de Banca Digital ITLA</p>
+</div>
+</div>
+</body></html>
+"""));
                 }
             }
         }

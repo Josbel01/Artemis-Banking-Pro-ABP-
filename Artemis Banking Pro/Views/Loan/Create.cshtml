@@ -1,12 +1,11 @@
-@model ABP.Core.Application.ViewModels.Loans.SaveLoanViewModel
+@model List<ABP.Core.Application.ViewModels.Common.ClientSelectionViewModel>
 @{
-    ViewData["Title"] = "Asignar Préstamo";
-    var clients = ViewBag.Clients as List<ABP.Core.Application.Dtos.User.UserDto>;
+    ViewData["Title"] = "Asignar Préstamo - Seleccionar Cliente";
 }
 
 <div class="container-xxl px-4 mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
+        <div class="col-md-10 col-lg-8">
             
             <div class="d-flex align-items-center mb-4 justify-content-between">
                 <div class="d-flex align-items-center">
@@ -15,7 +14,7 @@
                     </div>
                     <div>
                         <h2 class="h4 fw-bold mb-0" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">Asignar Préstamo</h2>
-                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Complete los datos para generar el préstamo y su tabla de amortización.</p>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Paso 1: Seleccione el cliente al que le asignará el préstamo.</p>
                     </div>
                 </div>
                 @if(ViewBag.AverageDebt != null)
@@ -27,92 +26,90 @@
                 }
             </div>
 
-            <div class="card border-0" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e5e7eb !important;">
-                <div class="card-body p-4 p-md-5">
-                    
-                    @if (!ViewData.ModelState.IsValid)
-                    {
-                        <div class="alert alert-danger" style="border-radius: 10px;">
-                            <i class="fa-solid fa-circle-exclamation me-2"></i><strong>Ocurrieron errores:</strong>
-                            <div class="mt-2">
-                                @Html.ValidationSummary(false, "", new { @class = "mb-0" })
-                            </div>
-                        </div>
-                    }
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" style="border-radius: 10px;">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i><strong>Ocurrieron errores:</strong>
+                    <div class="mt-2">
+                        @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                    </div>
+                </div>
+            }
 
-                    <form asp-action="Create" method="post">
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark">Buscar Cliente por Cédula</label>
-                            <input type="text" id="dniSearch" class="form-control mb-2" placeholder="Ingrese cédula para filtrar..." />
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger" style="border-radius: 10px;">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+                </div>
+            }
 
-                            <label asp-for="ClientId" class="form-label fw-bold text-dark">Seleccione el Cliente <span class="text-danger">*</span></label>
-                            <select asp-for="ClientId" id="clientSelect" class="form-select form-select-lg" style="border-radius: 10px; background-color: #f8fafc;" required>
-                                <option value="">-- Seleccionar --</option>
-                                @if (clients != null)
-                                {
-                                    foreach (var client in clients)
-                                    {
-                                        <option value="@client.Id" data-dni="@client.DNI" data-email="@client.Email">@client.FirstName @client.LastName (@client.DNI)</option>
-                                    }
-                                }
-                            </select>
-                            <span asp-validation-for="ClientId" class="text-danger small"></span>
-                        </div>
-                        
-                        <div id="clientInfo" class="alert alert-info" style="display:none;">
-                            <strong>Información del Cliente:</strong><br />
-                            Correo: <span id="clientEmail"></span><br />
-                        </div>
-
-                        <div class="mb-4">
-                            <label asp-for="PrincipalAmount" class="form-label fw-bold text-dark">Monto a Prestar (Capital) <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 fw-bold" style="border-radius: 10px 0 0 10px;">RD$</span>
-                                <input asp-for="PrincipalAmount" type="number" step="0.01" min="1000" class="form-control form-control-lg border-start-0" style="border-radius: 0 10px 10px 0; background-color: #f8fafc;" required />
-                            </div>
-                            <span asp-validation-for="PrincipalAmount" class="text-danger small"></span>
-                        </div>
-
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-6">
-                                <label asp-for="InterestRate" class="form-label fw-bold text-dark">Tasa de Interés Anual <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input asp-for="InterestRate" type="number" step="0.01" min="0.1" max="100" class="form-control form-control-lg border-end-0" style="border-radius: 10px 0 0 10px; background-color: #f8fafc;" required />
-                                    <span class="input-group-text bg-light border-start-0 fw-bold" style="border-radius: 0 10px 10px 0;">%</span>
-                                </div>
-                                <span asp-validation-for="InterestRate" class="text-danger small"></span>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label asp-for="TermInMonths" class="form-label fw-bold text-dark">Plazo (Meses) <span class="text-danger">*</span></label>
-                                <select asp-for="TermInMonths" class="form-select form-select-lg" style="border-radius: 10px; background-color: #f8fafc;" required>
-                                    <option value="">-- Seleccionar --</option>
-                                    <option value="6">6 meses</option>
-                                    <option value="12">12 meses</option>
-                                    <option value="18">18 meses</option>
-                                    <option value="24">24 meses (2 años)</option>
-                                    <option value="30">30 meses</option>
-                                    <option value="36">36 meses (3 años)</option>
-                                    <option value="42">42 meses</option>
-                                    <option value="48">48 meses (4 años)</option>
-                                    <option value="54">54 meses</option>
-                                    <option value="60">60 meses (5 años)</option>
-                                </select>
-                                <span asp-validation-for="TermInMonths" class="text-danger small"></span>
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-3 mt-5">
-                            <a asp-action="Index" class="btn btn-light py-2 px-4 fw-semibold" style="border-radius: 8px;">Cancelar</a>
-                            <button type="submit" class="btn btn-primary py-2 px-4 fw-bold flex-grow-1" style="border-radius: 8px; background: linear-gradient(135deg, #1a56db, #3b82f6); border: none;">
-                                Registrar Préstamo
-                            </button>
-                        </div>
-
-                    </form>
+            <!-- Search bar -->
+            <div class="card border-0 mb-4" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e5e7eb !important;">
+                <div class="card-body p-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" id="dniSearch" class="form-control form-control-lg border-start-0" 
+                               placeholder="Buscar cliente por cédula..." 
+                               style="border-radius: 0 10px 10px 0; background-color: #f8fafc;" />
+                    </div>
                 </div>
             </div>
+
+            <!-- Client selection form -->
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="card border-0" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e5e7eb !important;">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="clientTable">
+                                <thead style="background-color: #f8fafc;">
+                                    <tr>
+                                        <th style="width: 50px;"></th>
+                                        <th>Cédula</th>
+                                        <th>Nombre y apellido</th>
+                                        <th>Correo electrónico</th>
+                                        <th class="text-end">Monto total de deuda</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model != null && Model.Any())
+                                    {
+                                        foreach (var client in Model)
+                                        {
+                                            <tr class="client-row" data-dni="@client.DNI">
+                                                <td class="text-center align-middle">
+                                                    <input type="radio" name="SelectedClientId" value="@client.ClientId" 
+                                                           class="form-check-input client-radio" required />
+                                                </td>
+                                                <td class="align-middle fw-semibold">@client.DNI</td>
+                                                <td class="align-middle">@client.FullName</td>
+                                                <td class="align-middle text-muted">@client.Email</td>
+                                                <td class="align-middle text-end fw-bold" style="color: #0b1f3a;">@client.TotalDebt.ToString("C")</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">No hay clientes disponibles sin préstamo activo.</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-4">
+                    <a asp-action="Index" class="btn btn-light py-2 px-4 fw-semibold" style="border-radius: 8px;">
+                        <i class="fa-solid fa-arrow-left me-2"></i>Volver atrás
+                    </a>
+                    <button type="submit" class="btn btn-primary py-2 px-4 fw-bold flex-grow-1" style="border-radius: 8px; background: linear-gradient(135deg, #1a56db, #3b82f6); border: none;">
+                        Siguiente paso <i class="fa-solid fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -120,31 +117,16 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const dniSearch = document.getElementById('dniSearch');
-            const clientSelect = document.getElementById('clientSelect');
-            const options = Array.from(clientSelect.options);
-            
-            dniSearch.addEventListener('keyup', function () {
-                const term = this.value.toLowerCase();
-                clientSelect.innerHTML = '';
-                
-                options.forEach(opt => {
-                    const dni = opt.getAttribute('data-dni') || '';
-                    if (opt.value === '' || dni.toLowerCase().includes(term)) {
-                        clientSelect.appendChild(opt);
-                    }
-                });
-            });
+            const searchInput = document.getElementById('dniSearch');
+            const table = document.getElementById('clientTable');
+            const rows = table.querySelectorAll('.client-row');
 
-            clientSelect.addEventListener('change', function () {
-                const selected = this.options[this.selectedIndex];
-                const infoDiv = document.getElementById('clientInfo');
-                if (selected.value) {
-                    document.getElementById('clientEmail').textContent = selected.getAttribute('data-email');
-                    infoDiv.style.display = 'block';
-                } else {
-                    infoDiv.style.display = 'none';
-                }
+            searchInput.addEventListener('keyup', function () {
+                const term = this.value.toLowerCase();
+                rows.forEach(row => {
+                    const dni = row.getAttribute('data-dni') || '';
+                    row.style.display = dni.toLowerCase().includes(term) ? '' : 'none';
+                });
             });
         });
     </script>

@@ -18,7 +18,7 @@ namespace ABP.Core.Domain.Entities
 
         public int TotalInstallments { get; set; }
         public int PaidInstallments { get; set; }
-        public string ClientPaymentStatus { get; set; } = string.Empty;
+        public ClientPaymentStatus ClientPaymentStatus { get; set; }
         
         public ICollection<LoanInstallment> LoanInstallments { get; set; } = new List<LoanInstallment>();
     }

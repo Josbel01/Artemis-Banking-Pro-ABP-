@@ -18,7 +18,7 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCard
 
             RuleFor(x => x.ExpirationDate)
                 .NotEmpty().WithMessage("Expiration date is required.")
-                .Matches(@"^(0[1-9]|1[0-2])\/\d{2}$").WithMessage("Expiration date must be in MM/AA format.");
+                .GreaterThan(DateTime.UtcNow).WithMessage("Expiration date must be in the future.");
 
             RuleFor(x => x.Cvc)
                 .NotEmpty().WithMessage("CVC is required.")

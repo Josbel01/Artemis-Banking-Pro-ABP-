@@ -141,14 +141,13 @@ namespace ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment
                 throw new ApiException("La tarjeta está inactiva o cancelada.");
             }
 
-            var expectedExpiration = $"{month:D2}/{year % 100:D2}";
-            if (creditCard.ExpirationDate != expectedExpiration)
+            if (creditCard.ExpirationDate.Month != month || creditCard.ExpirationDate.Year != year)
             {
                 _logger.LogWarning("Payment failed: Credit card expiration date mismatch.");
                 throw new ApiException("Los datos de la tarjeta (fecha de expiración) son incorrectos.");
             }
 
-            if (new DateTime(year, month, 1).AddMonths(1) <= DateTime.UtcNow)
+            if (creditCard.ExpirationDate.AddMonths(1) <= DateTime.UtcNow)
             {
                 _logger.LogWarning("Payment failed: Credit card is expired.");
                 throw new ApiException("La tarjeta está vencida.");

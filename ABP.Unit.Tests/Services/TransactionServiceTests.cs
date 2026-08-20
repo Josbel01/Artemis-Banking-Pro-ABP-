@@ -45,8 +45,10 @@ namespace ABP.Unit.Tests.Services
             var savingRepo = new SavingAccountRepository(context, new NullLogger<GenericRepository<SavingAccount>>());
             var creditRepo = new CreditCardRepository(context, new NullLogger<GenericRepository<CreditCard>>());
             var cardTxRepo = new CardTransactionRepository(context, new NullLogger<GenericRepository<CardTransaction>>());
+            var loanRepo = new LoanRepository(context, new NullLogger<GenericRepository<Loan>>());
+            var loanInstRepo = new LoanInstallmentRepository(context, new NullLogger<GenericRepository<LoanInstallment>>());
             
-            return new TransactionService(repo, savingRepo, creditRepo, cardTxRepo, _mapper, factoryMoq.Object);
+            return new TransactionService(repo, savingRepo, creditRepo, cardTxRepo, loanRepo, loanInstRepo, _mapper, factoryMoq.Object);
         }
 
         [Fact]

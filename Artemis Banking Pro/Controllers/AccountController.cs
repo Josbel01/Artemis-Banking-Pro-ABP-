@@ -108,7 +108,7 @@ namespace Artemis_Banking_Pro.Controllers
             var origin = $"{Request.Scheme}://{Request.Host}";
             var request = new ForgotPasswordRequestDto
             {
-                Email = model.Email,
+                UserName = model.UserName,
                 Origin = origin
             };
 

@@ -46,6 +46,53 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Middleware: Redirect authenticated users away from login, and redirect / to home
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value?.ToLower() ?? "";
+    var user = context.User;
+
+    // Redirect authenticated users away from login page
+    if (user.Identity?.IsAuthenticated == true && (path == "/" || path == "/account" || path == "/account/index"))
+    {
+        if (user.IsInRole("Admin"))
+        {
+            context.Response.Redirect("/Admin");
+            return;
+        }
+        if (user.IsInRole("Cashier"))
+        {
+            context.Response.Redirect("/Cashier/Home");
+            return;
+        }
+        if (user.IsInRole("Client"))
+        {
+            context.Response.Redirect("/Client");
+            return;
+        }
+    }
+
+    // Role-based URL access restriction
+    if (user.Identity?.IsAuthenticated == true)
+    {
+        bool isForbidden = false;
+        if (user.IsInRole("Admin") && (path.StartsWith("/cashier") || path.StartsWith("/client")))
+            isForbidden = true;
+        if (user.IsInRole("Cashier") && (path.StartsWith("/admin") || path.StartsWith("/client") || path.StartsWith("/user") || path.StartsWith("/creditcard") || path.StartsWith("/loan") || path.StartsWith("/savingaccount") || path.StartsWith("/transaction") || path.StartsWith("/loaninstallment")))
+            isForbidden = true;
+        if (user.IsInRole("Client") && (path.StartsWith("/admin") || path.StartsWith("/cashier") || path.StartsWith("/user") || path.StartsWith("/creditcard") || path.StartsWith("/loan") || path.StartsWith("/savingaccount") || path.StartsWith("/loaninstallment")))
+            isForbidden = true;
+
+        if (isForbidden)
+        {
+            context.Response.Redirect("/Account/AccessDenied");
+            return;
+        }
+    }
+
+    await next();
+});
+
 app.MapStaticAssets();
 
 app.MapControllerRoute(
