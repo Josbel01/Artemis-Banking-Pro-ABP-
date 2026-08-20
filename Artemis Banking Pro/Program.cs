@@ -84,7 +84,7 @@ app.Use(async (context, next) =>
             isForbidden = true;
         if (user.IsInRole("Cashier") && (path.StartsWith("/admin") || path.StartsWith("/client") || path.StartsWith("/user") || path.StartsWith("/creditcard") || path.StartsWith("/loan") || path.StartsWith("/savingaccount") || path.StartsWith("/transaction") || path.StartsWith("/loaninstallment")))
             isForbidden = true;
-        if (user.IsInRole("Client") && (path.StartsWith("/admin") || path.StartsWith("/cashier") || path.StartsWith("/user") || path.StartsWith("/creditcard") || path.StartsWith("/loan") || path.StartsWith("/savingaccount") || path.StartsWith("/loaninstallment")))
+        if (user.IsInRole("Client") && (path.StartsWith("/admin") || path.StartsWith("/cashier") || path.StartsWith("/user") || path.StartsWith("/creditcard") || path.StartsWith("/loan") || path.StartsWith("/savingaccount")))
             isForbidden = true;
 
         if (isForbidden)
