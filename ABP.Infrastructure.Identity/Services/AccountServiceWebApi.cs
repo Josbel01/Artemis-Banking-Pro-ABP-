@@ -155,5 +155,14 @@ namespace ABP.Infrastructure.Identity.Services
         }
 
         #endregion
+        public async Task<bool> UpdateUserStatusAsync(string id, bool status)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return false;
+
+            user.IsActive = status;
+            await _userManager.UpdateAsync(user);
+            return true;
+        }
     }
 }

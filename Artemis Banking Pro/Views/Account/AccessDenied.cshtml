@@ -1,6 +1,24 @@
 @{
     ViewData["Title"] = "Acceso Denegado";
     ViewBag.HideNav = true; // We don't want the regular navbar here, just like in Login
+
+    string targetUrl = "/Account/Index";
+    
+    if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        if (User.IsInRole("Admin"))
+        {
+            targetUrl = "/Admin/Index";
+        }
+        else if (User.IsInRole("Cashier"))
+        {
+            targetUrl = "/Cashier/Home";
+        }
+        else if (User.IsInRole("Client"))
+        {
+            targetUrl = "/Client/Index";
+        }
+    }
 }
 
 <div class="d-flex align-items-center justify-content-center min-vh-100" style="background-color: #f8fafc;">
@@ -12,11 +30,11 @@
         <h2 class="fw-bold mb-3" style="color: #0b1f3a; font-family: 'Outfit', sans-serif;">Acceso Denegado</h2>
         
         <p class="text-muted mb-4" style="font-size: 1.05rem;">
-            No tienes los permisos necesarios para acceder a esta aplicación. Si eres un <strong>Comercio</strong> o un cliente usando herramientas externas, por favor utiliza la <strong>Web API</strong> o la aplicación correspondiente para realizar tus operaciones.
+            No posee permisos para acceder a esta sección.
         </p>
 
-        <a href="/Account/Logout" class="btn w-100 py-3 fw-bold" style="background: linear-gradient(135deg, #0b1f3a, #1a56db); color: white; border-radius: 8px; transition: transform 0.2s;">
-            <i class="fa-solid fa-arrow-left me-2"></i>Volver al Inicio de Sesión
+        <a href="@targetUrl" class="btn w-100 py-3 fw-bold" style="background: linear-gradient(135deg, #0b1f3a, #1a56db); color: white; border-radius: 8px; transition: transform 0.2s;">
+            <i class="fa-solid fa-arrow-left me-2"></i>Volver al Inicio
         </a>
     </div>
 </div>

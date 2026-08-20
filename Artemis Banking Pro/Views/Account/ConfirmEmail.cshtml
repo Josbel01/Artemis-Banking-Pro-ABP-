@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Confirmar Cuenta";
+    Layout = "_Layout";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Confirmación de Cuenta</h4>
+                </div>
+                <div class="card-body text-center">
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger">
+                            <h4>Error</h4>
+                            <p>@ViewBag.Error</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success">
+                            <h4>¡Éxito!</h4>
+                            <p>@ViewBag.Message</p>
+                        </div>
+                        <a href="@Url.Action("Index", "Account")" class="btn btn-primary mt-3">Ir a Iniciar Sesión</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

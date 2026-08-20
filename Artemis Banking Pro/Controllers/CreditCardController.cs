@@ -14,15 +14,18 @@ namespace ArtemisBankingPro.Controllers
     {
         private readonly ICreditCardService _creditCardService;
         private readonly IBaseAccountService _accountService;
+        private readonly ILoanService _loanService;
         private readonly IMapper _mapper;
 
         public CreditCardController(
             ICreditCardService creditCardService, 
             IBaseAccountService accountService,
+            ILoanService loanService,
             IMapper mapper)
         {
             _creditCardService = creditCardService;
             _accountService = accountService;
+            _loanService = loanService;
             _mapper = mapper;
         }
 
@@ -92,6 +95,15 @@ namespace ArtemisBankingPro.Controllers
             var allUsers = await _accountService.GetAllUser(isActive: true);
             var activeClients = allUsers.Where(u => u.Roles.Contains("Client")).ToList();
             
+            // Average Debt Calculation
+            var activeLoans = await _loanService.GetAllAsync();
+            var allCreditCards = await _creditCardService.GetAllAsync();
+            decimal totalLoanDebt = activeLoans.Where(l => l.Status == LoanStatus.Active).Sum(l => l.Amount);
+            decimal totalCreditCardDebt = allCreditCards.Sum(c => c.OwedAmount);
+            decimal totalDebt = totalLoanDebt + totalCreditCardDebt;
+            int activeClientsCount = activeClients.Count;
+            ViewBag.AverageDebt = activeClientsCount > 0 ? totalDebt / activeClientsCount : 0;
+
             ViewBag.Clients = activeClients;
             return View(new SaveCreditCardViewModel());
         }
@@ -144,8 +156,15 @@ namespace ArtemisBankingPro.Controllers
             await _creditCardService.AddAsync(dto);
 
             TempData["SuccessMessage"] = "Tarjeta de crÃ©dito asignada correctamente.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            await _creditCardService.DeleteAsync(id);
+            return RedirectToAction("Index");
         }
     }
 }
-

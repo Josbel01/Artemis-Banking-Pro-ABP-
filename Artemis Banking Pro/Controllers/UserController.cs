@@ -28,7 +28,7 @@ namespace ArtemisBankingPro.Controllers
             _mapper = mapper;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string filterRole = null)
         {
             var users = await _accountService.GetAllUser(null);
             var allowedRoles = new List<string> { 
@@ -37,7 +37,16 @@ namespace ArtemisBankingPro.Controllers
                 ABP.Core.Domain.Common.Enums.UserRoles.Client.ToString() 
             };
             var filteredUsers = users.Where(u => u.Roles != null && u.Roles.Any(r => allowedRoles.Contains(r))).ToList();
+            
+            if (!string.IsNullOrEmpty(filterRole))
+            {
+                filteredUsers = filteredUsers.Where(u => u.Roles != null && u.Roles.Contains(filterRole)).ToList();
+            }
+
+            filteredUsers.Reverse(); // Reverse to show newest to oldest (approximation)
+
             var viewModels = _mapper.Map<IEnumerable<UserViewModel>>(filteredUsers);
+            ViewBag.CurrentFilter = filterRole;
             return View(viewModels);
         }
 
@@ -101,7 +110,8 @@ namespace ArtemisBankingPro.Controllers
                 ConfirmPassword = viewModel.ConfirmPassword
             };
 
-            var response = await _accountService.RegisterUser(saveUserDto, null, false);
+            var origin = $"{Request.Scheme}://{Request.Host}";
+            var response = await _accountService.RegisterUser(saveUserDto, origin, false);
             
             if (response.HasError)
             {
@@ -150,6 +160,13 @@ namespace ArtemisBankingPro.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(string id)
         {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (id == currentUserId)
+            {
+                TempData["ErrorMessage"] = "No puedes editar tu propio perfil.";
+                return RedirectToAction("Index");
+            }
+
             var user = await _accountService.GetUserById(id);
             if (user == null)
             {
@@ -179,6 +196,13 @@ namespace ArtemisBankingPro.Controllers
             if (!ModelState.IsValid)
             {
                 return View(viewModel);
+            }
+
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (viewModel.Id == currentUserId)
+            {
+                TempData["ErrorMessage"] = "No puedes editar tu propio perfil.";
+                return RedirectToAction("Index");
             }
 
             var existingUser = await _accountService.GetUserById(viewModel.Id);

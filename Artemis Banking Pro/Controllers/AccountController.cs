@@ -95,6 +95,85 @@ namespace Artemis_Banking_Pro.Controllers
         {
             return View();
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var origin = $"{Request.Scheme}://{Request.Host}";
+            var request = new ForgotPasswordRequestDto
+            {
+                Email = model.Email,
+                Origin = origin
+            };
+
+            var response = await _accountService.ForgotPasswordAsync(request, false);
+            if (response.HasError)
+            {
+                foreach(var error in response.Errors)
+                {
+                    ModelState.AddModelError("", error);
+                }
+                return View(model);
+            }
+
+            ViewBag.Message = "Se ha enviado un correo con las instrucciones para restablecer su contraseña.";
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string token, string email)
+        {
+            return View(new ResetPasswordViewModel { Token = token, Email = email });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var request = new ResetPasswordRequestDto
+            {
+                Email = model.Email,
+                Token = model.Token,
+                Password = model.Password,
+                ConfirmPassword = model.ConfirmPassword
+            };
+
+            var response = await _accountService.ResetPasswordAsync(request);
+            if (response.HasError)
+            {
+                foreach (var error in response.Errors)
+                {
+                    ModelState.AddModelError("", error);
+                }
+                return View(model);
+            }
+
+            return RedirectToAction("Index", new { message = "Contraseña restablecida exitosamente." });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            var response = await _accountService.ConfirmAccountAsync(userId, token);
+            if (response.HasError)
+            {
+                ViewBag.Error = response.Message;
+                return View();
+            }
+            ViewBag.Message = response.Message;
+            return View();
+        }
     }
 }
 

@@ -49,6 +49,7 @@ namespace ArtemisBankingPro.Controllers
             return View(viewModels);
         }
 
+        [Authorize(Roles = "Client")]
         public IActionResult Transfer()
         {
             return View(new SaveTransferViewModel());
@@ -56,6 +57,7 @@ namespace ArtemisBankingPro.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Client")]
         public async Task<IActionResult> Transfer(SaveTransferViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -76,6 +78,7 @@ namespace ArtemisBankingPro.Controllers
             return RedirectToAction("Index", "Client");
         }
 
+        [Authorize(Roles = "Client")]
         public IActionResult CashAdvance()
         {
             return View(new SaveCashAdvanceViewModel());
@@ -83,6 +86,7 @@ namespace ArtemisBankingPro.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Client")]
         public async Task<IActionResult> CashAdvance(SaveCashAdvanceViewModel vm)
         {
             if (!ModelState.IsValid)

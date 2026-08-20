@@ -34,7 +34,7 @@
                         @if (!Model.Any())
                         {
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
+                                <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="fa-solid fa-users-slash fs-1 mb-3 text-light"></i>
                                     <p class="mb-0">No se encontraron usuarios.</p>
                                 </td>
@@ -54,6 +54,7 @@
                                         </div>
                                     </td>
                                     <td class="py-3 text-muted">@user.Name @user.LastName</td>
+                                    <td class="py-3 text-muted">@user.Identification</td>
                                     <td class="py-3 text-muted">@user.Email</td>
                                     <td class="py-3">
                                         @if (user.Roles != null && user.Roles.Any())
@@ -88,7 +89,7 @@
                                                 @if (user.IsActive)
                                                 {
                                                     <li>
-                                                        <form action="/User/ToggleStatus/@user.Id" method="post">
+                                                        <form asp-action="ToggleStatus" asp-route-id="@user.Id" method="post">
                                                             <button class="dropdown-item text-danger" type="submit"><i class="fa-solid fa-ban me-2"></i> Desactivar</button>
                                                         </form>
                                                     </li>
@@ -96,7 +97,7 @@
                                                 else
                                                 {
                                                     <li>
-                                                        <form action="/User/ToggleStatus/@user.Id" method="post">
+                                                        <form asp-action="ToggleStatus" asp-route-id="@user.Id" method="post">
                                                             <button class="dropdown-item text-success" type="submit"><i class="fa-solid fa-check me-2"></i> Activar</button>
                                                         </form>
                                                     </li>

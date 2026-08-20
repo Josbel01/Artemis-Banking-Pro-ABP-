@@ -619,7 +619,12 @@ namespace ABP.Infrastructure.Identity.Services
             token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var route = "/Account/ResetPassword";
             var completeUrl = new Uri(string.Concat(origin, "/", route));
-            var resetUri = QueryHelpers.AddQueryString(completeUrl.ToString(), "token", token);
+            var queryParams = new Dictionary<string, string?>
+            {
+                { "token", token },
+                { "email", user.Email }
+            };
+            var resetUri = QueryHelpers.AddQueryString(completeUrl.ToString(), queryParams);
 
             return resetUri;
         }

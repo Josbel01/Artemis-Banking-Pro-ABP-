@@ -31,8 +31,8 @@
                 <label class="form-label text-muted fw-semibold small">Filtrar por Estado</label>
                 <select name="status" class="form-select">
                     <option value="Todas" selected="@(ViewBag.Status == "Todas" ? "selected" : null)">Todas</option>
-                    <option value="Activa" selected="@(ViewBag.Status == "Activa" ? "selected" : null)">Activas</option>
-                    <option value="Cancelada" selected="@(ViewBag.Status == "Cancelada" ? "selected" : null)">Canceladas</option>
+                    <option value="Active" selected="@(ViewBag.Status == "Active" || ViewBag.Status == "Activas" ? "selected" : null)">Activas</option>
+                    <option value="Cancelled" selected="@(ViewBag.Status == "Cancelled" ? "selected" : null)">Canceladas</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -110,7 +110,7 @@
                                             <a href="#" class="btn btn-sm btn-outline-secondary" style="border-radius: 6px;" title="Editar Límite">
                                                 <i class="fa-solid fa-pen"></i>
                                             </a>
-                                            <form asp-action="Cancel" method="post" style="display:inline;" onsubmit="return confirm('¿Está seguro que desea cancelar la tarjeta @mask?');">
+                                            <form asp-action="Cancel" method="post" style="display:inline;" onsubmit="return confirm('¿Está seguro que desea cancelar la tarjeta @mask del cliente @card.ClientName con un límite de @card.CreditLimit.ToString("C")?');">
                                                 <input type="hidden" name="id" value="@card.Id" />
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;" title="Cancelar">
                                                     <i class="fa-solid fa-ban"></i>

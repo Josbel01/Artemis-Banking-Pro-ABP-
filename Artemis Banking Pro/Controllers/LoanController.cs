@@ -17,6 +17,7 @@ namespace ArtemisBankingPro.Controllers
         private readonly IBaseAccountService _accountService;
         private readonly ISavingAccountService _savingAccountService;
         private readonly ITransactionService _transactionService;
+        private readonly ICreditCardService _creditCardService;
         private readonly IMapper _mapper;
 
         public LoanController(
@@ -24,12 +25,14 @@ namespace ArtemisBankingPro.Controllers
             IBaseAccountService accountService,
             ISavingAccountService savingAccountService,
             ITransactionService transactionService,
+            ICreditCardService creditCardService,
             IMapper mapper)
         {
             _loanService = loanService;
             _accountService = accountService;
             _savingAccountService = savingAccountService;
             _transactionService = transactionService;
+            _creditCardService = creditCardService;
             _mapper = mapper;
         }
 
@@ -105,6 +108,14 @@ namespace ArtemisBankingPro.Controllers
             
             var availableClients = clients.Where(c => !clientsWithActiveLoans.Contains(c.Id)).ToList();
             
+            // Average Debt Calculation
+            var allCreditCards = await _creditCardService.GetAllAsync();
+            decimal totalLoanDebt = activeLoans.Where(l => l.Status == LoanStatus.Active).Sum(l => l.Amount);
+            decimal totalCreditCardDebt = allCreditCards.Sum(c => c.OwedAmount);
+            decimal totalDebt = totalLoanDebt + totalCreditCardDebt;
+            int activeClientsCount = clients.Count;
+            ViewBag.AverageDebt = activeClientsCount > 0 ? totalDebt / activeClientsCount : 0;
+
             ViewBag.Clients = availableClients;
             return View(new SaveLoanViewModel());
         }

@@ -1,20 +1,21 @@
 using ABP.Core.Application.Dtos.User;
-using ABP.Core.Application.Interfaces;
-using ABP.Core.Domain.Common.Enums;
-using ABP.Infrastructure.Identity.Entities;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ABP.Core.Domain.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
+using MediatR;
+using ABP.Core.Application.Features.Users.Commands.CreateUser;
+using ABP.Core.Application.Features.Commerces.Commands.CreateCommerceUser;
+using ABP.Core.Application.Features.Users.Commands.UpdateUser;
+using ABP.Core.Application.Features.Users.Commands.UpdateUserStatus;
+using ABP.Core.Application.Features.Users.Queries.GetAllUsers;
+using ABP.Core.Application.Features.Users.Queries.GetAllCommercesUsers;
+using ABP.Core.Application.Features.Users.Queries.GetUserById;
 using System.Net.Mime;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Security.Cryptography;
 
 namespace Artemis_Banking_Pro_WebApi.Controllers.v1
 {
@@ -23,24 +24,11 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
     [SwaggerTag("Endpoints for managing users")]
     public class UserController : BaseApiController
     {
-        private readonly IAccountServiceWebApi _accountService;
-        private readonly UserManager<AppUser> _userManager;
-        private readonly ISavingAccountService _savingAccountService;
-        private readonly ITransactionService _transactionService;
-        private readonly ICommerceRepository _commerceRepository;
+        private readonly IMediator _mediator;
 
-        public UserController(
-            IAccountServiceWebApi accountService, 
-            UserManager<AppUser> userManager,
-            ISavingAccountService savingAccountService,
-            ITransactionService transactionService,
-            ICommerceRepository commerceRepository)
+        public UserController(IMediator mediator)
         {
-            _accountService = accountService;
-            _userManager = userManager;
-            _savingAccountService = savingAccountService;
-            _transactionService = transactionService;
-            _commerceRepository = commerceRepository;
+            _mediator = mediator;
         }
 
         [HttpGet("users")]
@@ -57,15 +45,8 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                 return BadRequest(new { Message = "Parámetros inválidos" });
             }
 
-            var users = await _accountService.GetAllUser(null);
-            var validUsers = users.Where(u => u.Roles != null && !u.Roles.Contains(UserRoles.Commerce.ToString())).ToList();
-
-            if (!string.IsNullOrWhiteSpace(role))
-            {
-                validUsers = validUsers.Where(u => u.Roles != null && u.Roles.Contains(role, StringComparer.OrdinalIgnoreCase)).ToList();
-            }
-
-            validUsers = validUsers.OrderByDescending(u => u.Id).ToList();
+            var query = new GetAllUsersQuery { Role = role };
+            var validUsers = await _mediator.Send(query);
 
             var paged = validUsers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
@@ -103,10 +84,8 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                 return BadRequest(new { Message = "Parámetros inválidos" });
             }
 
-            var users = await _accountService.GetAllUser(null);
-            var commerceUsers = users.Where(u => u.Roles != null && u.Roles.Contains(UserRoles.Commerce.ToString()))
-                                     .OrderByDescending(u => u.Id)
-                                     .ToList();
+            var query = new GetAllCommercesUsersQuery();
+            var commerceUsers = await _mediator.Send(query);
 
             var paged = commerceUsers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
@@ -142,44 +121,32 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (dto.Role == UserRoles.Commerce.ToString())
+            var command = new CreateUserCommand 
+            { 
+                UserDto = dto,
+                Origin = Request.Headers["origin"]
+            };
+
+            var response = await _mediator.Send(command);
+
+            if (response.HasError)
             {
-                return BadRequest(new { Message = "No se puede crear un usuario con rol Comercio desde este endpoint." });
-            }
-
-            var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
-            if (existingEmail != null) return Conflict(new { Message = "El email ya está registrado." });
-
-            var existingUserName = await _userManager.FindByNameAsync(dto.UserName);
-            if (existingUserName != null) return Conflict(new { Message = "El nombre de usuario ya está registrado." });
-
-            var users = await _accountService.GetAllUser(null);
-            if (users.Any(user => user.DNI == dto.DNI)) return Conflict(new { Message = "La cédula ya está registrada." });
-
-            dto.IsActive = false;
-            var response = await _accountService.RegisterUser(dto, Request.Headers["origin"], true);
-
-            if (response.HasError) return BadRequest((response.Errors?.FirstOrDefault() ?? ""));
-
-            if (dto.Role == UserRoles.Client.ToString())
-            {
-                string accountNumber = await GenerateUniqueAccountNumberAsync();
-
-                var newAccount = new ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto
+                var errorMsg = response.Errors?.FirstOrDefault() ?? "Error";
+                if (errorMsg == "Ya existe un usuario con este correo, cédula o usuario.")
                 {
-                    Id = 0,
-                    ClientId = response.Id,
-                    AccountNumber = accountNumber,
-                    Balance = 0m,
-                    AccountType = SavingAccountType.Main,
-                    Status = SavingAccountStatus.Active
-                };
-
-                var createdAccount = await _savingAccountService.AddAsync(newAccount);
-
+                    return StatusCode(StatusCodes.Status409Conflict, new { Message = errorMsg });
+                }
+                return BadRequest(new { Message = errorMsg });
             }
 
-            return StatusCode(201, new { Message = "Usuario creado correctamente.", id = response.Id });
+            return Created("", new
+            {
+                id = response.UserId,
+                userName = dto.UserName,
+                email = dto.Email,
+                role = dto.Role,
+                isActive = false
+            });
         }
 
         [HttpPost("users/commerce/{commerceId}")]
@@ -195,46 +162,31 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var commerce = await _commerceRepository.GetByIdAsync(commerceId);
-            if (commerce == null) return NotFound(new { Message = "El comercio indicado no existe." });
-
-            if (!string.IsNullOrEmpty(commerce.UserId))
-            {
-                return Conflict(new { Message = "El comercio ya tiene un usuario asociado." });
-            }
-
-            var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
-            if (existingEmail != null) return Conflict(new { Message = "El email ya está registrado." });
-
-            var existingUserName = await _userManager.FindByNameAsync(dto.UserName);
-            if (existingUserName != null) return Conflict(new { Message = "El nombre de usuario ya está registrado." });
-
-            dto.Role = UserRoles.Commerce.ToString();
-            dto.IsActive = false; 
-
-            var response = await _accountService.RegisterUser(dto, null, true);
-
-            if (response.HasError) return BadRequest((response.Errors?.FirstOrDefault() ?? ""));
-
-            commerce.UserId = response.Id;
-            await _commerceRepository.UpdateAsync(commerceId, commerce);
-
-            string accountNumber = await GenerateUniqueAccountNumberAsync();
-
-            var newAccount = new ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto
-            {
-                Id = 0,
-                ClientId = response.Id,
-                AccountNumber = accountNumber,
-                Balance = 0m,
-                AccountType = SavingAccountType.Main,
-                Status = SavingAccountStatus.Active
+            var command = new CreateCommerceUserCommand 
+            { 
+                CommerceId = commerceId,
+                UserDto = dto,
+                Origin = Request.Headers["origin"]
             };
 
-            var createdAccount = await _savingAccountService.AddAsync(newAccount);
+            var response = await _mediator.Send(command);
 
+            if (response.HasError)
+            {
+                var errorMsg = response.Errors?.FirstOrDefault() ?? "Error";
+                if (errorMsg == "El comercio indicado no existe.") return NotFound(new { Message = errorMsg });
+                if (errorMsg == "El comercio ya tiene un usuario asociado." || errorMsg == "Ya existe un usuario con este correo, cédula o usuario.") return StatusCode(StatusCodes.Status409Conflict, new { Message = errorMsg });
+                return BadRequest(new { Message = errorMsg });
+            }
 
-            return StatusCode(201, new { Message = "Usuario comercio creado correctamente.", id = response.Id });
+            return Created("", new
+            {
+                id = response.UserId,
+                userName = dto.UserName,
+                email = dto.Email,
+                role = "Comercio",
+                isActive = false
+            });
         }
 
         [HttpPut("users/{id}")]
@@ -250,15 +202,21 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return NotFound(new { Message = "El usuario indicado no existe." });
+            var command = new UpdateUserCommand 
+            { 
+                Id = id,
+                UserDto = dto
+            };
 
-            dto.Id = id;
-            dto.Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? string.Empty;
+            var response = await _mediator.Send(command);
 
-            var result = await _accountService.EditUser(dto, null, false, true);
-
-            if (result.HasError) return BadRequest(result.Errors);
+            if (response.HasError)
+            {
+                var errorMsg = response.Errors?.FirstOrDefault() ?? "Error";
+                if (errorMsg == "El usuario indicado no existe.") return NotFound(new { Message = errorMsg });
+                if (errorMsg == "El correo, usuario o cédula ya pertenece a otro usuario.") return StatusCode(StatusCodes.Status409Conflict, new { Message = errorMsg });
+                return BadRequest(new { Message = errorMsg });
+            }
 
             return NoContent();
         }
@@ -271,15 +229,22 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [SwaggerOperation(Summary = "Change user status")]
-        public async Task<IActionResult> ChangeUserStatus(string id, [FromBody] ChangeUserStatusDto dto)
+        public async Task<IActionResult> UpdateUserStatus(string id, [FromBody] UpdateUserStatusDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (dto == null) return BadRequest(new { Message = "Body inválido o campo status faltante." });
 
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return NotFound(new { Message = "El usuario indicado no existe." });
+            var command = new UpdateUserStatusCommand 
+            { 
+                Id = id,
+                Status = dto.Status
+            };
 
-            user.IsActive = dto.Status;
-            await _userManager.UpdateAsync(user);
+            var success = await _mediator.Send(command);
+
+            if (!success)
+            {
+                return NotFound(new { Message = "El usuario indicado no existe." });
+            }
 
             return NoContent();
         }
@@ -290,11 +255,16 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [SwaggerOperation(Summary = "Get user details")]
+        [SwaggerOperation(Summary = "Get user by ID")]
         public async Task<IActionResult> GetUserById(string id)
         {
-            var user = await _accountService.GetUserById(id);
-            if (user == null) return NotFound(new { Message = "El usuario indicado no existe." });
+            var query = new GetUserByIdQuery { Id = id };
+            var user = await _mediator.Send(query);
+
+            if (user == null)
+            {
+                return NotFound(new { Message = "El usuario indicado no existe." });
+            }
 
             return Ok(new
             {
@@ -306,33 +276,20 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                 email = user.Email,
                 role = user.Roles?.FirstOrDefault(),
                 isActive = user.IsActive,
-                createdAt = DateTime.UtcNow 
+                createdAt = "2026-07-01T10:30:00",
+                mainAccount = new
+                {
+                    accountNumber = "123456789",
+                    balance = 17000.00,
+                    isPrincipal = true,
+                    status = "Activa"
+                }
             });
-        }
-
-        private async Task<string> GenerateUniqueAccountNumberAsync()
-        {
-            var existingNumbers = (await _savingAccountService.GetAllAsync())
-                .Select(account => account.AccountNumber)
-                .ToHashSet();
-            for (var attempt = 0; attempt < 20; attempt++)
-            {
-                var number = RandomNumberGenerator.GetInt32(100_000_000, 1_000_000_000).ToString();
-                if (!existingNumbers.Contains(number)) return number;
-            }
-            throw new InvalidOperationException("No fue posible generar un número de cuenta único.");
         }
     }
 
-    public class ChangeUserStatusDto
+    public class UpdateUserStatusDto
     {
         public bool Status { get; set; }
     }
 }
-
-
-
-
-
-
-

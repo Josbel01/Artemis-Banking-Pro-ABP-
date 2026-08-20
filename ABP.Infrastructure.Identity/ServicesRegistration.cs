@@ -35,6 +35,7 @@ namespace ABP.Infrastructure.Identity
                 opt.Lockout.MaxFailedAccessAttempts = 5;
 
                 opt.User.RequireUniqueEmail = true;
+                opt.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
                 opt.SignIn.RequireConfirmedEmail = true;
             });
 
@@ -56,7 +57,7 @@ namespace ABP.Infrastructure.Identity
                 opt.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
             }).AddCookie(IdentityConstants.ApplicationScheme, opt =>
             {
-                opt.ExpireTimeSpan = TimeSpan.FromMinutes(180);
+                opt.ExpireTimeSpan = TimeSpan.FromDays(30);
                 opt.SlidingExpiration = true;
                 opt.LoginPath = "/Account/Index";
                 opt.AccessDeniedPath = "/Account/AccessDenied";
@@ -90,6 +91,7 @@ namespace ABP.Infrastructure.Identity
                 opt.Lockout.MaxFailedAccessAttempts = 5;
 
                 opt.User.RequireUniqueEmail = true;
+                opt.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
                 opt.SignIn.RequireConfirmedEmail = true;
             });
 
@@ -174,7 +176,6 @@ namespace ABP.Infrastructure.Identity
             await DefaultAdminUser.SeedAsync(userManager);
             await DefaultCashierUser.SeedAsync(userManager);
             await DefaultClientUser.SeedAsync(userManager);
-            await DefaultCommerceUser.SeedAsync(userManager);
         }
 
         private static void GeneralConfiguration(IServiceCollection services, IConfiguration config)

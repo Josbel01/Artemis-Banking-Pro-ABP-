@@ -6,7 +6,7 @@ namespace Artemis_Banking_Pro.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            return RedirectToAction("Index", "Account");
         }
     }
 }

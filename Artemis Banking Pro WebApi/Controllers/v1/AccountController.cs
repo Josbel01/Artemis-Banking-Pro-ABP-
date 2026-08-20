@@ -1,12 +1,16 @@
 using ABP.Core.Application.Dtos.User;
-using ABP.Core.Application.Interfaces;
-using ABP.Core.Domain.Common.Enums;
-using ABP.Infrastructure.Identity.Entities;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using MediatR;
+using ABP.Core.Application.Features.Account.Commands.Login;
+using ABP.Core.Application.Features.Account.Commands.ConfirmAccount;
+using ABP.Core.Application.Features.Account.Commands.ForgotPassword;
+using ABP.Core.Application.Features.Account.Commands.ResetPassword;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Artemis_Banking_Pro_WebApi.Controllers.v1
 {
@@ -14,13 +18,11 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
     [SwaggerTag("Endpoints for user authentication and account recovery")]
     public class AccountController : BaseApiController
     {
-        private readonly IAccountServiceWebApi _accountService;
-        private readonly UserManager<AppUser> _userManager;
+        private readonly IMediator _mediator;
 
-        public AccountController(IAccountServiceWebApi accountService, UserManager<AppUser> userManager)
+        public AccountController(IMediator mediator)
         {
-            _accountService = accountService;
-            _userManager = userManager;
+            _mediator = mediator;
         }
 
         [HttpPost("account/login")]
@@ -30,18 +32,18 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [SwaggerOperation(Summary = "Authenticate user", Description = "Validates user credentials and returns a JWT token")]
-        public async Task<IActionResult> LoginAsync([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> LoginAsync([FromBody] LoginCommand command)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var response = await _accountService.Login(loginDto);
+            var response = await _mediator.Send(command);
 
             if (response.HasError)
             {
-                if ((response.Errors?.FirstOrDefault() ?? "") == "Su cuenta se encuentra inactiva. Debe activar su cuenta antes de iniciar sesión.")
+                if ((response.Errors?.FirstOrDefault() ?? "") == "Su cuenta se encuentra inactiva. Debe activar su cuenta antes de iniciar sesiA3n.")
                 {
                     return BadRequest(new { Message = (response.Errors?.FirstOrDefault() ?? "") });
                 }
@@ -51,7 +53,7 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
                     return StatusCode(StatusCodes.Status403Forbidden, new { Message = (response.Errors?.FirstOrDefault() ?? "") });
                 }
 
-                return Unauthorized(new { Message = (response.Errors?.FirstOrDefault() ?? "") ?? "No tiene autorización para acceder a este recurso." });
+                return Unauthorized(new { Message = (response.Errors?.FirstOrDefault() ?? "") ?? "No tiene autorizaciA3n para acceder a este recurso." });
             }
 
             return Ok(new JwtResponseDto
@@ -69,13 +71,14 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [SwaggerOperation(Summary = "Confirm user account", Description = "Validates and confirms a user's account using a token")]
-        public async Task<IActionResult> ConfirmAccount([FromBody] ConfirmAccountRequestDto request)
+        public async Task<IActionResult> ConfirmAccount([FromBody] ConfirmAccountCommand command)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var response = await _accountService.ConfirmAccountAsync(request.UserId, request.Token);
+
+            var response = await _mediator.Send(command);
 
             if (response.HasError)
             {
@@ -90,18 +93,16 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [SwaggerOperation(Summary = "Get password reset token", Description = "Generates a token to reset the password and sends it via email")]
-        public async Task<IActionResult> GetResetToken([FromBody] GetResetTokenRequestDto request)
+        public async Task<IActionResult> GetResetToken([FromBody] ForgotPasswordCommand command)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            
+            command.Origin = Request.Headers["origin"];
 
-            var response = await _accountService.ForgotPasswordAsync(new ForgotPasswordRequestDto
-            {
-                UserName = request.UserName,
-                Origin = Request.Headers["origin"]
-            }, true);
+            var response = await _mediator.Send(command);
 
             if (response.HasError)
             {
@@ -116,28 +117,14 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [SwaggerOperation(Summary = "Reset user password", Description = "Resets the user's password using the provided reset token")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordApiRequestDto request)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var user = await _userManager.FindByIdAsync(request.UserId);
-            if (user == null)
-            {
-                return BadRequest(new { Message = "El usuario indicado no existe." });
-            }
-
-            var dto = new ResetPasswordRequestDto
-            {
-                Email = user.Email!,
-                Token = request.Token,
-                Password = request.Password,
-                ConfirmPassword = request.ConfirmPassword
-            };
-
-            var response = await _accountService.ResetPasswordAsync(dto);
+            var response = await _mediator.Send(command);
 
             if (response.HasError)
             {
@@ -148,6 +135,3 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
         }
     }
 }
-
-
-
