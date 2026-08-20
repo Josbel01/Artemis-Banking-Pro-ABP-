@@ -41,13 +41,13 @@ namespace ArtemisBankingPro.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SaveBeneficiaryViewModel vm)
         {
+            var clientId = GetCurrentClientId();
+            vm.ClientId = clientId ?? string.Empty;
+
             if (!ModelState.IsValid)
             {
                 return View(vm);
             }
-
-            var clientId = GetCurrentClientId();
-            vm.ClientId = clientId ?? string.Empty;
 
             var dto = _mapper.Map<ABP.Core.Application.Dtos.Beneficiaries.BeneficiaryDto>(vm);
             await _beneficiaryService.AddAsync(dto);
