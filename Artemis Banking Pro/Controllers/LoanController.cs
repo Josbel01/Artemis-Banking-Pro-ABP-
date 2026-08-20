@@ -110,8 +110,8 @@ namespace ArtemisBankingPro.Controllers
             
             // Average Debt Calculation
             var allCreditCards = await _creditCardService.GetAllAsync();
-            decimal totalLoanDebt = activeLoans.Where(l => l.Status == LoanStatus.Active).Sum(l => l.Amount);
-            decimal totalCreditCardDebt = allCreditCards.Sum(c => c.OwedAmount);
+            decimal totalLoanDebt = activeLoans.Where(l => l.Status == LoanStatus.Active).Sum(l => l.AmountPending);
+            decimal totalCreditCardDebt = allCreditCards.Sum(c => c.CurrentDebt);
             decimal totalDebt = totalLoanDebt + totalCreditCardDebt;
             int activeClientsCount = clients.Count;
             ViewBag.AverageDebt = activeClientsCount > 0 ? totalDebt / activeClientsCount : 0;

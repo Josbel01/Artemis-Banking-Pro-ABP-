@@ -14,5 +14,6 @@ namespace ABP.Core.Application.Dtos.User
         public string? PhotoUrl { get; set; }
         public required string Role { get; set; } = null!;
         public bool IsActive { get; set; }
+        public decimal? InitialAmount { get; set; }
     }
 }

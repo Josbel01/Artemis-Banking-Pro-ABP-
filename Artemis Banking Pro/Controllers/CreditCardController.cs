@@ -1,4 +1,5 @@
 using ABP.Core.Application.Dtos.CreditCards;
+using ABP.Core.Application.Dtos.Email;
 using ABP.Core.Application.Interfaces;
 using ABP.Core.Application.ViewModels.CreditCards;
 using ABP.Core.Domain.Common.Enums;
@@ -15,17 +16,20 @@ namespace ArtemisBankingPro.Controllers
         private readonly ICreditCardService _creditCardService;
         private readonly IBaseAccountService _accountService;
         private readonly ILoanService _loanService;
+        private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
 
         public CreditCardController(
             ICreditCardService creditCardService, 
             IBaseAccountService accountService,
             ILoanService loanService,
+            IEmailService emailService,
             IMapper mapper)
         {
             _creditCardService = creditCardService;
             _accountService = accountService;
             _loanService = loanService;
+            _emailService = emailService;
             _mapper = mapper;
         }
 
@@ -46,7 +50,7 @@ namespace ArtemisBankingPro.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("", "No existe un cliente registrado con esta cÃ©dula.");
+                    ModelState.AddModelError("", "No existe un cliente registrado con esta c\u00e9dula.");
                     cards = new List<CreditCardDto>(); // empty
                 }
                 ViewBag.Identification = identification;
@@ -98,8 +102,8 @@ namespace ArtemisBankingPro.Controllers
             // Average Debt Calculation
             var activeLoans = await _loanService.GetAllAsync();
             var allCreditCards = await _creditCardService.GetAllAsync();
-            decimal totalLoanDebt = activeLoans.Where(l => l.Status == LoanStatus.Active).Sum(l => l.Amount);
-            decimal totalCreditCardDebt = allCreditCards.Sum(c => c.OwedAmount);
+            decimal totalLoanDebt = activeLoans.Where(l => l.Status == LoanStatus.Active).Sum(l => l.AmountPending);
+            decimal totalCreditCardDebt = allCreditCards.Sum(c => c.CurrentDebt);
             decimal totalDebt = totalLoanDebt + totalCreditCardDebt;
             int activeClientsCount = activeClients.Count;
             ViewBag.AverageDebt = activeClientsCount > 0 ? totalDebt / activeClientsCount : 0;
@@ -124,7 +128,7 @@ namespace ArtemisBankingPro.Controllers
             var client = await _accountService.GetUserById(vm.ClientId);
             if (client == null || !client.IsActive)
             {
-                ModelState.AddModelError("", "El cliente seleccionado no existe o no estÃ¡ activo.");
+                ModelState.AddModelError("", "El cliente seleccionado no existe o no est\u00e1 activo.");
                 return View(vm);
             }
 
@@ -155,7 +159,21 @@ namespace ArtemisBankingPro.Controllers
             // Save the card
             await _creditCardService.AddAsync(dto);
 
-            TempData["SuccessMessage"] = "Tarjeta de crÃ©dito asignada correctamente.";
+            // Send email notification to the client
+            var emailBody = $"Se le ha asignado una nueva tarjeta de crédito.\n"
+                + $"Número: {cardNumber}\n"
+                + $"Fecha de Expiración: {expirationDate.ToString("MM/yy")}\n"
+                + $"CVC: {cvc}\n\n"
+                + "Por favor guarde esta información de forma segura, ya que el CVC no podrá ser visualizado en el sistema por motivos de seguridad.";
+
+            await _emailService.SendAsync(new EmailRequestDto
+            {
+                To = client.Email,
+                Subject = "Nueva Tarjeta de Crédito Asignada",
+                HtmlBody = emailBody
+            });
+
+            TempData["SuccessMessage"] = "Tarjeta de crédito asignada correctamente.";
             return RedirectToAction("Index");
         }
 

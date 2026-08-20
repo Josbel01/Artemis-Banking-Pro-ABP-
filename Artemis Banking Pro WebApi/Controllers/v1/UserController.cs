@@ -141,7 +141,7 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
 
             return Created("", new
             {
-                id = response.UserId,
+                id = response.Id,
                 userName = dto.UserName,
                 email = dto.Email,
                 role = dto.Role,
@@ -181,7 +181,7 @@ namespace Artemis_Banking_Pro_WebApi.Controllers.v1
 
             return Created("", new
             {
-                id = response.UserId,
+                id = response.Id,
                 userName = dto.UserName,
                 email = dto.Email,
                 role = "Comercio",

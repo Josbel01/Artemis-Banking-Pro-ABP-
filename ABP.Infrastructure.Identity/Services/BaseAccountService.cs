@@ -605,9 +605,17 @@ namespace ABP.Infrastructure.Identity.Services
         {
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-            var route = "/Account/ConfirmEmail";
-            var completeUrl = new Uri(string.Concat(origin, "/", route));
-            var verificationUri = QueryHelpers.AddQueryString(completeUrl.ToString(), "userId", user.Id);
+            var route = "Account/ConfirmEmail";
+            string completeUrl;
+            if (!string.IsNullOrEmpty(origin))
+            {
+                completeUrl = new Uri(string.Concat(origin.TrimEnd('/'), "/", route)).ToString();
+            }
+            else
+            {
+                completeUrl = "/" + route;
+            }
+            var verificationUri = QueryHelpers.AddQueryString(completeUrl, "userId", user.Id);
             verificationUri = QueryHelpers.AddQueryString(verificationUri.ToString(), "token", token);
 
             return verificationUri;
@@ -617,8 +625,16 @@ namespace ABP.Infrastructure.Identity.Services
         {
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-            var route = "/Account/ResetPassword";
-            var completeUrl = new Uri(string.Concat(origin, "/", route));
+            var route = "Account/ResetPassword";
+            string completeUrl;
+            if (!string.IsNullOrEmpty(origin))
+            {
+                completeUrl = new Uri(string.Concat(origin.TrimEnd('/'), "/", route)).ToString();
+            }
+            else
+            {
+                completeUrl = "/" + route;
+            }
             var queryParams = new Dictionary<string, string?>
             {
                 { "token", token },
