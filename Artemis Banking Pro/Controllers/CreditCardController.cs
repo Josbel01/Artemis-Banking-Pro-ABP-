@@ -70,15 +70,7 @@ namespace ArtemisBankingPro.Controllers
             }
             else
             {
-                if (string.IsNullOrEmpty(status))
-                {
-                    cards = cards.Where(c => c.Status == CreditCardStatus.Active).ToList();
-                    ViewBag.Status = "Active";
-                }
-                else
-                {
-                    ViewBag.Status = status;
-                }
+                ViewBag.Status = "Todas";
             }
 
             // Order by most recent

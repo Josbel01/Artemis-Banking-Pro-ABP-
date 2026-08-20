@@ -1,7 +1,6 @@
 using ABP.Core.Application.Interfaces;
 using ABP.Core.Application.ViewModels.User;
 using AutoMapper;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -17,7 +16,7 @@ namespace ArtemisBankingPro.Controllers
         private readonly IMapper _mapper;
 
         public UserController(
-            IAccountServiceWebApp accountService, 
+            IAccountServiceWebApp accountService,
             ISavingAccountService savingAccountService,
             ITransactionService transactionService,
             IMapper mapper)
@@ -32,13 +31,13 @@ namespace ArtemisBankingPro.Controllers
         {
             int pageSize = 20;
             var users = await _accountService.GetAllUser(null);
-            var allowedRoles = new List<string> { 
-                ABP.Core.Domain.Common.Enums.UserRoles.Admin.ToString(), 
-                ABP.Core.Domain.Common.Enums.UserRoles.Cashier.ToString(), 
-                ABP.Core.Domain.Common.Enums.UserRoles.Client.ToString() 
+            var allowedRoles = new List<string> {
+                ABP.Core.Domain.Common.Enums.UserRoles.Admin.ToString(),
+                ABP.Core.Domain.Common.Enums.UserRoles.Cashier.ToString(),
+                ABP.Core.Domain.Common.Enums.UserRoles.Client.ToString()
             };
             var filteredUsers = users.Where(u => u.Roles != null && u.Roles.Any(r => allowedRoles.Contains(r))).ToList();
-            
+
             if (!string.IsNullOrEmpty(filterRole))
             {
                 filteredUsers = filteredUsers.Where(u => u.Roles != null && u.Roles.Contains(filterRole)).ToList();
@@ -123,46 +122,20 @@ namespace ArtemisBankingPro.Controllers
 
             var origin = $"{Request.Scheme}://{Request.Host}";
             var response = await _accountService.RegisterUser(saveUserDto, origin, false);
-            
+
             if (response.HasError)
             {
-                foreach(var error in response.Errors)
+                foreach (var error in response.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error);
                 }
                 return View(viewModel);
             }
 
+            // Create main saving account for Client users
             if (saveUserDto.Role == "Client")
             {
-                var rnd = new Random();
-                string accountNumber = rnd.Next(100000000, 999999999).ToString();
-                
-                var newAccount = new ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto
-                {
-                    Id = 0,
-                    ClientId = response.Id,
-                    AccountNumber = accountNumber,
-                    Balance = viewModel.InitialAmount,
-                    AccountType = ABP.Core.Domain.Common.Enums.SavingAccountType.Main,
-                    Status = ABP.Core.Domain.Common.Enums.SavingAccountStatus.Active
-                };
-                
-                var createdAccount = await _savingAccountService.AddAsync(newAccount);
-
-                if (viewModel.InitialAmount > 0)
-                {
-                    await _transactionService.AddAsync(new ABP.Core.Application.Dtos.Transactions.TransactionDto
-                    {
-                        SavingAccountId = createdAccount.Id,
-                        Amount = viewModel.InitialAmount,
-                        Type = ABP.Core.Domain.Common.Enums.TransactionType.Credit,
-                        TransactionDate = DateTime.Now,
-                        Origin = "Apertura de Cuenta",
-                        Beneficiary = accountNumber,
-                        Status = ABP.Core.Domain.Common.Enums.TransactionStatus.Approved
-                    });
-                }
+                await CreateMainAccountForClient(response.Id, viewModel.InitialAmount);
             }
 
             return RedirectToAction(nameof(Index));
@@ -230,17 +203,17 @@ namespace ArtemisBankingPro.Controllers
                 UserName = viewModel.UserName,
                 Email = viewModel.Email,
                 DNI = viewModel.Identification,
-                Role = existingUser.Roles?.FirstOrDefault() ?? "", // Maintain original role
+                Role = existingUser.Roles?.FirstOrDefault() ?? "",
                 Password = viewModel.Password ?? "",
                 ConfirmPassword = viewModel.ConfirmPassword ?? "",
                 IsActive = viewModel.IsActive
             };
 
             var response = await _accountService.EditUser(saveUserDto, null, false, false);
-            
+
             if (response.HasError)
             {
-                foreach(var error in response.Errors)
+                foreach (var error in response.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error);
                 }
@@ -249,6 +222,37 @@ namespace ArtemisBankingPro.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        private async Task CreateMainAccountForClient(string clientId, decimal initialAmount)
+        {
+            var rnd = new Random();
+            string accountNumber = rnd.Next(100000000, 999999999).ToString();
+
+            var newAccount = new ABP.Core.Application.Dtos.SavingAccounts.SavingAccountDto
+            {
+                Id = 0,
+                ClientId = clientId,
+                AccountNumber = accountNumber,
+                Balance = initialAmount,
+                AccountType = ABP.Core.Domain.Common.Enums.SavingAccountType.Main,
+                Status = ABP.Core.Domain.Common.Enums.SavingAccountStatus.Active
+            };
+
+            var createdAccount = await _savingAccountService.AddAsync(newAccount);
+
+            if (initialAmount > 0)
+            {
+                await _transactionService.AddAsync(new ABP.Core.Application.Dtos.Transactions.TransactionDto
+                {
+                    SavingAccountId = createdAccount.Id,
+                    Amount = initialAmount,
+                    Type = ABP.Core.Domain.Common.Enums.TransactionType.Credit,
+                    TransactionDate = DateTime.Now,
+                    Origin = "Apertura de Cuenta",
+                    Beneficiary = accountNumber,
+                    Status = ABP.Core.Domain.Common.Enums.TransactionStatus.Approved
+                });
+            }
+        }
     }
 }
-
