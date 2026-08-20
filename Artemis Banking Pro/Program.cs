@@ -80,11 +80,11 @@ app.Use(async (context, next) =>
     if (user.Identity?.IsAuthenticated == true)
     {
         bool isForbidden = false;
-        if (user.IsInRole("Admin") && (path.StartsWith("/cashier") || path.StartsWith("/client")))
+        if (user.IsInRole("Admin") && (path.StartsWith("/cashier", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/client", StringComparison.OrdinalIgnoreCase)))
             isForbidden = true;
-        if (user.IsInRole("Cashier") && (path.StartsWith("/admin") || path.StartsWith("/client") || path.StartsWith("/user") || path.StartsWith("/creditcard") || path.StartsWith("/loan") || path.StartsWith("/savingaccount") || path.StartsWith("/transaction") || path.StartsWith("/loaninstallment")))
+        if (user.IsInRole("Cashier") && (path.StartsWith("/admin", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/client", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/user", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/creditcard", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/loan", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/savingaccount", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/transaction", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/loaninstallment", StringComparison.OrdinalIgnoreCase)))
             isForbidden = true;
-        if (user.IsInRole("Client") && (path.StartsWith("/admin") || path.StartsWith("/cashier") || path.StartsWith("/user") || path.StartsWith("/creditcard") || path.StartsWith("/loan") || path.StartsWith("/savingaccount")))
+        if (user.IsInRole("Client") && (path.StartsWith("/admin", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/cashier", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/user", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/creditcard", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/savingaccount", StringComparison.OrdinalIgnoreCase) || (path.StartsWith("/loan", StringComparison.OrdinalIgnoreCase) && !path.StartsWith("/loaninstallment", StringComparison.OrdinalIgnoreCase))))
             isForbidden = true;
 
         if (isForbidden)

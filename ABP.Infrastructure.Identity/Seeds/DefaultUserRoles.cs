@@ -8,9 +8,14 @@ namespace ABP.Infrastructure.Identity.Seeds
     {
         public static async Task SeedAsync(RoleManager<IdentityRole> roleManager)
         {
-            await roleManager.CreateAsync(new IdentityRole(UserRoles.Admin.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(UserRoles.Cashier.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(UserRoles.Client.ToString()));
+            var roles = new[] { UserRoles.Admin, UserRoles.Cashier, UserRoles.Client, UserRoles.Commerce };
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role.ToString()))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role.ToString()));
+                }
+            }
         }
     }
 }

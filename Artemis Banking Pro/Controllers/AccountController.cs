@@ -171,6 +171,8 @@ namespace Artemis_Banking_Pro.Controllers
                 ViewBag.Error = response.Message;
                 return View();
             }
+            // Cerrar sesión anterior para que el nuevo usuario pueda iniciar sesión limpio
+            await _accountService.SignOutAsync();
             ViewBag.Message = response.Message;
             return View();
         }

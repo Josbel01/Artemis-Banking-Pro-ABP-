@@ -8,8 +8,14 @@ namespace ABP.Infrastructure.Identity.Seeds
 {
     public static class DefaultCommerceUser
     {
-        public static async Task SeedAsync(UserManager<AppUser> userManager, DbContext? dbContext = null)
+        public static async Task SeedAsync(UserManager<AppUser> userManager, DbContext? dbContext = null, RoleManager<IdentityRole>? roleManager = null)
         {
+            // 0. Ensure Commerce role exists
+            if (roleManager != null && !await roleManager.RoleExistsAsync(UserRoles.Commerce.ToString()))
+            {
+                await roleManager.CreateAsync(new IdentityRole(UserRoles.Commerce.ToString()));
+            }
+
             // 1. Create the AppUser with role Commerce
             AppUser user = new()
             {
