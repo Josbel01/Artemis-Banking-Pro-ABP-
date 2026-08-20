@@ -177,6 +177,7 @@ namespace ABP.Infrastructure.Identity
             await DefaultAdminUser.SeedAsync(userManager);
             await DefaultCashierUser.SeedAsync(userManager);
             await DefaultClientUser.SeedAsync(userManager, bankingDbContext);
+            await DefaultCommerceUser.SeedAsync(userManager, bankingDbContext);
         }
 
         private static void GeneralConfiguration(IServiceCollection services, IConfiguration config)

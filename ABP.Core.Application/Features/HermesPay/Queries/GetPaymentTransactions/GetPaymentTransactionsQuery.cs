@@ -3,8 +3,6 @@ using ABP.Core.Domain.Interfaces;
 using MediatR;
 using System;
 using System.Collections.Generic;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,14 +45,17 @@ namespace ABP.Core.Application.Features.HermesPay.Queries.GetPaymentTransactions
     public class GetPaymentTransactionsQueryHandler : IRequestHandler<GetPaymentTransactionsQuery, PaymentTransactionResponse>
     {
         private readonly ICommerceRepository _commerceRepository;
-        private readonly ISavingAccountRepository _savingAccountRepository;
-        private readonly IMapper _mapper;
+        private readonly ICardTransactionRepository _cardTransactionRepository;
+        private readonly ICreditCardRepository _creditCardRepository;
 
-        public GetPaymentTransactionsQueryHandler(ICommerceRepository commerceRepository, ISavingAccountRepository savingAccountRepository, IMapper mapper)
+        public GetPaymentTransactionsQueryHandler(
+            ICommerceRepository commerceRepository,
+            ICardTransactionRepository cardTransactionRepository,
+            ICreditCardRepository creditCardRepository)
         {
             _commerceRepository = commerceRepository;
-            _savingAccountRepository = savingAccountRepository;
-            _mapper = mapper;
+            _cardTransactionRepository = cardTransactionRepository;
+            _creditCardRepository = creditCardRepository;
         }
 
         public async Task<PaymentTransactionResponse> Handle(GetPaymentTransactionsQuery request, CancellationToken cancellationToken)
@@ -71,33 +72,18 @@ namespace ABP.Core.Application.Features.HermesPay.Queries.GetPaymentTransactions
             }
 
             if (commerce == null)
-                throw new ApiException("El comercio no existe."); 
+                throw new ApiException("El comercio no existe.");
                 
             if (!commerce.IsActive)
                 throw new ApiException("El comercio no está activo.");
 
-            var principalAccount = await _savingAccountRepository.GetPrincipalAccountByClientIdAsync(commerce.UserId);
+            // Get CardTransactions for this commerce (HermesPay transactions)
+            var allCardTransactions = await _cardTransactionRepository.GetAllByCommerceIdAsync(commerce.Id);
             
-            var accountsWithTransactions = await _savingAccountRepository.GetAllListWithInclude(new List<string> { "Transactions" });
-            var accountWithTransactions = accountsWithTransactions
-                .FirstOrDefault(a => a.ClientId == commerce.UserId && a.AccountType == ABP.Core.Domain.Common.Enums.SavingAccountType.Main);
+            // Get credit cards to resolve last four digits
+            var allCards = await _creditCardRepository.GetAllListAsync();
 
-            if (accountWithTransactions == null)
-            {
-                return new PaymentTransactionResponse
-                {
-                    Page = request.Page,
-                    PageSize = request.PageSize,
-                    TotalRecords = 0,
-                    TotalPages = 0,
-                    CommerceId = commerce.Id,
-                    CommerceName = commerce.Name,
-                    Data = new List<PaymentTransactionDto>()
-                };
-            }
-
-            var query = accountWithTransactions.Transactions
-                .Where(t => t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Credit && !string.IsNullOrEmpty(t.Origin))
+            var query = allCardTransactions
                 .OrderByDescending(t => t.TransactionDate)
                 .ToList();
 
@@ -107,8 +93,22 @@ namespace ABP.Core.Application.Features.HermesPay.Queries.GetPaymentTransactions
             var pagedData = query
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
-                .AsQueryable()
-                .ProjectTo<PaymentTransactionDto>(_mapper.ConfigurationProvider)
+                .Select(ct =>
+                {
+                    var card = allCards.FirstOrDefault(c => c.Id == ct.CreditCardId);
+                    var lastFour = card != null && card.CardNumber.Length >= 4
+                        ? card.CardNumber.Substring(card.CardNumber.Length - 4)
+                        : "****";
+                    
+                    return new PaymentTransactionDto
+                    {
+                        Id = ct.Id.ToString(),
+                        TransactionDate = ct.TransactionDate,
+                        Amount = ct.Amount,
+                        CardLastFourDigits = lastFour,
+                        Status = ct.Status == ABP.Core.Domain.Common.Enums.TransactionStatus.Approved ? "APROBADO" : "RECHAZADO"
+                    };
+                })
                 .ToList();
 
             return new PaymentTransactionResponse

@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using ABP.Core.Domain.Common.Enums;
-using System.Transactions;
 
 namespace ABP.Core.Application.Features.SavingAccounts.Commands.DeleteSavingsAccountAPI
 {
@@ -21,7 +20,6 @@ namespace ABP.Core.Application.Features.SavingAccounts.Commands.DeleteSavingsAcc
 
         public async Task<bool> Handle(DeleteSavingsAccountAPICommand request, CancellationToken cancellationToken)
         {
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
             var accounts = await _savingAccountService.GetAllAsync();
             var account = accounts.FirstOrDefault(a => a.AccountNumber == request.AccountNumber);
             
@@ -47,7 +45,7 @@ namespace ABP.Core.Application.Features.SavingAccounts.Commands.DeleteSavingsAcc
                         Type = TransactionType.Credit,
                         TransactionDate = System.DateTime.Now,
                         Origin = dbAccount.AccountNumber,
-                        Beneficiary = dbMainAccount.AccountNumber
+                        Beneficiary = mainAccount.AccountNumber
                     });
                 }
                 
@@ -68,7 +66,6 @@ namespace ABP.Core.Application.Features.SavingAccounts.Commands.DeleteSavingsAcc
             dbAccount.Status = SavingAccountStatus.Cancelled;
             await _savingAccountService.UpdateAsync(dbAccount, dbAccount.Id);
 
-            scope.Complete();
             return true;
         }
     }
