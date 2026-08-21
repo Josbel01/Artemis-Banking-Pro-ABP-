@@ -19,7 +19,7 @@ namespace ABP.Core.Application.Features.LoanInstallments.Queries.GetAllLoanInsta
     {
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
-private readonly IGenericRepository<ABP.Core.Domain.Entities.LoanInstallment> _repository;
+    private readonly IGenericRepository<ABP.Core.Domain.Entities.LoanInstallment> _repository;
         private readonly IMapper _mapper;
 
         public GetAllLoanInstallmentsQueryHandler(IGenericRepository<ABP.Core.Domain.Entities.LoanInstallment> repository, IMapper mapper)
