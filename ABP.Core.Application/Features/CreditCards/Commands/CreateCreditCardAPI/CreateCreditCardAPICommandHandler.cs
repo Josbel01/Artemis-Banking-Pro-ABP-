@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System;
 using ABP.Core.Domain.Common.Enums;
 using ABP.Core.Application.Exceptions;
+using ABP.Core.Application.Helpers;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -37,7 +38,7 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCardAPI
                 CurrentDebt = 0,
                 Status = CreditCardStatus.Active,
                 CardNumber = cardNumber,
-                Cvc = ComputeSha256Hash(cvc),
+                Cvc = PasswordEncryptation.ComputeSha256Hash(cvc),
                 ExpirationDate = DateTime.UtcNow.AddYears(3)
             };
 
@@ -71,8 +72,6 @@ namespace ABP.Core.Application.Features.CreditCards.Commands.CreateCreditCardAPI
             throw new ApiException("No fue posible generar un número de tarjeta único.");
         }
 
-        private static string ComputeSha256Hash(string value) =>
-            Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
     }
 }
 

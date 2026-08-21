@@ -345,113 +345,27 @@ namespace ArtemisBankingPro.Controllers
 
             if (!ModelState.IsValid) return View(vm);
 
-            // Recalculate future installments with new rate
-            // Get all installments for this loan
-            var allInstallments = await _loanInstallmentService.GetAllByLoanIdAsync(loan.Id);
-            ABP.Core.Application.Dtos.Loans.LoanInstallmentDto nextPendingInstallment = null;
-
-            if (allInstallments != null && allInstallments.Count > 0)
-            {
-                decimal monthlyRate = vm.AnnualInterestRate / 100m / 12m;
-
-                // Calculate remaining principal: sum of unpaid capital amounts
-                decimal remainingPrincipal = allInstallments
-                    .Where(i => i.PaymentStatus != PaymentStatus.Paid)
-                    .Sum(i => i.CapitalAmount);
-
-                // Recalculate all unpaid installments with new rate (French amortization)
-                var unpaidInstallments = allInstallments
-                    .Where(i => i.PaymentStatus != PaymentStatus.Paid)
-                    .OrderBy(i => i.InstallmentNumber)
-                    .ToList();
-
-                nextPendingInstallment = unpaidInstallments.FirstOrDefault();
-
-                foreach (var installment in unpaidInstallments)
-                {
-                    // Interest = remaining principal * monthly rate
-                    decimal interest = remainingPrincipal * monthlyRate;
-                    installment.InterestAmount = Math.Round(interest, 2);
-
-                    // For the last installment, capital = remaining principal to close at 0
-                    if (installment == unpaidInstallments.Last())
-                    {
-                        installment.CapitalAmount = remainingPrincipal;
-                    }
-                    else
-                    {
-                        // Capital portion (distribute evenly or proportional)
-                        decimal capitalPerInstallment = remainingPrincipal / unpaidInstallments.Count;
-                        installment.CapitalAmount = Math.Round(capitalPerInstallment, 2);
-                    }
-
-                    installment.InstallmentAmount = Math.Round(installment.InterestAmount + installment.CapitalAmount, 2);
-                    installment.PendingAmount = installment.InstallmentAmount; // Reset pending to full amount
-
-                    await _loanInstallmentService.UpdateAsync(installment, installment.Id);
-
-                    // Reduce remaining principal by this installment's capital
-                    remainingPrincipal -= installment.CapitalAmount;
-                }
-
-                // Update loan total pending amount
-                loan.AmountPending = allInstallments.Where(i => i.PaymentStatus != PaymentStatus.Paid).Sum(i => i.PendingAmount);
-            }
-
+            // Recalculate only FUTURE installments with new rate
+            await _loanService.RecalculateFutureInstallmentsAsync(loan.Id, vm.AnnualInterestRate);
             loan.AnnualInterestRate = vm.AnnualInterestRate;
-            await _loanService.UpdateAsync(loan, loan.Id);
 
-            // Send email
+            // Send email using centralized template
             if (client != null)
             {
-                // Re-fetch the recalculated installment to get updated values
                 var freshInstallments = await _loanInstallmentService.GetAllByLoanIdAsync(loan.Id);
                 var updatedNextPending = freshInstallments?
-                    .Where(i => i.PaymentStatus != PaymentStatus.Paid)
+                    .Where(i => i.PaymentStatus != PaymentStatus.Paid && i.DueDate.Date > DateTime.Now.Date)
                     .OrderBy(i => i.InstallmentNumber)
                     .FirstOrDefault();
-
-                string nextInstallmentRow = "";
-                string nextDueDateRow = "";
-                if (updatedNextPending != null)
-                {
-                    nextInstallmentRow = $"<tr><td style=\"padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;\">Nuevo valor de la pr&#243;xima cuota</td><td style=\"padding:10px 14px;background:#f8fafc;font-size:15px;font-weight:700;color:#0b1f3a;border-radius:0 6px 6px 0;\">RD${updatedNextPending.InstallmentAmount:N2}</td></tr>";
-                    nextDueDateRow = $"<tr><td style=\"padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;\">Fecha de vencimiento pr&#243;xima cuota</td><td style=\"padding:10px 14px;font-size:15px;color:#0b1f3a;\">{updatedNextPending.DueDate:dd/MM/yyyy}</td></tr>";
-                }
-
-                var emailBody = $"""
-<!DOCTYPE html>
-<html><head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-<div style="max-width:520px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-<div style="background:linear-gradient(135deg,#7c3aed,#a78bfa);padding:28px 30px;text-align:center;">
-<h1 style="color:#fff;margin:0;font-size:20px;">&#128200; Modificaci&#243;n de Tasa</h1>
-</div>
-<div style="padding:30px;">
-<p style="color:#334155;font-size:15px;margin:0 0 18px;">Hola <strong>{client.FirstName}</strong>,</p>
-<p style="color:#334155;font-size:15px;margin:0 0 24px;">La tasa de inter&#233;s de su pr&#233;stamo <strong>#{loan.LoanNumber}</strong> ha sido modificada.</p>
-<table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-<tr><td style="padding:10px 14px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;border-radius:6px 0 0 6px;">Nueva tasa anual</td><td style="padding:10px 14px;background:#f8fafc;font-size:18px;font-weight:700;color:#7c3aed;border-radius:0 6px 6px 0;">{vm.AnnualInterestRate}%</td></tr>
-<tr><td style="padding:10px 14px;color:#64748b;font-size:13px;font-weight:600;">Fecha de cambio</td><td style="padding:10px 14px;font-size:15px;color:#0b1f3a;">{DateTime.Now:dd/MM/yyyy}</td></tr>
-{nextInstallmentRow}
-{nextDueDateRow}
-</table>
-<div style="background:#fee2e2;border-left:4px solid #dc2626;padding:12px 16px;border-radius:0 6px 6px 0;margin-bottom:20px;">
-<p style="color:#991b1b;font-size:13px;margin:0;">&#128683; Si usted no reconoce esta modificaci&#243;n, comun&#237;quese con la entidad bancaria.</p>
-</div>
-</div>
-<div style="background:#f8fafc;padding:18px 30px;text-align:center;border-top:1px solid #e2e8f0;">
-<p style="color:#94a3b8;font-size:11px;margin:0;">Artemis Banking Pro &mdash; Plataforma de Banca Digital ITLA</p>
-</div>
-</div>
-</body></html>
-""";
 
                 await _emailService.SendAsync(new EmailRequestDto
                 {
                     To = client.Email,
-                    Subject = "Modificaci&#243;n de tasa de inter&#233;s - Pr&#233;stamo",
-                    HtmlBody = emailBody
+                    Subject = $"Actualización de tasa de interés - Préstamo #{loan.LoanNumber}",
+                    HtmlBody = ABP.Core.Application.Helpers.EmailTemplates.LoanRateUpdated(
+                        client.FirstName, loan.LoanNumber, vm.AnnualInterestRate,
+                        updatedNextPending?.InstallmentAmount ?? 0,
+                        updatedNextPending?.DueDate.ToString("dd/MM/yyyy") ?? "N/A")
                 });
             }
 

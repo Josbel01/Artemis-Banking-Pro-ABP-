@@ -193,6 +193,54 @@ namespace ABP.Core.Application.Services
             return createdLoan;
         }
 
+        public async Task RecalculateFutureInstallmentsAsync(int loanId, decimal newAnnualRate)
+        {
+            var loanEntity = await _loanRepository.GetByIdAsync(loanId);
+            if (loanEntity == null) return;
+
+            var allInstallments = await _loanInstallmentService.GetAllByLoanIdAsync(loanId);
+            if (allInstallments == null || !allInstallments.Any()) return;
+
+            // Only recalculate FUTURE unpaid installments (DueDate > today)
+            var futureUnpaid = allInstallments
+                .Where(i => i.PaymentStatus != PaymentStatus.Paid && i.DueDate.Date > DateTime.Now.Date)
+                .OrderBy(i => i.InstallmentNumber)
+                .ToList();
+
+            if (!futureUnpaid.Any()) return;
+
+            decimal remainingPrincipal = futureUnpaid.Sum(i => i.CapitalAmount);
+            decimal monthlyRate = newAnnualRate / 100m / 12m;
+
+            foreach (var installment in futureUnpaid)
+            {
+                decimal interest = remainingPrincipal * monthlyRate;
+                installment.InterestAmount = Math.Round(interest, 2);
+
+                if (installment == futureUnpaid.Last())
+                {
+                    installment.CapitalAmount = remainingPrincipal;
+                }
+                else
+                {
+                    decimal capitalPerInstallment = remainingPrincipal / futureUnpaid.Count;
+                    installment.CapitalAmount = Math.Round(capitalPerInstallment, 2);
+                }
+
+                installment.InstallmentAmount = Math.Round(installment.InterestAmount + installment.CapitalAmount, 2);
+                installment.PendingAmount = installment.InstallmentAmount;
+
+                await _loanInstallmentService.UpdateAsync(installment, installment.Id);
+
+                remainingPrincipal -= installment.CapitalAmount;
+            }
+
+            // Update loan total pending
+            loanEntity.AmountPending = allInstallments.Where(i => i.PaymentStatus != PaymentStatus.Paid).Sum(i => i.PendingAmount);
+            loanEntity.AnnualInterestRate = newAnnualRate;
+            await UpdateAsync(_mapper.Map<LoanDto>(loanEntity), loanId);
+        }
+
         private async Task<List<Dtos.User.UserDto>> GetAllUsersAsync()
         {
             return await _accountService.GetAllUser();

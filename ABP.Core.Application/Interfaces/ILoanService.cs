@@ -12,5 +12,6 @@ namespace ABP.Core.Application.Interfaces
         decimal CalculateClientDebt(string clientId, List<LoanDto> loans, List<CreditCardDto> creditCards);
         Task<(bool hasRisk, string message, decimal avgDebt, decimal currentDebt, decimal projectedDebt)> EvaluateRiskAsync(string clientId, decimal principal, decimal rate, int term);
         Task<LoanDto?> ProcessLoanCreationAsync(string clientId, decimal principal, decimal rate, int term, string assignedByUserId);
+        Task RecalculateFutureInstallmentsAsync(int loanId, decimal newAnnualRate);
     }
 }

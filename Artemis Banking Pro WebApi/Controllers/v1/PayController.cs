@@ -1,4 +1,5 @@
 using ABP.Core.Application.Features.HermesPay.Commands.ProcessPayment;
+using ABP.Core.Application.Dtos.HermesPay;
 using ABP.Core.Application.Features.HermesPay.Queries.GetPaymentTransactions;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;

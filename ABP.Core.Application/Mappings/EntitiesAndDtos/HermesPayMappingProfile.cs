@@ -1,4 +1,4 @@
-using ABP.Core.Application.Features.HermesPay.Queries.GetPaymentTransactions;
+using ABP.Core.Application.Dtos.HermesPay;
 using ABP.Core.Domain.Entities;
 using AutoMapper;
 
