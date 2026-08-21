@@ -304,27 +304,37 @@ namespace ArtemisBankingPro.Controllers
             if (confirm != "yes")
                 return RedirectToAction(nameof(Index));
 
-            string clientId = TempData["RiskClientId"]?.ToString();
-            decimal principal = decimal.Parse(TempData["RiskPrincipal"]?.ToString() ?? "0");
-            decimal rate = decimal.Parse(TempData["RiskRate"]?.ToString() ?? "0");
-            int term = int.Parse(TempData["RiskTerm"]?.ToString() ?? "0");
-
-            var client = await _accountService.GetUserById(clientId);
-            var clientLoans = await _loanService.GetAllByClientIdAsync(clientId);
-
-            var vm = new SaveLoanViewModel
+            try
             {
-                ClientId = clientId,
-                PrincipalAmount = principal,
-                InterestRate = rate,
-                TermInMonths = term
-            };
+                string clientId = TempData["RiskClientId"]?.ToString();
+                decimal principal = decimal.Parse(TempData["RiskPrincipal"]?.ToString() ?? "0");
+                decimal rate = decimal.Parse(TempData["RiskRate"]?.ToString() ?? "0");
+                int term = int.Parse(TempData["RiskTerm"]?.ToString() ?? "0");
 
-            return await ProcessLoanCreation(vm, client, clientLoans);
+                var client = await _accountService.GetUserById(clientId);
+                var clientLoans = await _loanService.GetAllByClientIdAsync(clientId);
+
+                var vm = new SaveLoanViewModel
+                {
+                    ClientId = clientId,
+                    PrincipalAmount = principal,
+                    InterestRate = rate,
+                    TermInMonths = term
+                };
+
+                return await ProcessLoanCreation(vm, client, clientLoans);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error al confirmar el pr\u00e9stamo: {ex.Message}";
+                return RedirectToAction(nameof(Create));
+            }
         }
 
         private async Task<IActionResult> ProcessLoanCreation(SaveLoanViewModel vm, UserDto client, List<LoanDto> clientLoans)
         {
+            try
+            {
             if (client == null || !client.IsActive)
             {
                 TempData["ErrorMessage"] = "El cliente seleccionado no existe o no est\u00e1 activo.";
@@ -366,6 +376,12 @@ namespace ArtemisBankingPro.Controllers
             dto.AmountPending = installments.Sum(i => i.InstallmentAmount);
 
             var createdLoan = await _loanService.AddAsync(dto);
+
+            if (createdLoan == null)
+            {
+                TempData["ErrorMessage"] = "Error al crear el pr\u00e9stamo. Verifique los datos e intente nuevamente.";
+                return RedirectToAction(nameof(Create));
+            }
 
             // Add installments separately after loan is created
             foreach (var installment in installments)
@@ -455,6 +471,12 @@ namespace ArtemisBankingPro.Controllers
 
             TempData["SuccessMessage"] = "Pr\u00e9stamo asignado correctamente.";
             return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error al crear el pr\u00e9stamo: {ex.Message}";
+                return RedirectToAction(nameof(Create));
+            }
         }
 
         // ==================== Edit Rate ====================
@@ -518,7 +540,10 @@ namespace ArtemisBankingPro.Controllers
                 {
                     decimal interest = installment.PendingAmount * monthlyRate;
                     installment.InterestAmount = Math.Round(interest, 2);
-                    installment.CapitalAmount = Math.Round(installment.InstallmentAmount - installment.InterestAmount, 2);
+                    installment.CapitalAmount = Math.Round(installment.PendingAmount - installment.InterestAmount, 2);
+                    installment.InstallmentAmount = Math.Round(installment.InterestAmount + installment.CapitalAmount, 2);
+                    // Save recalculated installment back to DB
+                    await _loanInstallmentService.UpdateAsync(installment, installment.Id);
                 }
             }
 

@@ -163,38 +163,50 @@ namespace ArtemisBankingPro.Controllers
             if (confirm != "yes")
                 return RedirectToAction(nameof(Transfer));
 
-            var vm = new SaveTransferViewModel
-            {
-                OriginAccountNumber = TempData["ConfirmOriginAccount"]?.ToString() ?? "",
-                DestinationAccountNumber = TempData["ConfirmDestAccount"]?.ToString() ?? "",
-                Amount = decimal.Parse(TempData["ConfirmAmount"]?.ToString() ?? "0")
-            };
-
-            var dto = _mapper.Map<SaveTransferDto>(vm);
-            var success = await _transactionService.TransferAsync(dto);
-
-            if (!success)
-            {
-                TempData["ErrorMessage"] = "La transferencia falló. Verifique los datos e intente de nuevo.";
-                return RedirectToAction(nameof(Transfer));
-            }
-
-            // Send email to beneficiary
             try
             {
-                var destAccount = await _savingAccountService.GetByAccountNumberAsync(vm.DestinationAccountNumber);
-                if (destAccount != null)
+                var originAccountNumber = TempData["ConfirmOriginAccount"]?.ToString();
+                var destAccountNumber = TempData["ConfirmDestAccount"]?.ToString();
+                var amountStr = TempData["ConfirmAmount"]?.ToString();
+
+                if (string.IsNullOrEmpty(originAccountNumber) || string.IsNullOrEmpty(destAccountNumber) || string.IsNullOrEmpty(amountStr))
                 {
-                    var destUser = await _accountService.GetUserById(destAccount.ClientId);
-                    if (destUser != null)
+                    TempData["ErrorMessage"] = "Los datos de la transferencia han expirado. Intente de nuevo.";
+                    return RedirectToAction(nameof(Transfer));
+                }
+
+                var vm = new SaveTransferViewModel
+                {
+                    OriginAccountNumber = originAccountNumber,
+                    DestinationAccountNumber = destAccountNumber,
+                    Amount = decimal.Parse(amountStr)
+                };
+
+                var dto = _mapper.Map<SaveTransferDto>(vm);
+                var success = await _transactionService.TransferAsync(dto);
+
+                if (!success)
+                {
+                    TempData["ErrorMessage"] = "La transferencia falló. Verifique los datos e intente de nuevo.";
+                    return RedirectToAction(nameof(Transfer));
+                }
+
+                // Send email to beneficiary (non-blocking)
+                try
+                {
+                    var destAcc = await _savingAccountService.GetByAccountNumberAsync(vm.DestinationAccountNumber);
+                    if (destAcc != null)
                     {
-                        var originAccount = await _savingAccountService.GetByAccountNumberAsync(vm.OriginAccountNumber);
-                        var lastFourOrigin = originAccount != null ? vm.OriginAccountNumber.Substring(Math.Max(0, vm.OriginAccountNumber.Length - 4)) : "****";
-                        await _emailService.SendAsync(new ABP.Core.Application.Dtos.Email.EmailRequestDto
+                        var destUser = await _accountService.GetUserById(destAcc.ClientId);
+                        if (destUser != null)
                         {
-                            To = destUser.Email,
-                            Subject = $"Transferencia recibida de RD${vm.Amount:N2}",
-                            HtmlBody = $"""
+                            var originAcc = await _savingAccountService.GetByAccountNumberAsync(vm.OriginAccountNumber);
+                            var lastFourOrigin = originAcc != null ? vm.OriginAccountNumber.Substring(Math.Max(0, vm.OriginAccountNumber.Length - 4)) : "****";
+                            await _emailService.SendAsync(new ABP.Core.Application.Dtos.Email.EmailRequestDto
+                            {
+                                To = destUser.Email,
+                                Subject = $"Transferencia recibida de RD${vm.Amount:N2}",
+                                HtmlBody = $"""
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
@@ -218,17 +230,23 @@ namespace ArtemisBankingPro.Controllers
 </div>
 </body></html>
 """
-                        });
+                            });
+                        }
                     }
                 }
+                catch (Exception emailEx)
+                {
+                    // Don't fail the transfer if email fails
+                }
+
+                TempData["SuccessMessage"] = $"Transferencia de RD${vm.Amount:N2} realizada exitosamente a la cuenta {vm.DestinationAccountNumber}.";
+                return RedirectToAction("Index", "Client");
             }
             catch (Exception ex)
             {
-                // Don't fail the transfer if email fails
+                TempData["ErrorMessage"] = $"Error al procesar la transferencia: {ex.Message}";
+                return RedirectToAction(nameof(Transfer));
             }
-
-            TempData["SuccessMessage"] = $"Transferencia de RD${vm.Amount:N2} realizada exitosamente a la cuenta {vm.DestinationAccountNumber}.";
-            return RedirectToAction("Index", "Client");
         }
 
         // ─── CASH ADVANCE ──────────────────────────────────────

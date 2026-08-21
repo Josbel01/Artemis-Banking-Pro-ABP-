@@ -1,0 +1,109 @@
+@model ABP.Core.Application.ViewModels.Cashier.PreConfirmOperationViewModel
+@{
+    ViewData["Title"] = "Confirmar Operación";
+
+    var iconMap = new Dictionary<string, string>
+    {
+        { "Depósito", "fa-arrow-down-to-bracket" },
+        { "Retiro", "fa-arrow-up-from-bracket" },
+        { "Pago a Tarjeta de Crédito", "fa-credit-card" },
+        { "Pago a Préstamo", "fa-hand-holding-dollar" },
+        { "Transferencia entre Cuentas", "fa-arrows-left-right" }
+    };
+    var icon = iconMap.GetValueOrDefault(Model?.OperationType ?? "", "fa-circle-check");
+
+    var colorMap = new Dictionary<string, string>
+    {
+        { "Depósito", "#16a34a" },
+        { "Retiro", "#dc2626" },
+        { "Pago a Tarjeta de Crédito", "#1a56db" },
+        { "Pago a Préstamo", "#7c3aed" },
+        { "Transferencia entre Cuentas", "#0891b2" }
+    };
+    var colorHex = colorMap.GetValueOrDefault(Model?.OperationType ?? "", "#475569");
+
+    var actionMap = new Dictionary<string, string>
+    {
+        { "Depósito", "ConfirmDeposit" },
+        { "Retiro", "ConfirmWithdrawal" },
+        { "Pago a Tarjeta de Crédito", "ConfirmCreditCardPayment" },
+        { "Pago a Préstamo", "ConfirmLoanPayment" },
+        { "Transferencia entre Cuentas", "ConfirmTransfer" }
+    };
+    var action = actionMap.GetValueOrDefault(Model?.OperationType ?? "", "Home");
+}
+
+<div class="container-xxl py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, @colorHex, @(colorHex)cc); border-radius: 16px 16px 0 0;">
+                    <h4 class="fw-bold text-white mb-0"><i class="fa-solid @icon me-2"></i>Confirmar @Model?.OperationType</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div style="width:60px; height:60px; border-radius:50%; background:@(colorHex)1A; display:flex; align-items:center; justify-content:center; margin:0 auto;">
+                            <i class="fa-solid @icon fa-lg" style="color:@colorHex;"></i>
+                        </div>
+                        <p class="mt-3 fw-semibold" style="color:#334155;">¿Está seguro de que desea realizar esta transacción?</p>
+                    </div>
+
+                    <div class="p-3 mb-3" style="background:#f8fafc; border-radius:10px;">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Operación</span>
+                            <span class="fw-bold" style="color:@colorHex;">@Model?.OperationType</span>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model?.AccountNumber))
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Cuenta @(Model?.OperationType == "Depósito" ? "Destino" : "Origen")</span>
+                                <span class="fw-bold" style="font-family:monospace;">@Model?.AccountNumber</span>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model?.AccountHolderName))
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Titular</span>
+                                <span class="fw-bold">@Model?.AccountHolderName</span>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model?.DestinationAccountNumber))
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Cuenta Destino</span>
+                                <span class="fw-bold" style="font-family:monospace;">@Model?.DestinationAccountNumber</span>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model?.DestinationHolderName))
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Titular Destino</span>
+                                <span class="fw-bold">@Model?.DestinationHolderName</span>
+                            </div>
+                        }
+
+                        <hr class="my-2" />
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted fw-bold">Monto</span>
+                            <span class="fw-bold" style="color:@colorHex; font-size:1.2rem;">RD$@Model?.Amount.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <form method="post" asp-controller="Cashier" asp-action="@action" class="d-flex gap-2">
+                        @Html.AntiForgeryToken()
+                        <a asp-controller="Cashier" asp-action="Home" class="btn btn-outline-secondary flex-fill fw-semibold" style="border-radius:8px;">
+                            <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                        </a>
+                        <button type="submit" name="confirm" value="yes" class="btn flex-fill fw-semibold text-white" style="background:@colorHex; border:none; border-radius:8px;">
+                            <i class="fa-solid fa-check me-1"></i>Confirmar Asignación
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

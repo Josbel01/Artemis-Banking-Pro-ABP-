@@ -214,12 +214,16 @@ namespace ABP.Unit.Tests.Services
         [Fact]
         public async Task CreditCardPaymentAsync_Should_Return_Success_When_Valid()
         {
-            var card = new CreditCard { Id = 1, CardNumber = "4111111111111111", CurrentDebt = 2000, Status = CreditCardStatus.Active };
+            var card = new CreditCard { Id = 1, CardNumber = "4111111111111111", CurrentDebt = 2000, Status = CreditCardStatus.Active, ClientId = "client1" };
+            var originAccount = new SavingAccount { Id = 10, AccountNumber = "ACC001", Balance = 5000, Status = SavingAccountStatus.Active, ClientId = "client2" };
             _creditCardRepo.Setup(r => r.GetByCardNumberAsync("4111111111111111")).ReturnsAsync(card);
             _creditCardRepo.Setup(r => r.UpdateAsync(It.IsAny<int>(), It.IsAny<CreditCard>())).ReturnsAsync(card);
+            _savingAccountRepo.Setup(r => r.GetByAccountNumberAsync("ACC001")).ReturnsAsync(originAccount);
+            _savingAccountRepo.Setup(r => r.UpdateAsync(It.IsAny<int>(), It.IsAny<SavingAccount>())).ReturnsAsync(originAccount);
             _cardTransactionRepo.Setup(r => r.AddAsync(It.IsAny<CardTransaction>())).ReturnsAsync(new CardTransaction { Id = 1 });
+            _transactionRepo.Setup(r => r.AddAsync(It.IsAny<Transaction>())).ReturnsAsync(new Transaction { Id = 1 });
 
-            var dto = new CashierCreditCardPaymentDto { CardNumber = "4111111111111111", Amount = 500, ResponsibleUserId = "cashier1" };
+            var dto = new CashierCreditCardPaymentDto { CardNumber = "4111111111111111", Amount = 500, OriginAccountNumber = "ACC001", ResponsibleUserId = "cashier1" };
 
             var result = await _service.CreditCardPaymentAsync(dto);
 
@@ -228,6 +232,7 @@ namespace ABP.Unit.Tests.Services
             result.Amount.Should().Be(500);
             result.NewBalance.Should().Be(1500);
             card.CurrentDebt.Should().Be(1500);
+            originAccount.Balance.Should().Be(4500);
         }
 
         [Fact]
@@ -292,11 +297,15 @@ namespace ABP.Unit.Tests.Services
         [Fact]
         public async Task LoanPaymentAsync_Should_Return_Success_When_Valid()
         {
-            var loan = new Loan { Id = 1, LoanNumber = "LN001", AmountPending = 5000, PaidInstallments = 0, Status = LoanStatus.Active };
+            var loan = new Loan { Id = 1, LoanNumber = "LN001", AmountPending = 5000, PaidInstallments = 0, Status = LoanStatus.Active, ClientId = "client1" };
+            var originAccount = new SavingAccount { Id = 10, AccountNumber = "ACC001", Balance = 5000, Status = SavingAccountStatus.Active, ClientId = "client2" };
             _loanRepo.Setup(r => r.GetByLoanNumberAsync("LN001")).ReturnsAsync(loan);
             _loanRepo.Setup(r => r.UpdateAsync(It.IsAny<int>(), It.IsAny<Loan>())).ReturnsAsync(loan);
+            _savingAccountRepo.Setup(r => r.GetByAccountNumberAsync("ACC001")).ReturnsAsync(originAccount);
+            _savingAccountRepo.Setup(r => r.UpdateAsync(It.IsAny<int>(), It.IsAny<SavingAccount>())).ReturnsAsync(originAccount);
+            _transactionRepo.Setup(r => r.AddAsync(It.IsAny<Transaction>())).ReturnsAsync(new Transaction { Id = 1 });
 
-            var dto = new CashierLoanPaymentDto { LoanNumber = "LN001", Amount = 1000, ResponsibleUserId = "cashier1" };
+            var dto = new CashierLoanPaymentDto { LoanNumber = "LN001", Amount = 1000, OriginAccountNumber = "ACC001", ResponsibleUserId = "cashier1" };
 
             var result = await _service.LoanPaymentAsync(dto);
 
@@ -306,16 +315,21 @@ namespace ABP.Unit.Tests.Services
             result.NewBalance.Should().Be(4000);
             loan.AmountPending.Should().Be(4000);
             loan.PaidInstallments.Should().Be(1);
+            originAccount.Balance.Should().Be(4000);
         }
 
         [Fact]
         public async Task LoanPaymentAsync_Should_Mark_Completed_When_Fully_Paid()
         {
-            var loan = new Loan { Id = 1, LoanNumber = "LN002", AmountPending = 500, PaidInstallments = 11, Status = LoanStatus.Active };
+            var loan = new Loan { Id = 1, LoanNumber = "LN002", AmountPending = 500, PaidInstallments = 11, Status = LoanStatus.Active, ClientId = "client1" };
+            var originAccount = new SavingAccount { Id = 10, AccountNumber = "ACC001", Balance = 5000, Status = SavingAccountStatus.Active, ClientId = "client2" };
             _loanRepo.Setup(r => r.GetByLoanNumberAsync("LN002")).ReturnsAsync(loan);
             _loanRepo.Setup(r => r.UpdateAsync(It.IsAny<int>(), It.IsAny<Loan>())).ReturnsAsync(loan);
+            _savingAccountRepo.Setup(r => r.GetByAccountNumberAsync("ACC001")).ReturnsAsync(originAccount);
+            _savingAccountRepo.Setup(r => r.UpdateAsync(It.IsAny<int>(), It.IsAny<SavingAccount>())).ReturnsAsync(originAccount);
+            _transactionRepo.Setup(r => r.AddAsync(It.IsAny<Transaction>())).ReturnsAsync(new Transaction { Id = 1 });
 
-            var dto = new CashierLoanPaymentDto { LoanNumber = "LN002", Amount = 500, ResponsibleUserId = "cashier1" };
+            var dto = new CashierLoanPaymentDto { LoanNumber = "LN002", Amount = 500, OriginAccountNumber = "ACC001", ResponsibleUserId = "cashier1" };
 
             var result = await _service.LoanPaymentAsync(dto);
 

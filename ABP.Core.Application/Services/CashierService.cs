@@ -226,6 +226,18 @@ namespace ABP.Core.Application.Services
                 return Error($"El monto supera la deuda actual (RD${card.CurrentDebt:N2}). Use un monto igual o menor.");
             }
 
+            // Debit from origin savings account
+            var originAccount = await _savingAccountRepository.GetByAccountNumberAsync(dto.OriginAccountNumber);
+            if (originAccount == null)
+                return Error("No se encontró la cuenta de origen.");
+            if (originAccount.Status != SavingAccountStatus.Active)
+                return Error("La cuenta de origen está inactiva.");
+            if (originAccount.Balance < dto.Amount)
+                return Error($"Fondos insuficientes. Balance disponible: RD${originAccount.Balance:N2}");
+
+            originAccount.Balance -= dto.Amount;
+            await _savingAccountRepository.UpdateAsync(originAccount.Id, originAccount);
+
             card.CurrentDebt -= dto.Amount;
             await _creditCardRepository.UpdateAsync(card.Id, card);
 
@@ -237,7 +249,21 @@ namespace ABP.Core.Application.Services
                 CommerceName = "Pago en Caja",
                 Status = TransactionStatus.Approved
             };
-            var saved = await _cardTransactionRepository.AddAsync(cardTransaction);
+            var savedCard = await _cardTransactionRepository.AddAsync(cardTransaction);
+
+            // Register debit in savings account
+            var debitTx = new Transaction
+            {
+                SavingAccountId = originAccount.Id,
+                TransactionDate = DateTime.UtcNow,
+                Amount = dto.Amount,
+                Type = TransactionType.CreditCardPayment,
+                Beneficiary = card.CardNumber.Substring(card.CardNumber.Length - 4),
+                Origin = originAccount.AccountNumber,
+                Status = TransactionStatus.Approved,
+                ResponsibleUserId = dto.ResponsibleUserId
+            };
+            var saved = await _transactionRepository.AddAsync(debitTx);
 
             _logger.LogInformation("Credit card payment of RD${Amount} to card {Card} completed successfully. TxId: {TxId}", dto.Amount, dto.CardNumber, saved?.Id);
 
@@ -248,7 +274,8 @@ namespace ABP.Core.Application.Services
                 Success = true,
                 OperationType = "Pago a Tarjeta de Crédito",
                 Amount = dto.Amount,
-                AccountNumber = dto.CardNumber,
+                AccountNumber = originAccount.AccountNumber,
+                AccountHolderName = (await _accountService.GetUserById(originAccount.ClientId)) != null ? $"{(await _accountService.GetUserById(originAccount.ClientId))!.FirstName} {(await _accountService.GetUserById(originAccount.ClientId))!.LastName}" : "",
                 NewBalance = card.CurrentDebt,
                 OperationDate = DateTime.Now,
                 TransactionId = saved?.Id ?? 0
@@ -299,6 +326,18 @@ namespace ABP.Core.Application.Services
                 return Error($"El monto supera el saldo pendiente (RD${loan.AmountPending:N2}).");
             }
 
+            // Debit from origin savings account
+            var originAccount = await _savingAccountRepository.GetByAccountNumberAsync(dto.OriginAccountNumber);
+            if (originAccount == null)
+                return Error("No se encontró la cuenta de origen.");
+            if (originAccount.Status != SavingAccountStatus.Active)
+                return Error("La cuenta de origen está inactiva.");
+            if (originAccount.Balance < dto.Amount)
+                return Error($"Fondos insuficientes. Balance disponible: RD${originAccount.Balance:N2}");
+
+            originAccount.Balance -= dto.Amount;
+            await _savingAccountRepository.UpdateAsync(originAccount.Id, originAccount);
+
             loan.AmountPending -= dto.Amount;
             loan.PaidInstallments++;
 
@@ -310,6 +349,20 @@ namespace ABP.Core.Application.Services
 
             await _loanRepository.UpdateAsync(loan.Id, loan);
 
+            // Register debit in savings account
+            var debitTx = new Transaction
+            {
+                SavingAccountId = originAccount.Id,
+                TransactionDate = DateTime.UtcNow,
+                Amount = dto.Amount,
+                Type = TransactionType.LoanPayment,
+                Beneficiary = loan.LoanNumber,
+                Origin = originAccount.AccountNumber,
+                Status = TransactionStatus.Approved,
+                ResponsibleUserId = dto.ResponsibleUserId
+            };
+            var saved = await _transactionRepository.AddAsync(debitTx);
+
             _logger.LogInformation("Loan payment of RD${Amount} to loan {Loan} completed successfully.", dto.Amount, dto.LoanNumber);
 
             var result = new OperationResultDto
@@ -317,10 +370,11 @@ namespace ABP.Core.Application.Services
                 Success = true,
                 OperationType = "Pago a Préstamo",
                 Amount = dto.Amount,
-                AccountNumber = dto.LoanNumber,
+                AccountNumber = originAccount.AccountNumber,
+                AccountHolderName = (await _accountService.GetUserById(originAccount.ClientId)) != null ? $"{(await _accountService.GetUserById(originAccount.ClientId))!.FirstName} {(await _accountService.GetUserById(originAccount.ClientId))!.LastName}" : "",
                 NewBalance = loan.AmountPending,
                 OperationDate = DateTime.Now,
-                TransactionId = 0
+                TransactionId = saved?.Id ?? 0
             };
 
             // Send email to loan client
@@ -415,8 +469,7 @@ namespace ABP.Core.Application.Services
                 Type = TransactionType.Transfer,
                 Beneficiary = destinationAccount.AccountNumber,
                 Origin = originAccount.AccountNumber,
-                Status = TransactionStatus.Approved,
-                ResponsibleUserId = dto.ResponsibleUserId
+                Status = TransactionStatus.Approved
             };
             await _transactionRepository.AddAsync(creditTx);
 
@@ -489,7 +542,7 @@ namespace ABP.Core.Application.Services
             {
                 TotalDeposits        = dailyByMe.Count(t => t.Type == TransactionType.Deposit),
                 TotalWithdrawals     = dailyByMe.Count(t => t.Type == TransactionType.Withdrawal),
-                TotalCreditCardPayments = 0,
+                TotalCreditCardPayments = dailyByMe.Count(t => t.Type == TransactionType.CreditCardPayment),
                 TotalLoanPayments    = dailyByMe.Count(t => t.Type == TransactionType.LoanPayment),
                 TotalTransfers       = dailyByMe.Count(t => t.Type == TransactionType.Transfer),
                 TotalAmountOperated  = dailyByMe.Sum(t => t.Amount)

@@ -3,6 +3,7 @@ using ABP.Core.Application.Interfaces;
 using ABP.Core.Application.ViewModels.Cashier;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace ArtemisBankingPro.Controllers
 {
@@ -10,10 +11,14 @@ namespace ArtemisBankingPro.Controllers
     public class CashierController : Controller
     {
         private readonly ICashierService _cashierService;
+        private readonly ISavingAccountService _savingAccountService;
+        private readonly IBaseAccountService _accountService;
 
-        public CashierController(ICashierService cashierService)
+        public CashierController(ICashierService cashierService, ISavingAccountService savingAccountService, IBaseAccountService accountService)
         {
             _cashierService = cashierService;
+            _savingAccountService = savingAccountService;
+            _accountService = accountService;
         }
 
         private string? GetCashierUserId() => User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -26,143 +31,277 @@ namespace ArtemisBankingPro.Controllers
             return View(vm);
         }
 
+        // ==================== DEPOSIT ====================
+
         public IActionResult Deposit() => View(new DepositViewModel());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-       
         public async Task<IActionResult> Deposit(DepositViewModel vm)
         {
             if (!ModelState.IsValid)
                 return View(vm);
 
+            // Look up account holder name for confirmation screen
+            string holderName = await GetAccountHolderName(vm.AccountNumber);
+
+            TempData["PreConfirmData"] = JsonSerializer.Serialize(new PreConfirmOperationViewModel
+            {
+                OperationType = "Depósito",
+                Amount = vm.Amount,
+                AccountNumber = vm.AccountNumber,
+                AccountHolderName = holderName
+            });
+            return RedirectToAction(nameof(PreConfirmOperation));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmDeposit(string confirm)
+        {
+            if (confirm != "yes") return RedirectToAction(nameof(Home));
+
+            var data = GetPreConfirmData<DepositViewModel>();
+            if (data == null) return RedirectToAction(nameof(Home));
+
             var result = await _cashierService.DepositAsync(new CashierDepositDto
             {
-                AccountNumber = vm.AccountNumber,
-                Amount = vm.Amount,
+                AccountNumber = data.AccountNumber,
+                Amount = data.Amount,
                 ResponsibleUserId = GetCashierUserId()
             });
 
             if (!result.Success)
             {
-                ModelState.AddModelError("", result.ErrorMessage ?? "Error al procesar el depÃ³sito.");
-                return View(vm);
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Error al procesar el depósito.";
+                return RedirectToAction(nameof(Deposit));
             }
 
-            TempData["OperationResult"] = System.Text.Json.JsonSerializer.Serialize(result);
+            TempData["OperationResult"] = JsonSerializer.Serialize(result);
             return RedirectToAction(nameof(Confirmation));
         }
+
+        // ==================== WITHDRAWAL ====================
 
         public IActionResult Withdrawal() => View(new WithdrawalViewModel());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-      
         public async Task<IActionResult> Withdrawal(WithdrawalViewModel vm)
         {
             if (!ModelState.IsValid)
                 return View(vm);
 
+            string holderName = await GetAccountHolderName(vm.AccountNumber);
+
+            TempData["PreConfirmData"] = JsonSerializer.Serialize(new PreConfirmOperationViewModel
+            {
+                OperationType = "Retiro",
+                Amount = vm.Amount,
+                AccountNumber = vm.AccountNumber,
+                AccountHolderName = holderName
+            });
+            return RedirectToAction(nameof(PreConfirmOperation));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmWithdrawal(string confirm)
+        {
+            if (confirm != "yes") return RedirectToAction(nameof(Home));
+
+            var data = GetPreConfirmData<WithdrawalViewModel>();
+            if (data == null) return RedirectToAction(nameof(Home));
+
             var result = await _cashierService.WithdrawalAsync(new CashierWithdrawalDto
             {
-                AccountNumber = vm.AccountNumber,
-                Amount = vm.Amount,
+                AccountNumber = data.AccountNumber,
+                Amount = data.Amount,
                 ResponsibleUserId = GetCashierUserId()
             });
 
             if (!result.Success)
             {
-                ModelState.AddModelError("", result.ErrorMessage ?? "Error al procesar el retiro.");
-                return View(vm);
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Error al procesar el retiro.";
+                return RedirectToAction(nameof(Withdrawal));
             }
 
-            TempData["OperationResult"] = System.Text.Json.JsonSerializer.Serialize(result);
+            TempData["OperationResult"] = JsonSerializer.Serialize(result);
             return RedirectToAction(nameof(Confirmation));
         }
+
+        // ==================== CREDIT CARD PAYMENT ====================
 
         public IActionResult CreditCardPayment() => View(new CreditCardPaymentViewModel());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        
         public async Task<IActionResult> CreditCardPayment(CreditCardPaymentViewModel vm)
         {
             if (!ModelState.IsValid)
                 return View(vm);
 
+            string holderName = await GetAccountHolderName(vm.OriginAccountNumber);
+
+            TempData["PreConfirmData"] = JsonSerializer.Serialize(new PreConfirmOperationViewModel
+            {
+                OperationType = "Pago a Tarjeta de Crédito",
+                Amount = vm.Amount,
+                AccountNumber = vm.OriginAccountNumber,
+                DestinationAccountNumber = vm.CardNumber,
+                AccountHolderName = holderName
+            });
+            return RedirectToAction(nameof(PreConfirmOperation));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmCreditCardPayment(string confirm)
+        {
+            if (confirm != "yes") return RedirectToAction(nameof(Home));
+
+            var data = GetPreConfirmData<CreditCardPaymentViewModel>();
+            if (data == null) return RedirectToAction(nameof(Home));
+
             var result = await _cashierService.CreditCardPaymentAsync(new CashierCreditCardPaymentDto
             {
-                CardNumber = vm.CardNumber,
-                Amount = vm.Amount,
-                OriginAccountNumber = vm.OriginAccountNumber,
+                CardNumber = data.CardNumber,
+                Amount = data.Amount,
+                OriginAccountNumber = data.OriginAccountNumber,
                 ResponsibleUserId = GetCashierUserId()
             });
 
             if (!result.Success)
             {
-                ModelState.AddModelError("", result.ErrorMessage ?? "Error al procesar el pago a la tarjeta.");
-                return View(vm);
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Error al procesar el pago a la tarjeta.";
+                return RedirectToAction(nameof(CreditCardPayment));
             }
 
-            TempData["OperationResult"] = System.Text.Json.JsonSerializer.Serialize(result);
+            TempData["OperationResult"] = JsonSerializer.Serialize(result);
             return RedirectToAction(nameof(Confirmation));
         }
+
+        // ==================== LOAN PAYMENT ====================
 
         public IActionResult LoanPayment() => View(new LoanPaymentViewModel());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        
         public async Task<IActionResult> LoanPayment(LoanPaymentViewModel vm)
         {
             if (!ModelState.IsValid)
                 return View(vm);
 
+            string holderName = await GetAccountHolderName(vm.OriginAccountNumber);
+
+            TempData["PreConfirmData"] = JsonSerializer.Serialize(new PreConfirmOperationViewModel
+            {
+                OperationType = "Pago a Préstamo",
+                Amount = vm.Amount,
+                AccountNumber = vm.OriginAccountNumber,
+                DestinationAccountNumber = vm.LoanNumber,
+                AccountHolderName = holderName
+            });
+            return RedirectToAction(nameof(PreConfirmOperation));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmLoanPayment(string confirm)
+        {
+            if (confirm != "yes") return RedirectToAction(nameof(Home));
+
+            var data = GetPreConfirmData<LoanPaymentViewModel>();
+            if (data == null) return RedirectToAction(nameof(Home));
+
             var result = await _cashierService.LoanPaymentAsync(new CashierLoanPaymentDto
             {
-                LoanNumber = vm.LoanNumber,
-                Amount = vm.Amount,
-                OriginAccountNumber = vm.OriginAccountNumber,
+                LoanNumber = data.LoanNumber,
+                Amount = data.Amount,
+                OriginAccountNumber = data.OriginAccountNumber,
                 ResponsibleUserId = GetCashierUserId()
             });
 
             if (!result.Success)
             {
-                ModelState.AddModelError("", result.ErrorMessage ?? "Error al procesar el pago al prÃ©stamo.");
-                return View(vm);
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Error al procesar el pago al préstamo.";
+                return RedirectToAction(nameof(LoanPayment));
             }
 
-            TempData["OperationResult"] = System.Text.Json.JsonSerializer.Serialize(result);
+            TempData["OperationResult"] = JsonSerializer.Serialize(result);
             return RedirectToAction(nameof(Confirmation));
         }
+
+        // ==================== TRANSFER ====================
 
         public IActionResult Transfer() => View(new CashierTransferViewModel());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-       
         public async Task<IActionResult> Transfer(CashierTransferViewModel vm)
         {
             if (!ModelState.IsValid)
                 return View(vm);
 
+            string originHolder = await GetAccountHolderName(vm.OriginAccountNumber);
+            string destHolder = await GetAccountHolderName(vm.DestinationAccountNumber);
+
+            TempData["PreConfirmData"] = JsonSerializer.Serialize(new PreConfirmOperationViewModel
+            {
+                OperationType = "Transferencia entre Cuentas",
+                Amount = vm.Amount,
+                AccountNumber = vm.OriginAccountNumber,
+                DestinationAccountNumber = vm.DestinationAccountNumber,
+                AccountHolderName = originHolder,
+                DestinationHolderName = destHolder
+            });
+            return RedirectToAction(nameof(PreConfirmOperation));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmTransfer(string confirm)
+        {
+            if (confirm != "yes") return RedirectToAction(nameof(Home));
+
+            var data = GetPreConfirmData<CashierTransferViewModel>();
+            if (data == null) return RedirectToAction(nameof(Home));
+
             var result = await _cashierService.TransferBetweenAccountsAsync(new CashierTransferDto
             {
-                OriginAccountNumber = vm.OriginAccountNumber,
-                DestinationAccountNumber = vm.DestinationAccountNumber,
-                Amount = vm.Amount,
+                OriginAccountNumber = data.OriginAccountNumber,
+                DestinationAccountNumber = data.DestinationAccountNumber,
+                Amount = data.Amount,
                 ResponsibleUserId = GetCashierUserId()
             });
 
             if (!result.Success)
             {
-                ModelState.AddModelError("", result.ErrorMessage ?? "Error al procesar la transferencia.");
-                return View(vm);
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Error al procesar la transferencia.";
+                return RedirectToAction(nameof(Transfer));
             }
 
-            TempData["OperationResult"] = System.Text.Json.JsonSerializer.Serialize(result);
+            TempData["OperationResult"] = JsonSerializer.Serialize(result);
             return RedirectToAction(nameof(Confirmation));
         }
+
+        // ==================== PRE-CONFIRMATION ====================
+
+        public IActionResult PreConfirmOperation()
+        {
+            var json = TempData.Peek("PreConfirmData")?.ToString();
+            if (string.IsNullOrEmpty(json))
+                return RedirectToAction(nameof(Home));
+
+            var vm = JsonSerializer.Deserialize<PreConfirmOperationViewModel>(json);
+            if (vm == null) return RedirectToAction(nameof(Home));
+
+            // Keep so ConfirmXxx POST can read it
+            TempData.Keep();
+            return View(vm);
+        }
+
+        // ==================== RESULT CONFIRMATION ====================
 
         public IActionResult Confirmation()
         {
@@ -170,7 +309,7 @@ namespace ArtemisBankingPro.Controllers
             if (string.IsNullOrEmpty(json))
                 return RedirectToAction(nameof(Home));
 
-            var result = System.Text.Json.JsonSerializer.Deserialize<OperationResultDto>(json);
+            var result = JsonSerializer.Deserialize<OperationResultDto>(json);
             if (result == null) return RedirectToAction(nameof(Home));
 
             var vm = new ConfirmationViewModel
@@ -188,6 +327,8 @@ namespace ArtemisBankingPro.Controllers
             return View(vm);
         }
 
+        // ==================== HISTORY ====================
+
         public async Task<IActionResult> History()
         {
             var cashierId = GetCashierUserId();
@@ -195,6 +336,29 @@ namespace ArtemisBankingPro.Controllers
             var vm = CashierHistoryViewModel.FromDtoList(transactions);
             return View(vm);
         }
+
+        // ==================== HELPERS ====================
+
+        private async Task<string> GetAccountHolderName(string accountNumber)
+        {
+            try
+            {
+                var account = await _savingAccountService.GetByAccountNumberAsync(accountNumber);
+                if (account == null) return "";
+                var user = await _accountService.GetUserById(account.ClientId);
+                return user != null ? $"{user.FirstName} {user.LastName}" : "";
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
+        private T? GetPreConfirmData<T>() where T : class
+        {
+            var json = TempData["PreConfirmData"]?.ToString();
+            if (string.IsNullOrEmpty(json)) return null;
+            return JsonSerializer.Deserialize<T>(json);
+        }
     }
 }
-
