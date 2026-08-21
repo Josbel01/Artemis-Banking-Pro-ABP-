@@ -43,7 +43,7 @@ namespace ArtemisBankingPro.Controllers
                 filteredUsers = filteredUsers.Where(u => u.Roles != null && u.Roles.Contains(filterRole)).ToList();
             }
 
-            filteredUsers.Reverse(); // Newest to oldest
+            filteredUsers = filteredUsers.OrderByDescending(u => u.CreatedAt).ToList();
 
             int totalRecords = filteredUsers.Count;
             int totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);

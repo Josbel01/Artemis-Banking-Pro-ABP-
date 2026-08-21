@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentAssertions;
 using ABP.Core.Application.Dtos.Loans;
+using ABP.Core.Application.Interfaces;
 using ABP.Core.Application.Mappings.EntitiesAndDtos;
 using ABP.Core.Application.Services;
 using ABP.Core.Domain.Entities;
@@ -42,7 +43,15 @@ namespace ABP.Unit.Tests.Services
 
             var context = new ArtemisBankingAppContext(_dbOptions);
             var repo = new LoanRepository(context, new NullLogger<GenericRepository<Loan>>());
-            return new LoanService(repo, _mapper, factoryMoq.Object);
+            return new LoanService(
+                repo,
+                new Mock<ILoanInstallmentService>().Object,
+                new Mock<ISavingAccountService>().Object,
+                new Mock<ITransactionService>().Object,
+                new Mock<IEmailService>().Object,
+                new Mock<ICreditCardService>().Object,
+                new Mock<IBaseAccountService>().Object,
+                _mapper, factoryMoq.Object);
         }
 
         [Fact]

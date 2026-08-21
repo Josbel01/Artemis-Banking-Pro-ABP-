@@ -52,6 +52,7 @@ namespace ArtemisBankingPro.Controllers
                 AccountNumber = vm.AccountNumber,
                 AccountHolderName = holderName
             });
+            TempData["CashierUserId"] = GetCashierUserId() ?? string.Empty;
             return RedirectToAction(nameof(PreConfirmOperation));
         }
 
@@ -68,7 +69,7 @@ namespace ArtemisBankingPro.Controllers
             {
                 AccountNumber = data.AccountNumber,
                 Amount = data.Amount,
-                ResponsibleUserId = GetCashierUserId()
+                ResponsibleUserId = TempData["CashierUserId"]?.ToString() ?? string.Empty
             });
 
             if (!result.Success)
@@ -90,10 +91,7 @@ namespace ArtemisBankingPro.Controllers
         public async Task<IActionResult> Withdrawal(WithdrawalViewModel vm)
         {
             if (!ModelState.IsValid)
-                return View(vm);
-
-            string holderName = await GetAccountHolderName(vm.AccountNumber);
-
+                return View(vm);            string holderName = await GetAccountHolderName(vm.AccountNumber);
             TempData["PreConfirmData"] = JsonSerializer.Serialize(new PreConfirmOperationViewModel
             {
                 OperationType = "Retiro",
@@ -101,6 +99,7 @@ namespace ArtemisBankingPro.Controllers
                 AccountNumber = vm.AccountNumber,
                 AccountHolderName = holderName
             });
+            TempData["CashierUserId"] = GetCashierUserId() ?? string.Empty;
             return RedirectToAction(nameof(PreConfirmOperation));
         }
 
@@ -117,7 +116,7 @@ namespace ArtemisBankingPro.Controllers
             {
                 AccountNumber = data.AccountNumber,
                 Amount = data.Amount,
-                ResponsibleUserId = GetCashierUserId()
+                ResponsibleUserId = TempData["CashierUserId"]?.ToString() ?? string.Empty
             });
 
             if (!result.Success)
@@ -148,9 +147,10 @@ namespace ArtemisBankingPro.Controllers
                 OperationType = "Pago a Tarjeta de Crédito",
                 Amount = vm.Amount,
                 AccountNumber = vm.OriginAccountNumber,
-                DestinationAccountNumber = vm.CardNumber,
+                CardNumber = vm.CardNumber?.Trim(),
                 AccountHolderName = holderName
             });
+            TempData["CashierUserId"] = GetCashierUserId() ?? string.Empty;
             return RedirectToAction(nameof(PreConfirmOperation));
         }
 
@@ -160,15 +160,15 @@ namespace ArtemisBankingPro.Controllers
         {
             if (confirm != "yes") return RedirectToAction(nameof(Home));
 
-            var data = GetPreConfirmData<CreditCardPaymentViewModel>();
+            var data = GetPreConfirmData<PreConfirmOperationViewModel>();
             if (data == null) return RedirectToAction(nameof(Home));
 
             var result = await _cashierService.CreditCardPaymentAsync(new CashierCreditCardPaymentDto
             {
-                CardNumber = data.CardNumber,
+                CardNumber = data.CardNumber?.Trim() ?? string.Empty,
                 Amount = data.Amount,
-                OriginAccountNumber = data.OriginAccountNumber,
-                ResponsibleUserId = GetCashierUserId()
+                OriginAccountNumber = data.AccountNumber?.Trim() ?? string.Empty,
+                ResponsibleUserId = TempData["CashierUserId"]?.ToString() ?? string.Empty
             });
 
             if (!result.Success)
@@ -199,9 +199,10 @@ namespace ArtemisBankingPro.Controllers
                 OperationType = "Pago a Préstamo",
                 Amount = vm.Amount,
                 AccountNumber = vm.OriginAccountNumber,
-                DestinationAccountNumber = vm.LoanNumber,
+                LoanNumber = vm.LoanNumber,
                 AccountHolderName = holderName
             });
+            TempData["CashierUserId"] = GetCashierUserId() ?? string.Empty;
             return RedirectToAction(nameof(PreConfirmOperation));
         }
 
@@ -211,15 +212,15 @@ namespace ArtemisBankingPro.Controllers
         {
             if (confirm != "yes") return RedirectToAction(nameof(Home));
 
-            var data = GetPreConfirmData<LoanPaymentViewModel>();
+            var data = GetPreConfirmData<PreConfirmOperationViewModel>();
             if (data == null) return RedirectToAction(nameof(Home));
 
             var result = await _cashierService.LoanPaymentAsync(new CashierLoanPaymentDto
             {
                 LoanNumber = data.LoanNumber,
                 Amount = data.Amount,
-                OriginAccountNumber = data.OriginAccountNumber,
-                ResponsibleUserId = GetCashierUserId()
+                OriginAccountNumber = data.AccountNumber,
+                ResponsibleUserId = TempData["CashierUserId"]?.ToString() ?? string.Empty
             });
 
             if (!result.Success)
@@ -255,6 +256,7 @@ namespace ArtemisBankingPro.Controllers
                 AccountHolderName = originHolder,
                 DestinationHolderName = destHolder
             });
+            TempData["CashierUserId"] = GetCashierUserId() ?? string.Empty;
             return RedirectToAction(nameof(PreConfirmOperation));
         }
 
@@ -272,7 +274,7 @@ namespace ArtemisBankingPro.Controllers
                 OriginAccountNumber = data.OriginAccountNumber,
                 DestinationAccountNumber = data.DestinationAccountNumber,
                 Amount = data.Amount,
-                ResponsibleUserId = GetCashierUserId()
+                ResponsibleUserId = TempData["CashierUserId"]?.ToString() ?? string.Empty
             });
 
             if (!result.Success)
@@ -358,7 +360,10 @@ namespace ArtemisBankingPro.Controllers
         {
             var json = TempData["PreConfirmData"]?.ToString();
             if (string.IsNullOrEmpty(json)) return null;
-            return JsonSerializer.Deserialize<T>(json);
+            return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
         }
     }
 }

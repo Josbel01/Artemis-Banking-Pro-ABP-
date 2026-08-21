@@ -16,9 +16,10 @@ namespace ABP.Infrastructure.Persistence.Repositories
 
         public async Task<Loan?> GetByLoanNumberAsync(string loanNumber)
         {
+            var cleaned = loanNumber.Replace(" ", "").Trim();
             return await _context.Loans
                 .Include(l => l.LoanInstallments.OrderBy(li => li.InstallmentNumber))
-                .FirstOrDefaultAsync(l => l.LoanNumber == loanNumber);
+                .FirstOrDefaultAsync(l => l.LoanNumber.Replace(" ", "") == cleaned);
         }
 
         public async Task<List<Loan>> GetAllByClientIdAsync(string clientId)
@@ -27,6 +28,14 @@ namespace ABP.Infrastructure.Persistence.Repositories
                 .Include(l => l.LoanInstallments.OrderBy(li => li.InstallmentNumber))
                 .Where(l => l.ClientId == clientId)
                 .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync();
+        }
+
+        public override async Task<List<Loan>> GetAllListAsync()
+        {
+            return await _context.Loans
+                .Include(l => l.LoanInstallments)
+                .OrderByDescending(l => l.Id)
                 .ToListAsync();
         }
 

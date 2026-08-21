@@ -16,9 +16,10 @@ namespace ABP.Infrastructure.Persistence.Repositories
 
         public async Task<CreditCard?> GetByCardNumberAsync(string cardNumber)
         {
+            var cleaned = cardNumber.Replace(" ", "").Trim();
             return await _context.CreditCards
                 .Include(c => c.CardTransactions.OrderByDescending(ct => ct.TransactionDate))
-                .FirstOrDefaultAsync(c => c.CardNumber == cardNumber);
+                .FirstOrDefaultAsync(c => c.CardNumber.Replace(" ", "") == cleaned);
         }
 
         public async Task<List<CreditCard>> GetAllByClientIdAsync(string clientId)

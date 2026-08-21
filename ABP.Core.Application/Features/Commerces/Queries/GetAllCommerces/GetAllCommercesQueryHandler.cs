@@ -20,15 +20,15 @@ namespace ABP.Core.Application.Features.Commerces.Queries.GetAllCommerces
         {
             var commerces = await _commerceRepository.GetAllListAsync();
 
-            // Parse status filter: "activo" (default), "inactivo", "todos"
+            // Parse status filter: "activo"/"true", "inactivo"/"false", "todos"
             if (!string.IsNullOrEmpty(request.Status))
             {
                 var statusLower = request.Status.ToLower().Trim();
-                if (statusLower == "activo")
+                if (statusLower == "activo" || statusLower == "true" || statusLower == "1")
                 {
                     commerces = commerces.Where(c => c.IsActive).ToList();
                 }
-                else if (statusLower == "inactivo")
+                else if (statusLower == "inactivo" || statusLower == "false" || statusLower == "0")
                 {
                     commerces = commerces.Where(c => !c.IsActive).ToList();
                 }

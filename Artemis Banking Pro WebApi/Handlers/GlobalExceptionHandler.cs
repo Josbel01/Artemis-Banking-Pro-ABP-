@@ -34,6 +34,11 @@ namespace ArtemisBankingApi.Handlers
                             exceptionTitle = "Not found";
                             httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
                             break;
+                        case 0:
+                            // ApiException without explicit status code defaults to 400
+                            exceptionTitle = "Bad Request";
+                            httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                            break;
                         default:
                             httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                             break;

@@ -28,7 +28,7 @@ namespace ABP.Core.Application.Features.Users.Queries.GetAllUsers
                 validUsers = validUsers.Where(u => u.Roles != null && u.Roles.Contains(request.Role, StringComparer.OrdinalIgnoreCase)).ToList();
             }
 
-            return validUsers.OrderByDescending(u => u.Id).ToList();
+            return validUsers.OrderByDescending(u => u.CreatedAt).ToList();
         }
     }
 }

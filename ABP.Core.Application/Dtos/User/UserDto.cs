@@ -19,5 +19,6 @@ namespace ABP.Core.Application.Dtos.User
         public bool IsActive { get; set; }
         public bool IsVerified { get; set; }
         public List<string>? Roles { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

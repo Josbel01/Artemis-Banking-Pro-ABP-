@@ -21,7 +21,7 @@ namespace ABP.Core.Application.Features.Users.Queries.GetAllCommercesUsers
         {
             var users = await _accountService.GetAllUser(null);
             return users.Where(u => u.Roles != null && u.Roles.Contains(ABP.Core.Domain.Common.Enums.UserRoles.Commerce.ToString()))
-                        .OrderByDescending(u => u.Id)
+                        .OrderByDescending(u => u.CreatedAt)
                         .ToList();
         }
     }

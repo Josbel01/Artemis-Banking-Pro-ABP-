@@ -14,5 +14,6 @@ namespace ABP.Infrastructure.Identity.Entities
         public required string Identification { get; set; }
         public string? ProfileImage { get; set; }
         public bool IsActive { get; set; } = false;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

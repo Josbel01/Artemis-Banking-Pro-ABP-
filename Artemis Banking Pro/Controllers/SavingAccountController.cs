@@ -125,7 +125,7 @@ namespace ArtemisBankingPro.Controllers
                 FullName = $"{c.FirstName} {c.LastName}",
                 Email = c.Email,
                 DNI = c.DNI,
-                TotalDebt = CalculateClientDebt(c.Id, activeLoans, allCreditCards)
+                TotalDebt = _loanService.CalculateClientDebt(c.Id, activeLoans, allCreditCards)
             }).ToList();
 
             return View(clientDebtInfo);
@@ -196,7 +196,7 @@ namespace ArtemisBankingPro.Controllers
             // Calculate client total debt
             var activeLoans = await _loanService.GetAllAsync();
             var allCards = await _creditCardService.GetAllAsync();
-            ViewBag.ClientDebt = CalculateClientDebt(clientId, activeLoans, allCards);
+            ViewBag.ClientDebt = _loanService.CalculateClientDebt(clientId, activeLoans, allCards);
 
             return View(new SaveSavingAccountViewModel { ClientId = clientId });
         }
@@ -311,64 +311,11 @@ namespace ArtemisBankingPro.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Transfer balance to main account if > 0
-            if (account.Balance > 0)
-            {
-                var clientAccounts = await _savingAccountService.GetAllByClientIdAsync(account.ClientId);
-                var mainAccount = clientAccounts.FirstOrDefault(a => a.AccountType == SavingAccountType.Main && a.Status == SavingAccountStatus.Active);
-
-                if (mainAccount != null)
-                {
-                    // Debit from secondary
-                    await _transactionService.AddAsync(new ABP.Core.Application.Dtos.Transactions.TransactionDto
-                    {
-                        SavingAccountId = account.Id,
-                        Amount = account.Balance,
-                        Type = TransactionType.Debit,
-                        TransactionDate = DateTime.Now,
-                        Origin = account.AccountNumber,
-                        Beneficiary = mainAccount.AccountNumber,
-                        Status = TransactionStatus.Approved
-                    });
-
-                    // Credit to main
-                    mainAccount.Balance += account.Balance;
-                    await _savingAccountService.UpdateAsync(mainAccount, mainAccount.Id);
-
-                    await _transactionService.AddAsync(new ABP.Core.Application.Dtos.Transactions.TransactionDto
-                    {
-                        SavingAccountId = mainAccount.Id,
-                        Amount = account.Balance,
-                        Type = TransactionType.Credit,
-                        TransactionDate = DateTime.Now,
-                        Origin = account.AccountNumber,
-                        Beneficiary = mainAccount.AccountNumber,
-                        Status = TransactionStatus.Approved
-                    });
-                }
-            }
-
-            // Cancel the secondary account and set balance to 0
-            account.Balance = 0;
-            account.Status = SavingAccountStatus.Cancelled;
-            await _savingAccountService.UpdateAsync(account, account.Id);
+            // Delegate balance transfer + cancellation to service
+            await _savingAccountService.CancelSecondaryAccountAsync(id);
 
             TempData["SuccessMessage"] = "Cuenta secundaria cancelada correctamente.";
             return RedirectToAction(nameof(Index));
-        }
-
-        // Helper: Calculate total debt for a client
-        private decimal CalculateClientDebt(string clientId, List<ABP.Core.Application.Dtos.Loans.LoanDto> loans, List<ABP.Core.Application.Dtos.CreditCards.CreditCardDto> creditCards)
-        {
-            decimal loanDebt = loans
-                .Where(l => l.ClientId == clientId && l.Status == LoanStatus.Active)
-                .Sum(l => l.AmountPending);
-            
-            decimal cardDebt = creditCards
-                .Where(c => c.ClientId == clientId && c.Status == CreditCardStatus.Active)
-                .Sum(c => c.CurrentDebt);
-            
-            return loanDebt + cardDebt;
         }
     }
 }

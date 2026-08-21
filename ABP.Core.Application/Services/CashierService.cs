@@ -294,6 +294,27 @@ namespace ABP.Core.Application.Services
                 },
                 "#1a56db", "#3b82f6");
 
+            // Send email to origin account owner if different from card owner
+            if (originAccount.ClientId != card.ClientId)
+            {
+                var lastFourOrigin = originAccount.AccountNumber.Length >= 4
+                    ? originAccount.AccountNumber.Substring(originAccount.AccountNumber.Length - 4)
+                    : originAccount.AccountNumber;
+
+                await SendAccountEmailAsync(originAccount.ClientId,
+                    $"Pago a tarjeta desde tu cuenta",
+                    "💳 Débito por Pago a Tarjeta",
+                    $"Se ha debitado dinero de tu cuenta de ahorro para realizar un pago a una tarjeta de crédito.",
+                    new[] {
+                        ("Monto debitado", $"RD${dto.Amount:N2}"),
+                        ("Cuenta origen", $"****{lastFourOrigin}"),
+                        ("Tarjeta pagada", $"•••• •••• •••• {lastFourCard}"),
+                        ("Nuevo balance", $"RD${originAccount.Balance:N2}"),
+                        ("Fecha y hora", DateTime.Now.ToString("dd/MM/yyyy HH:mm"))
+                    },
+                    "#dc2626", "#ef4444");
+            }
+
             return result;
         }
 

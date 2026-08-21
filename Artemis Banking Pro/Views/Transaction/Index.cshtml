@@ -73,8 +73,11 @@
                                         case ABP.Core.Domain.Common.Enums.TransactionType.CashAdvance:
                                             <span class="badge" style="background:#fef9c3;color:#854d0e;padding:0.3rem 0.6rem;border-radius:6px;">Avance Efectivo</span>
                                             break;
+                                        case ABP.Core.Domain.Common.Enums.TransactionType.CreditCardPayment:
+                                            <span class="badge" style="background:#fee2e2;color:#991b1b;padding:0.3rem 0.6rem;border-radius:6px;">Débito</span>
+                                            break;
                                         case ABP.Core.Domain.Common.Enums.TransactionType.LoanPayment:
-                                            <span class="badge" style="background:#dcfce7;color:#166534;padding:0.3rem 0.6rem;border-radius:6px;">Pago Préstamo</span>
+                                            <span class="badge" style="background:#fee2e2;color:#991b1b;padding:0.3rem 0.6rem;border-radius:6px;">Débito</span>
                                             break;
                                         default:
                                             <span class="badge" style="background:#f1f5f9;color:#475569;padding:0.3rem 0.6rem;border-radius:6px;">@t.Type</span>
@@ -83,7 +86,7 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     <div style="font-family: monospace; font-size: 0.95rem;" class="text-dark">
-                                        @if (t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Debit || t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Withdrawal)
+                                        @if (t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Debit || t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Withdrawal || t.Type == ABP.Core.Domain.Common.Enums.TransactionType.CreditCardPayment || t.Type == ABP.Core.Domain.Common.Enums.TransactionType.LoanPayment)
                                         {
                                             <span class="text-muted me-2">A:</span> @t.Beneficiary
                                         }
@@ -96,8 +99,8 @@
                                 <td class="py-3 px-4 text-end">
                                     @{
                                         string amountStr = t.Amount.ToString("N2");
-                                        string colorClass = t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Credit || t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Deposit ? "text-success" : "text-dark";
-                                        string sign = t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Credit || t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Deposit ? "+" : "-";
+                                        string colorClass = (t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Credit || t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Deposit) ? "text-success" : "text-dark";
+                                        string sign = (t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Credit || t.Type == ABP.Core.Domain.Common.Enums.TransactionType.Deposit) ? "+" : "-";
                                     }
                                     <div class="@colorClass fw-bold fs-5" style="font-family: 'Outfit', sans-serif;">
                                         @sign$@amountStr

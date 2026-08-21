@@ -126,7 +126,7 @@ namespace ArtemisBankingPro.Controllers
                 FullName = $"{c.FirstName} {c.LastName}",
                 Email = c.Email,
                 DNI = c.DNI,
-                TotalDebt = CalculateClientDebt(c.Id, activeLoans, allCreditCards)
+                TotalDebt = _loanService.CalculateClientDebt(c.Id, activeLoans, allCreditCards)
             }).ToList();
 
             return View(clientDebtInfo);
@@ -174,7 +174,7 @@ namespace ArtemisBankingPro.Controllers
             // Calculate client total debt
             var activeLoans = await _loanService.GetAllAsync();
             var allCards = await _creditCardService.GetAllAsync();
-            ViewBag.ClientDebt = CalculateClientDebt(clientId, activeLoans, allCards);
+            ViewBag.ClientDebt = _loanService.CalculateClientDebt(clientId, activeLoans, allCards);
 
             return View(new SaveCreditCardViewModel { ClientId = clientId });
         }
@@ -396,18 +396,5 @@ namespace ArtemisBankingPro.Controllers
             return RedirectToAction("Index");
         }
 
-        // Helper: Calculate total debt for a client
-        private decimal CalculateClientDebt(string clientId, List<LoanDto> loans, List<CreditCardDto> creditCards)
-        {
-            decimal loanDebt = loans
-                .Where(l => l.ClientId == clientId && l.Status == LoanStatus.Active)
-                .Sum(l => l.AmountPending);
-            
-            decimal cardDebt = creditCards
-                .Where(c => c.ClientId == clientId && c.Status == CreditCardStatus.Active)
-                .Sum(c => c.CurrentDebt);
-            
-            return loanDebt + cardDebt;
-        }
     }
 }

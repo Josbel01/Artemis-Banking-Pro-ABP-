@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentAssertions;
 using ABP.Core.Application.Dtos.SavingAccounts;
+using ABP.Core.Application.Interfaces;
 using ABP.Core.Application.Mappings.EntitiesAndDtos;
 using ABP.Core.Application.Services;
 using ABP.Core.Domain.Entities;
@@ -41,7 +42,7 @@ namespace ABP.Unit.Tests.Services
 
             var context = new ArtemisBankingAppContext(_dbOptions);
             var repo = new SavingAccountRepository(context, new NullLogger<GenericRepository<SavingAccount>>());
-            return new SavingAccountService(repo, _mapper, factoryMoq.Object);
+            return new SavingAccountService(repo, new Mock<ITransactionService>().Object, _mapper, factoryMoq.Object);
         }
 
         [Fact]

@@ -8,5 +8,6 @@ namespace ABP.Core.Application.Interfaces
     {
         Task<List<SavingAccountDto>> GetAllByClientIdAsync(string clientId);
         Task<SavingAccountDto?> GetByAccountNumberAsync(string accountNumber);
+        Task CancelSecondaryAccountAsync(int accountId);
     }
 }

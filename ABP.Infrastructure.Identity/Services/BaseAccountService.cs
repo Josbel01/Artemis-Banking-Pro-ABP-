@@ -312,7 +312,7 @@ namespace ABP.Infrastructure.Identity.Services
                 users = users.Where(u => u.IsActive == isActive.Value);
             }
 
-            var listUsers = await users.ToListAsync();
+            var listUsers = await users.OrderByDescending(u => u.CreatedAt).ToListAsync();
 
             foreach(var item in listUsers)
             {
@@ -329,7 +329,8 @@ namespace ABP.Infrastructure.Identity.Services
                     DNI = item.Identification,
                     PhotoUrl = item.ProfileImage,
                     Roles = roleList.ToList(),
-                    IsActive = item.IsActive
+                    IsActive = item.IsActive,
+                    CreatedAt = item.CreatedAt
                 });
             }
             return listUsersDtos;
