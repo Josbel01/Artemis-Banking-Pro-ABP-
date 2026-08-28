@@ -27,7 +27,7 @@ namespace Artemis_Banking_Pro_WebApi.Extensions
                     Contact = new OpenApiContact
                     {
                         Name = "ArtemisBankingApp Developers",
-                        Email = "corage1920@gmail.com"
+                        Email = "artemisbanking@proyecto.com"
                     }
                 });
 
