@@ -267,8 +267,10 @@ dotnet test
 
 | Nombre | GitHub | Rol |
 |--------|--------|-----|
-| **Mariely Roa** | [@MarielyRoa](https://github.com/MarielyRoa) | Desarrolladora |
+| **Mariely Gerardine Roa Baez** | [@MarielyRoa](https://github.com/MarielyRoa) | Desarrolladora |
 | **Daferlin Álvarez** | [@Josbel01](https://github.com/Josbel01) | Desarrollador |
+| **Carlos Eliezer Font De Jesus** | — | Desarrollador |
+| **Victor Enriquez Nunez Carvajal** | — | Desarrollador |
 
 ---
 
