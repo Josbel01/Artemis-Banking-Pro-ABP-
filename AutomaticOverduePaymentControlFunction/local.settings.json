@@ -6,14 +6,14 @@
     "TimeTrigger": "0 */1 * * * *",
 
     "UseInMemoryDatabase": false,
-    "ConnectionStrings:DefaultConnection": "Server=Daff;Database=ArtemisBankingAppDb;Trusted_Connection=True;TrustServerCertificate=true",
-    "ConnectionStrings:IdentityConnection": "ServerDaff=;Database=ArtemisBankingAppDb;Trusted_Connection=True;TrustServerCertificate=true",
+    "ConnectionStrings:DefaultConnection": ",
+    "ConnectionStrings:IdentityConnection": ",
 
-    "EmailSettings:EmailFrom": "corage1920@gmail.com",
+    "EmailSettings:EmailFrom": ",
     "EmailSettings:SmtpHost": "smtp.gmail.com",
     "EmailSettings:SmtpPort": 587,
-    "EmailSettings:SmtpUser": "corage1920@gmail.com",
-    "EmailSettings:SmtpPass": "kqtlnvnnepevecqw",
+    "EmailSettings:SmtpUser": ",
+    "EmailSettings:SmtpPass": ",
     "EmailSettings:DisplayName": "ArtemisBanking Email"
   }
 }

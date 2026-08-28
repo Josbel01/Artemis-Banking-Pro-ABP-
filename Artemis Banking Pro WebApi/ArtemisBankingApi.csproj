@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -8,6 +8,7 @@
   <GenerateDocumentationFile>true</GenerateDocumentationFile>
   <NoWarn>CS1591</NoWarn>
   <OpenApiGenerateDocuments>false</OpenApiGenerateDocuments>
+    <UserSecretsId>e7fc5e4a-8aea-4777-9ca4-e9dade251a01</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

@@ -174,12 +174,76 @@ Este enfoque permite mantener los controladores ligeros y organizar la lógica d
 
 # ⚙️ Configuración del Proyecto
 
-1. Clonar el repositorio
-2. Configurar la Base de Datos
-3. Aplicar Migraciones
-4. Ejecutar la Aplicación Web
-5. Ejecutar la Web API
-6. Ejecutar las Pruebas
+## Requisitos previos
+
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [SQL Server](https://www.microsoft.com/es-es/sql-server) (local o express)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/) (recomendado)
+- Opcional: [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
+
+## 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/MarielyRoa/Artemis-Banking-Pro-ABP-.git
+cd Artemis-Banking-Pro-ABP-
+```
+
+## 2. Configurar Secretos (User Secrets)
+
+> ⚠️ **IMPORTANTE:** Este proyecto utiliza **.NET User Secrets** para manejar credenciales de forma segura. **NUNCA** subas contraseñas, API keys o connection strings a GitHub.
+
+Ejecuta estos comandos desde la carpeta del proyecto API:
+
+```bash
+cd "Artemis Banking Pro WebApi"
+
+# Inicializar User Secrets
+dotnet user-secrets init
+
+# Configurar Connection Strings
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=TU_SERVIDOR;Database=ArtemisBankingAppDb;Trusted_Connection=True;TrustServerCertificate=true"
+dotnet user-secrets set "ConnectionStrings:IdentityConnection" "Server=TU_SERVIDOR;Database=ArtemisBankingAppDb;Trusted_Connection=True;TrustServerCertificate=true"
+
+# Configurar Email
+dotnet user-secrets set "EmailSettings:EmailFrom" "tu-email@gmail.com"
+dotnet user-secrets set "EmailSettings:SmtpUser" "tu-email@gmail.com"
+dotnet user-secrets set "EmailSettings:SmtpPass" "tu-app-password-de-gmail"
+
+# Configurar JWT
+dotnet user-secrets set "JWTSettings:SecretKey" "tu-clave-secreta-minimo-32-caracteres-aqui"
+dotnet user-secrets set "JWTSettings:Issuer" "ArtemisBankingIdentity"
+dotnet user-secrets set "JWTSettings:Audience" "ArtemisBankingApi"
+```
+
+## 3. Configurar la Base de Datos
+
+1. Crear la base de datos `ArtemisBankingAppDb` en SQL Server
+2. Aplicar migraciones:
+
+```bash
+dotnet ef database update --project "ABP.Infrastructure.Persistence" --startup-project "Artemis Banking Pro WebApi"
+```
+
+## 4. Ejecutar la Aplicación Web
+
+```bash
+dotnet run --project "Artemis Banking Pro"
+```
+
+## 5. Ejecutar la Web API
+
+```bash
+dotnet run --project "Artemis Banking Pro WebApi"
+```
+
+La API estará disponible en: `https://localhost:5001/swagger`
+
+## 6. Ejecutar las Pruebas
+
+```bash
+dotnet test
+```
+
 ---
 
 # 📂 Proyectos de la Solución
@@ -199,3 +263,13 @@ Este enfoque permite mantener los controladores ligeros y organizar la lógica d
 
 ---
 
+# 👥 Equipo de Desarrollo
+
+| Nombre | GitHub | Rol |
+|--------|--------|-----|
+| **Mariely Roa** | [@MarielyRoa](https://github.com/MarielyRoa) | Desarrolladora |
+| **Daferlin Álvarez** | [@Josbel01](https://github.com/Josbel01) | Desarrollador |
+
+---
+
+> 💡 **Nota:** Este proyecto fue desarrollado con fines académicos para el curso de Desarrollo de Software en el **ITLA** (Instituto Tecnológico de las Américas).
