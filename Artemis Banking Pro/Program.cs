@@ -7,6 +7,12 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Force load User Secrets in development
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>(optional: true, reloadOnChange: true);
+}
+
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext().CreateLogger();
